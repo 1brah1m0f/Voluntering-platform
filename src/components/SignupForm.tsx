@@ -10,7 +10,7 @@ type Status = 'idle' | 'submitting' | 'ok' | 'duplicate' | 'error';
 type Plan = SignupData['plan'];
 
 /** Other sections (e.g. pricing cards) can preselect a plan before scrolling here. */
-export const PLAN_EVENT = 'fursat:plan';
+export const PLAN_EVENT = 'openly:plan';
 export function selectPlan(plan: Plan) {
   window.dispatchEvent(new CustomEvent<Plan>(PLAN_EVENT, { detail: plan }));
 }

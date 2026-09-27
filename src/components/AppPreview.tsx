@@ -129,7 +129,7 @@ export default function AppPreview() {
               <span className="h-3 w-3 rounded-full bg-emerald-300" />
               <div className="ml-3 hidden flex-1 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs text-slate-400 sm:flex">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
-                fursat.az/dashboard
+                openly.az/dashboard
               </div>
             </div>
 

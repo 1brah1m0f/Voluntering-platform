@@ -10,7 +10,7 @@ export interface SignupData {
 
 export type SignupResult = 'ok' | 'duplicate';
 
-const MOCK_KEY = 'fursat_waitlist_mock';
+const MOCK_KEY = 'openly_waitlist_mock';
 
 function readMock(): Array<SignupData & { created_at: string }> {
   try {
@@ -20,7 +20,7 @@ function readMock(): Array<SignupData & { created_at: string }> {
   }
 }
 
-const GF_SENT_KEY = 'fursat_gform_sent';
+const GF_SENT_KEY = 'openly_gform_sent';
 
 /**
  * Posts to a Google Form. Google doesn't allow reading the response

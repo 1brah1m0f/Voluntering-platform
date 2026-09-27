@@ -13,7 +13,7 @@ import Pricing from './components/Pricing';
 import SignupForm from './components/SignupForm';
 import Footer from './components/Footer';
 
-const LANG_KEY = 'fursat_lang';
+const LANG_KEY = 'openly_lang';
 
 function initialLang(): Lang {
   try {

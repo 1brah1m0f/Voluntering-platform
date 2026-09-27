@@ -1,6 +1,6 @@
-# Fürsət — market-validation landing page
+# Openly — market-validation landing page
 
-Single-page landing site (Azerbaijani, with EN toggle) for **Fürsət**, a platform that gathers
+Single-page landing site (Azerbaijani, with EN toggle) for **Openly**, a platform that gathers
 international and national volunteering opportunities (Erasmus+, SALTO-Youth, European Solidarity
 Corps, UN Volunteers, national programs) into a personalized daily digest with deadline reminders and
 application tracking. The goal of this page is to **measure interest and collect waitlist emails**

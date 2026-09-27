@@ -1,4 +1,4 @@
--- Waitlist table for the Fürsət landing page.
+-- Waitlist table for the Openly landing page.
 -- Run in Supabase: SQL Editor → New query → paste → Run.
 
 create extension if not exists citext;
