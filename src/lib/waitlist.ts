@@ -1,3 +1,4 @@
+import { GOOGLE_FORM } from '../config';
 import { supabase } from './supabase';
 
 export interface SignupData {
@@ -19,8 +20,43 @@ function readMock(): Array<SignupData & { created_at: string }> {
   }
 }
 
+const GF_SENT_KEY = 'fursat_gform_sent';
+
+/**
+ * Posts to a Google Form. Google doesn't allow reading the response
+ * cross-origin (`no-cors`), so we can't see server-side duplicates; we only
+ * remember emails already sent from this browser.
+ */
+async function submitToGoogleForm(form: NonNullable<typeof GOOGLE_FORM>, data: SignupData, email: string): Promise<SignupResult> {
+  let sent: string[] = [];
+  try {
+    sent = JSON.parse(localStorage.getItem(GF_SENT_KEY) || '[]');
+  } catch {
+    /* storage unavailable */
+  }
+  if (sent.includes(email)) return 'duplicate';
+
+  const body = new URLSearchParams({
+    [form.fields.name]: data.name.trim(),
+    [form.fields.email]: email,
+    [form.fields.plan]: data.plan === 'premium' ? 'Premium' : 'Sadə',
+    [form.fields.lang]: data.lang,
+  });
+  // Resolves on any HTTP answer (opaque); rejects only on network failure.
+  await fetch(`https://docs.google.com/forms/d/e/${form.formId}/formResponse`, { method: 'POST', mode: 'no-cors', body });
+
+  try {
+    localStorage.setItem(GF_SENT_KEY, JSON.stringify([...sent, email]));
+  } catch {
+    /* storage unavailable */
+  }
+  return 'ok';
+}
+
 export async function submitSignup(data: SignupData): Promise<SignupResult> {
   const email = data.email.trim().toLowerCase();
+
+  if (GOOGLE_FORM) return submitToGoogleForm(GOOGLE_FORM, data, email);
 
   if (!supabase) {
     // ------------------------------------------------------------------
@@ -57,6 +93,7 @@ export async function submitSignup(data: SignupData): Promise<SignupResult> {
 
 /** Returns the number of signups, or null if unavailable. */
 export async function getSignupCount(): Promise<number | null> {
+  if (GOOGLE_FORM) return null; // Google Forms has no public counter.
   if (!supabase) return readMock().length || null;
   const { data, error } = await supabase.rpc('waitlist_count');
   if (error || typeof data !== 'number') return null;
