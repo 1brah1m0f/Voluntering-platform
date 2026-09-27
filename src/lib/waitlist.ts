@@ -90,12 +90,3 @@ export async function submitSignup(data: SignupData): Promise<SignupResult> {
   }
   return 'ok';
 }
-
-/** Returns the number of signups, or null if unavailable. */
-export async function getSignupCount(): Promise<number | null> {
-  if (GOOGLE_FORM) return null; // Google Forms has no public counter.
-  if (!supabase) return readMock().length || null;
-  const { data, error } = await supabase.rpc('waitlist_count');
-  if (error || typeof data !== 'number') return null;
-  return data;
-}

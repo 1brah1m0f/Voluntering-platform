@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInteractions } from './hooks/useInteractions';
 import { dictionaries, LangContext, type Lang } from './i18n';
-import { getSignupCount } from './lib/waitlist';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProgramStrip from './components/ProgramStrip';
@@ -27,7 +26,6 @@ function initialLang(): Lang {
 
 export default function App() {
   const [lang, setLangState] = useState<Lang>(initialLang);
-  const [count, setCount] = useState<number | null>(null);
   useInteractions();
 
   const setLang = (l: Lang) => {
@@ -47,21 +45,18 @@ export default function App() {
     document.title = t.meta.title;
   }, [lang, t]);
 
-  useEffect(() => {
-    getSignupCount().then(setCount);
-  }, []);
 
   return (
     <LangContext.Provider value={ctx}>
       <Navbar />
       <main id="main">
-        <Hero count={count} />
+        <Hero />
         <ProgramStrip />
         <Problem />
         <Features />
         <AppPreview />
         <Pricing />
-        <SignupForm count={count} onJoined={() => setCount((c) => (c ?? 0) + 1)} />
+        <SignupForm />
       </main>
       <Footer />
       <BackToTop />

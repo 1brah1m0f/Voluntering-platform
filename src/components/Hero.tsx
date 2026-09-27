@@ -9,15 +9,7 @@ const particles = Array.from({ length: 18 }, (_, i) => {
   return { size: 4 + r(1) * 8, left: r(2) * 100, duration: 9 + r(3) * 10, delay: -r(4) * 18 };
 });
 
-// Decorative initials for the social-proof avatar stack.
-const avatars = [
-  { i: 'A', c: 'from-brand-400 to-brand-700' },
-  { i: 'N', c: 'from-coral-400 to-coral-700' },
-  { i: 'R', c: 'from-amber-300 to-amber-600' },
-  { i: 'L', c: 'from-emerald-400 to-emerald-700' },
-];
-
-export default function Hero({ count }: { count: number | null }) {
+export default function Hero() {
   const { t } = useLang();
 
   return (
@@ -70,19 +62,6 @@ export default function Hero({ count }: { count: number | null }) {
 
           <Reveal delay={400}>
             <div className="mt-8 flex flex-col items-center gap-3 text-sm text-slate-700 sm:flex-row sm:justify-center sm:gap-5 lg:justify-start">
-              <span className="inline-flex shrink-0 items-center gap-3 whitespace-nowrap font-semibold text-slate-800">
-                <span className="flex -space-x-2" aria-hidden="true">
-                  {avatars.map((a) => (
-                    <span
-                      key={a.i}
-                      className={`flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${a.c} text-xs font-bold text-white ring-2 ring-white`}
-                    >
-                      {a.i}
-                    </span>
-                  ))}
-                </span>
-                {count ? t.hero.counter(count) : t.hero.counterFallback}
-              </span>
               <span className="inline-flex max-w-xs items-center gap-1.5 text-left sm:max-w-none">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
                 {t.hero.trust}

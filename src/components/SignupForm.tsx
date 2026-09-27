@@ -1,5 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
-import { ArrowRight, Check, CheckCircle2, Crown, Leaf, Loader2, Users } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Crown, Leaf, Loader2 } from 'lucide-react';
 import { useLang } from '../i18n';
 import { submitSignup, type SignupData } from '../lib/waitlist';
 import { Reveal } from './Section';
@@ -20,7 +20,7 @@ const planIcons = { basic: Leaf, premium: Crown } as const;
 const inputBase =
   'w-full rounded-xl border bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:bg-white focus:outline-none focus:ring-2';
 
-export default function SignupForm({ count, onJoined }: { count: number | null; onJoined: () => void }) {
+export default function SignupForm() {
   const { t, lang } = useLang();
   const s = t.signup;
   const uid = useId();
@@ -59,7 +59,6 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
     try {
       const result = await submitSignup({ name, email, plan, lang });
       setStatus(result);
-      if (result === 'ok') onJoined();
     } catch (err) {
       console.error('[waitlist] submit failed', err);
       setStatus('error');
@@ -101,12 +100,6 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
                   </li>
                 ))}
               </ul>
-              {count ? (
-                <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                  <Users className="h-4 w-4" aria-hidden="true" />
-                  {t.hero.counter(count)}
-                </p>
-              ) : null}
             </Reveal>
 
             <Reveal delay={120} variant="right" className="mx-auto w-full max-w-md lg:mr-0">

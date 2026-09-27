@@ -24,8 +24,7 @@ stores submissions in the browser's `localStorage`, so the page is fully demo-ab
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. SQL Editor → run [`supabase/schema.sql`](supabase/schema.sql). It creates the `waitlist` table,
-   an insert-only RLS policy for anonymous visitors, and a `waitlist_count()` function for the
-   public "X nəfər artıq qoşulub" counter.
+   and an insert-only RLS policy for anonymous visitors.
 3. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
    (Project Settings → API). Set the same variables in your hosting provider.
 
@@ -54,11 +53,11 @@ replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't r
 
 ```
 src/
-  App.tsx               page composition, language state, signup counter
+  App.tsx               page composition, language state
   i18n.ts               AZ/EN dictionaries + context
   config.ts             brand constants
-  lib/waitlist.ts       submitSignup / getSignupCount (Supabase or mock)
+  lib/waitlist.ts       submitSignup (Google Form, Supabase or mock)
   components/           Navbar, Hero, DashboardMockup, Problem, HowItWorks,
                         Features, AppPreview, Pricing, FAQ, SignupForm, Footer
-supabase/schema.sql     table, RLS, count function
+supabase/schema.sql     table, RLS
 ```

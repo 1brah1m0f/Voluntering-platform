@@ -26,18 +26,7 @@ create policy "anon can join waitlist"
   to anon, authenticated
   with check (true);
 
--- Public counter ("X nəfər artıq qoşulub") without exposing any rows.
-create or replace function public.waitlist_count()
-returns integer
-language sql
-security definer
-set search_path = public
-as $$
-  select count(*)::int from public.waitlist;
-$$;
-
-revoke all on function public.waitlist_count() from public;
-grant execute on function public.waitlist_count() to anon, authenticated;
+drop function if exists public.waitlist_count();
 
 -- Handy views for market-research analysis (run as project owner in SQL editor):
 --   select plan, count(*) from waitlist group by 1;

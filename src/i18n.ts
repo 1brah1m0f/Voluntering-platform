@@ -37,8 +37,6 @@ const az = {
       'Erasmus+, SALTO-Youth, Avropa Həmrəylik Korpusu, BMT Könüllüləri və milli proqramlar — hamısı bir yerdə. Maraqlarını seç, sənə uyğun fürsətləri hər gün bir dəfə al, son tarixləri isə biz xatırladaq.',
     cta: 'Pulsuz erkən qoşul',
     secondary: 'Xüsusiyyətlərə bax',
-    counter: (n: number) => `${n.toLocaleString('az-AZ')} nəfər artıq siyahıdadır`,
-    counterFallback: 'İlk qoşulanlardan ol',
     trust: 'Spam yoxdur. İstənilən vaxt abunəlikdən çıxa bilərsən.',
   },
   mock: {
@@ -204,8 +202,6 @@ const en: Dict = {
       'Erasmus+, SALTO-Youth, European Solidarity Corps, UN Volunteers and national programs — all in one place. Pick your interests, get matching opportunities once a day, and let us remind you about deadlines.',
     cta: 'Join early for free',
     secondary: 'See features',
-    counter: (n: number) => `${n.toLocaleString('en-US')} people already joined`,
-    counterFallback: 'Be one of the first to join',
     trust: 'No spam. Unsubscribe anytime.',
   },
   mock: {
