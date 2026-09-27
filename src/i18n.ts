@@ -22,7 +22,6 @@ const az = {
     title: `${BRAND} — Könüllülük fürsətlərini bir daha qaçırma`,
   },
   nav: {
-    how: 'Necə işləyir',
     features: 'Xüsusiyyətlər',
     pricing: 'Qiymətlər',
     cta: 'Erkən qoşul',
@@ -37,7 +36,7 @@ const az = {
     subtitle:
       'Erasmus+, SALTO-Youth, Avropa Həmrəylik Korpusu, BMT Könüllüləri və milli proqramlar — hamısı bir yerdə. Maraqlarını seç, sənə uyğun fürsətləri hər gün bir dəfə al, son tarixləri isə biz xatırladaq.',
     cta: 'Pulsuz erkən qoşul',
-    secondary: 'Necə işləyir?',
+    secondary: 'Xüsusiyyətlərə bax',
     counter: (n: number) => `${n.toLocaleString('az-AZ')} nəfər artıq siyahıdadır`,
     counterFallback: 'İlk qoşulanlardan ol',
     trust: 'Spam yoxdur. İstənilən vaxt abunəlikdən çıxa bilərsən.',
@@ -85,15 +84,6 @@ const az = {
     ],
   },
   backToTop: 'Yuxarı qalx',
-  how: {
-    eyebrow: 'Necə işləyir',
-    title: 'Üç addımda bütün fürsətlər nəzarətində',
-    steps: [
-      { title: 'Maraqlarını seç', text: 'Ekologiya, təhsil, insan hüquqları, incəsənət, idman… Həmçinin ölkələri və proqram növlərini qeyd et.' },
-      { title: 'Gündəlik xülasə al', text: 'Gündə bir dəfə yalnız sənə uyğun yeni fürsətlər — səliqəli, qısa, spamsız.' },
-      { title: 'Saxla, müraciət et, izlə', text: 'Bəyəndiyini bir kliklə saxla, rəsmi mənbədə müraciət et və statusunu panelində izlə.' },
-    ],
-  },
   features: {
     eyebrow: 'Xüsusiyyətlər',
     title: 'Könüllü həyatını asanlaşdıran hər şey',
@@ -139,10 +129,9 @@ const az = {
       desc: 'Könüllülüyə başlayanlar üçün hər şey.',
       price: '0 ₼',
       features: [
-        'Gündəlik xülasə e-poçtu',
+        'Həftəlik xülasə e-poçtu',
         'Maraq sahələri və ölkə seçimi',
         `Eyni anda ${FREE_EVENT_LIMIT} fürsətə qədər saxlama və izləmə`,
-        'Əsas son tarix xatırlatmaları',
       ],
     },
     premium: {
@@ -150,6 +139,7 @@ const az = {
       price: '3 ₼',
       desc: 'Aktiv müraciət edən və heç nəyi qaçırmaq istəməyənlər üçün.',
       features: [
+        'Gündəlik xülasə e-poçtu',
         'Limitsiz saxlama və müraciət izləmə',
         'Təkmil filtrlər (ölkə, müddət, xərclərin qarşılanması və s.)',
         'Prioritet — yeni fürsətlərdən daha tez xəbər tut',
@@ -157,17 +147,6 @@ const az = {
       ],
     },
     cta: 'Siyahıya qoşul',
-  },
-  faq: {
-    eyebrow: 'Suallar',
-    title: 'Tez-tez verilən suallar',
-    items: [
-      { q: `${BRAND} pulsuzdur?`, a: `Bəli! Əsas funksiyalar — gündəlik xülasə, maraq seçimi, ${FREE_EVENT_LIMIT} fürsətə qədər izləmə və xatırlatmalar — həmişə pulsuz olacaq. Daha çox imkan istəyənlər üçün ayda cəmi 3 ₼-a Premium plan olacaq.` },
-      { q: 'Hansı proqramları əhatə edirsiniz?', a: 'SALTO-Youth təlim kursları, Erasmus+ gənclər mübadilələri, Avropa Həmrəylik Korpusu (ESC), BMT Könüllüləri (UNV), həmçinin böyük milli könüllülük proqramları və tədbirləri. Siyahını daim genişləndirəcəyik.' },
-      { q: 'Nə qədər tez-tez e-poçt alacağam?', a: 'Gündə ən çox bir dəfə — yalnız maraqlarına uyğun yeni fürsət olduqda. Üstəlik, saxladığın fürsətlərin son tarixi yaxınlaşanda xatırlatma. Spam yoxdur.' },
-      { q: 'Mənim adımdan müraciət edirsiniz?', a: 'Xeyr. Biz hər fürsəti rəsmi mənbəyə yönləndiririk və müraciəti özün edirsən. Bizim işimiz — heç nəyi qaçırmamağın və hər şeyi rahat izləməyin üçündür.' },
-      { q: 'Məlumatlarım təhlükəsizdir?', a: 'Bəli. E-poçtunu yalnız sənə fürsətlər göndərmək üçün istifadə edirik, heç kimə ötürmürük. İstənilən vaxt siyahıdan çıxa bilərsən.' },
-    ],
   },
   signup: {
     eyebrow: 'Erkən giriş',
@@ -210,7 +189,6 @@ const en: Dict = {
     title: `${BRAND} — Never miss a volunteering opportunity again`,
   },
   nav: {
-    how: 'How it works',
     features: 'Features',
     pricing: 'Pricing',
     cta: 'Join early',
@@ -225,7 +203,7 @@ const en: Dict = {
     subtitle:
       'Erasmus+, SALTO-Youth, European Solidarity Corps, UN Volunteers and national programs — all in one place. Pick your interests, get matching opportunities once a day, and let us remind you about deadlines.',
     cta: 'Join early for free',
-    secondary: 'How it works',
+    secondary: 'See features',
     counter: (n: number) => `${n.toLocaleString('en-US')} people already joined`,
     counterFallback: 'Be one of the first to join',
     trust: 'No spam. Unsubscribe anytime.',
@@ -273,15 +251,6 @@ const en: Dict = {
     ],
   },
   backToTop: 'Back to top',
-  how: {
-    eyebrow: 'How it works',
-    title: 'Every opportunity under control in three steps',
-    steps: [
-      { title: 'Choose your interests', text: 'Environment, education, human rights, arts, sports… Plus the countries and program types you prefer.' },
-      { title: 'Get a daily digest', text: 'Once a day, only new opportunities that match you — clean, short, spam-free.' },
-      { title: 'Save, apply, track', text: 'Save what you like in one click, apply on the official site and track your status on your dashboard.' },
-    ],
-  },
   features: {
     eyebrow: 'Features',
     title: 'Everything that makes volunteering life easier',
@@ -327,10 +296,9 @@ const en: Dict = {
       desc: 'Everything you need to start volunteering.',
       price: '₼0',
       features: [
-        'Daily digest email',
+        'Weekly digest email',
         'Interest areas and country selection',
         `Save and track up to ${FREE_EVENT_LIMIT} opportunities at a time`,
-        'Basic deadline reminders',
       ],
     },
     premium: {
@@ -338,6 +306,7 @@ const en: Dict = {
       price: '3 ₼',
       desc: 'For active applicants who don’t want to miss anything.',
       features: [
+        'Daily digest email',
         'Unlimited saved & tracked opportunities',
         'Advanced filters (country, duration, costs covered, etc.)',
         'Priority — hear about new opportunities earlier',
@@ -345,17 +314,6 @@ const en: Dict = {
       ],
     },
     cta: 'Join the waitlist',
-  },
-  faq: {
-    eyebrow: 'Questions',
-    title: 'Frequently asked questions',
-    items: [
-      { q: `Is ${BRAND} free?`, a: `Yes! The core features — daily digest, interest selection, tracking up to ${FREE_EVENT_LIMIT} opportunities and reminders — will always be free. For those who want more, Premium will cost just 3 ₼ a month.` },
-      { q: 'Which programs do you cover?', a: 'SALTO-Youth training courses, Erasmus+ youth exchanges, European Solidarity Corps (ESC), UN Volunteers (UNV), plus major national volunteering programs and events. We’ll keep expanding the list.' },
-      { q: 'How often will I get emails?', a: 'At most once a day — only when there are new opportunities matching your interests. Plus reminders when a saved opportunity’s deadline is near. No spam.' },
-      { q: 'Do you apply on my behalf?', a: 'No. We link every opportunity to its official source and you apply yourself. Our job is to make sure you never miss anything and can track it all easily.' },
-      { q: 'Is my data safe?', a: 'Yes. We only use your email to send you opportunities and never share it. You can leave the list anytime.' },
-    ],
   },
   signup: {
     eyebrow: 'Early access',

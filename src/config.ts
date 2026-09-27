@@ -2,7 +2,7 @@
 export const BRAND = 'Fürsət';
 
 // Free plan limit shown in pricing copy.
-export const FREE_EVENT_LIMIT = 5;
+export const FREE_EVENT_LIMIT = 3;
 
 /**
  * Optional: send waitlist signups to a Google Form instead of Supabase.

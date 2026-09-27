@@ -7,11 +7,9 @@ import Hero from './components/Hero';
 import ProgramStrip from './components/ProgramStrip';
 import BackToTop from './components/BackToTop';
 import Problem from './components/Problem';
-import HowItWorks from './components/HowItWorks';
 import Features from './components/Features';
 import AppPreview from './components/AppPreview';
 import Pricing from './components/Pricing';
-import FAQ from './components/FAQ';
 import SignupForm from './components/SignupForm';
 import Footer from './components/Footer';
 
@@ -60,11 +58,9 @@ export default function App() {
         <Hero count={count} />
         <ProgramStrip />
         <Problem />
-        <HowItWorks />
         <Features />
         <AppPreview />
         <Pricing />
-        <FAQ />
         <SignupForm count={count} onJoined={() => setCount((c) => (c ?? 0) + 1)} />
       </main>
       <Footer />

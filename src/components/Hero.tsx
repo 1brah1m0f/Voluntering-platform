@@ -62,7 +62,7 @@ export default function Hero({ count }: { count: number | null }) {
                 {t.hero.cta}
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden="true" />
               </a>
-              <a href="#how" className="btn-secondary w-full sm:w-auto">
+              <a href="#features" className="btn-secondary w-full sm:w-auto">
                 {t.hero.secondary}
               </a>
             </div>
