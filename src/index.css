@@ -9,7 +9,7 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white font-sans text-slate-700 antialiased;
+    @apply bg-white font-sans text-[15px] leading-relaxed text-slate-700 antialiased sm:text-base;
   }
   h1, h2, h3, h4 {
     @apply text-slate-900;
@@ -24,30 +24,136 @@
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-6 py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-6 py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;
   }
   .eyebrow {
-    @apply mb-3 inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-700;
+    @apply mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider;
   }
   .section-title {
-    @apply text-3xl font-extrabold tracking-tight sm:text-4xl;
+    @apply text-balance text-3xl font-extrabold !leading-[1.2] tracking-tight sm:text-4xl lg:text-[2.75rem];
   }
   .section-sub {
-    @apply mt-4 text-lg leading-relaxed text-slate-600;
+    @apply mt-4 text-base leading-7 text-slate-700 sm:text-lg sm:leading-8;
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgba(15, 58, 66, 0.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .bg-dots-light {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .mask-fade-y {
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 70%, transparent);
+  }
+  .mask-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(90deg, #1b626c, #1f98a1, #fb5d3b, #8b5cf6, #1b626c);
+    background-size: 300% auto;
+    animation: shine 8s linear infinite;
+  }
+  /* Light sweep across primary buttons. */
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 50%;
+    z-index: -1;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+    animation: sweep 3.2s ease-in-out infinite;
   }
   .reveal {
-    @apply translate-y-6 opacity-0 transition duration-700 ease-out;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
   }
+  .reveal-left { transform: translateX(-60px); }
+  .reveal-right { transform: translateX(60px); }
+  .reveal-scale { transform: scale(0.9); }
   .reveal.is-visible {
-    @apply translate-y-0 opacity-100;
+    opacity: 1;
+    transform: none;
   }
+  /* 3D tilt driven by useInteractions(); transform is set inline on hover. */
+  .tilt-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .particle {
+    position: absolute;
+    bottom: -12px;
+    border-radius: 9999px;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(135deg, #3ab4bb, #fb5d3b);
+    animation: particle-rise linear infinite;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    pointer-events: none;
+    filter: blur(70px);
+    transition: transform 0.6s ease-out;
+  }
+  /* Logo marquee: always moves, like a news ticker. Defined here (not in the
+     Tailwind config) so it can't go missing from a stale build. */
+  .logo-track {
+    animation: logo-marquee 12s linear infinite;
+  }
+  /* Marquee logo cards; ProgramStrip sets scale/shadow inline as the cursor nears. */
+  .logo-card {
+    transition: transform 0.18s ease-out, box-shadow 0.25s ease-out;
+    will-change: transform;
+  }
+  .click-ring {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(31, 152, 161, 0.9);
+    border-radius: 9999px;
+    pointer-events: none;
+    transform: scale(0.4);
+    box-shadow: 0 0 12px rgba(31, 152, 161, 0.5);
+    animation: ring-expand 0.55s ease-out forwards;
+  }
+}
+
+@keyframes shine {
+  to { background-position: 300% center; }
+}
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes logo-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes sweep {
+  0%, 55% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(320%) skewX(-20deg); }
+}
+@keyframes particle-rise {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.3; }
+  100% { transform: translate(40px, -110vh) scale(0.3); opacity: 0; }
+}
+@keyframes ring-expand {
+  to { transform: scale(3.4); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
-  .animate-float { animation: none; }
+  .animate-float, .animate-float-slow, .animate-blob, .text-gradient, .btn-primary::after { animation: none; }
+  .particle, .click-ring { display: none; }
 }

@@ -3,10 +3,7 @@ import { supabase } from './supabase';
 export interface SignupData {
   name: string;
   email: string;
-  interests: string[];
-  country: string;
-  appliedBefore: 'yes' | 'no' | 'planning' | null;
-  wouldPay: 'yes' | 'maybe' | 'no' | null;
+  plan: 'basic' | 'premium';
   lang: string;
 }
 
@@ -44,12 +41,9 @@ export async function submitSignup(data: SignupData): Promise<SignupResult> {
   }
 
   const { error } = await supabase.from('waitlist').insert({
-    name: data.name.trim() || null,
+    name: data.name.trim(),
     email,
-    interests: data.interests,
-    country: data.country,
-    applied_before: data.appliedBefore,
-    would_pay: data.wouldPay,
+    plan: data.plan,
     lang: data.lang,
     user_agent: navigator.userAgent.slice(0, 300),
   });

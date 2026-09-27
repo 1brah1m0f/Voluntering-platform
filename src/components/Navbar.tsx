@@ -52,7 +52,7 @@ export default function Navbar() {
         <ul className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
             <li key={l.href}>
-              <a href={l.href} className="text-sm font-semibold text-slate-600 transition hover:text-brand-700">
+              <a href={l.href} className="text-sm font-semibold text-slate-700 transition hover:text-brand-700">
                 {l.label}
               </a>
             </li>

@@ -29,8 +29,9 @@ stores submissions in the browser's `localStorage`, so the page is fully demo-ab
 3. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
    (Project Settings → API). Set the same variables in your hosting provider.
 
-Stored fields: `name` (optional), `email` (unique, case-insensitive), `interests[]`, `country`,
-`applied_before` (`yes`/`no`/`planning`), `would_pay` (`yes`/`maybe`/`no`), `lang`, `user_agent`.
+Stored fields: `name` (full name, required), `email` (unique, case-insensitive), `plan`
+(`basic`/`premium`), `lang`, `user_agent`. If you created the table with an older version of the
+schema, re-run the file — it adds the `plan` column.
 Duplicate emails are shown to the user as "already on the list". Example analysis queries are at
 the bottom of the schema file.
 
@@ -42,7 +43,9 @@ replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't r
 
 ## Customize
 
-- **Brand name, contact email, social links, free plan limit:** `src/config.ts`
+- **Brand name, free plan limit:** `src/config.ts`
+- **Program logos in the marquee:** `public/logos/` and `src/components/ProgramStrip.tsx`
+- **Accent colors for cards/steps:** `src/lib/tones.ts`
   (also update the hard-coded name in `index.html` meta tags and `public/og-image.svg`).
 - **All copy (AZ + EN):** `src/i18n.ts`.
 - **Colors:** `tailwind.config.js` (`brand` = teal primary, `coral` = CTA accent).

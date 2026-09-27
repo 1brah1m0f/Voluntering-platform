@@ -1,5 +1,5 @@
-import { useId, useState, type FormEvent } from 'react';
-import { Check, CheckCircle2, Loader2, Users } from 'lucide-react';
+import { useEffect, useId, useState, type FormEvent } from 'react';
+import { ArrowRight, Check, CheckCircle2, Crown, Leaf, Loader2, Users } from 'lucide-react';
 import { useLang } from '../i18n';
 import { submitSignup, type SignupData } from '../lib/waitlist';
 import { Reveal } from './Section';
@@ -7,39 +7,18 @@ import { Reveal } from './Section';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type Status = 'idle' | 'submitting' | 'ok' | 'duplicate' | 'error';
+type Plan = SignupData['plan'];
 
-function RadioGroup<T extends string>({
-  legend,
-  name,
-  options,
-  value,
-  onChange,
-}: {
-  legend: string;
-  name: string;
-  options: Array<{ id: string; label: string }>;
-  value: T | null;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-semibold text-slate-800">{legend}</legend>
-      <div className="grid grid-cols-3 gap-2">
-        {options.map((o) => (
-          <label
-            key={o.id}
-            className={`flex cursor-pointer items-center justify-center rounded-xl border px-2 py-2.5 text-center text-sm font-semibold transition focus-within:ring-2 focus-within:ring-coral-500 ${
-              value === o.id ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
-            }`}
-          >
-            <input type="radio" name={name} value={o.id} checked={value === o.id} onChange={() => onChange(o.id as T)} className="sr-only" />
-            {o.label}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
+/** Other sections (e.g. pricing cards) can preselect a plan before scrolling here. */
+export const PLAN_EVENT = 'fursat:plan';
+export function selectPlan(plan: Plan) {
+  window.dispatchEvent(new CustomEvent<Plan>(PLAN_EVENT, { detail: plan }));
 }
+
+const planIcons = { basic: Leaf, premium: Crown } as const;
+
+const inputBase =
+  'w-full rounded-xl border bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:bg-white focus:outline-none focus:ring-2';
 
 export default function SignupForm({ count, onJoined }: { count: number | null; onJoined: () => void }) {
   const { t, lang } = useLang();
@@ -48,24 +27,27 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [interests, setInterests] = useState<string[]>([]);
-  const [country, setCountry] = useState('AZ');
-  const [appliedBefore, setAppliedBefore] = useState<SignupData['appliedBefore']>(null);
-  const [wouldPay, setWouldPay] = useState<SignupData['wouldPay']>(null);
+  const [plan, setPlan] = useState<Plan>('basic');
+  const [touched, setTouched] = useState({ name: false, email: false });
   const [honeypot, setHoneypot] = useState('');
   const [status, setStatus] = useState<Status>('idle');
 
-  const emailError = !email.trim() ? s.emailRequired : !EMAIL_RE.test(email.trim()) ? s.emailInvalid : null;
-  const showEmailError = emailTouched && emailError;
+  useEffect(() => {
+    const onPlan = (e: Event) => setPlan((e as CustomEvent<Plan>).detail);
+    window.addEventListener(PLAN_EVENT, onPlan);
+    return () => window.removeEventListener(PLAN_EVENT, onPlan);
+  }, []);
 
-  const toggleInterest = (id: string) => setInterests((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const nameError = name.trim() ? null : s.nameRequired;
+  const emailError = !email.trim() ? s.emailRequired : !EMAIL_RE.test(email.trim()) ? s.emailInvalid : null;
+  const showNameError = touched.name && nameError;
+  const showEmailError = touched.email && emailError;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setEmailTouched(true);
-    if (emailError) {
-      document.getElementById(`${uid}-email`)?.focus();
+    setTouched({ name: true, email: true });
+    if (nameError || emailError) {
+      document.getElementById(`${uid}-${nameError ? 'name' : 'email'}`)?.focus();
       return;
     }
     if (honeypot) {
@@ -75,7 +57,7 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
     }
     setStatus('submitting');
     try {
-      const result = await submitSignup({ name, email, interests, country, appliedBefore, wouldPay, lang });
+      const result = await submitSignup({ name, email, plan, lang });
       setStatus(result);
       if (result === 'ok') onJoined();
     } catch (err) {
@@ -87,10 +69,8 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
   function reset() {
     setName('');
     setEmail('');
-    setEmailTouched(false);
-    setInterests([]);
-    setAppliedBefore(null);
-    setWouldPay(null);
+    setPlan('basic');
+    setTouched({ name: false, email: false });
     setStatus('idle');
   }
 
@@ -99,12 +79,13 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
   return (
     <section id="signup" aria-labelledby="signup-title" className="relative overflow-hidden py-20 sm:py-24">
       <div className="container-x">
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 px-5 py-12 shadow-soft sm:px-10 lg:px-14 lg:py-16">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-coral-500/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl" />
+        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 px-5 py-10 shadow-soft sm:px-10 lg:px-14 lg:py-14">
+          <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-40" />
+          <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-coral-500/25 blur-3xl" />
+          <div className="animate-blob pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl [animation-delay:-6s]" />
 
-          <div className="relative grid gap-10 lg:grid-cols-5 lg:gap-14">
-            <Reveal className="lg:col-span-2">
+          <div className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+            <Reveal variant="left">
               <span className="mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-100">{s.eyebrow}</span>
               <h2 id="signup-title" className="text-3xl font-extrabold tracking-tight !text-white sm:text-4xl">
                 {s.title}
@@ -128,109 +109,112 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
               ) : null}
             </Reveal>
 
-            <Reveal className="lg:col-span-3" delay={120}>
-              <div className="rounded-3xl bg-white p-6 shadow-2xl sm:p-8" aria-live="polite">
+            <Reveal delay={120} variant="right" className="mx-auto w-full max-w-md lg:mr-0">
+              <div className="rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-white/20 sm:p-6" aria-live="polite">
                 {done ? (
-                  <div className="py-10 text-center">
-                    <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" aria-hidden="true" />
-                    <h3 className="mt-5 text-2xl font-extrabold">{status === 'ok' ? s.successTitle : s.duplicateTitle}</h3>
-                    <p className="mx-auto mt-3 max-w-md leading-relaxed text-slate-600">{status === 'ok' ? s.successText : s.duplicateText}</p>
-                    <button type="button" onClick={reset} className="btn-secondary mt-8">
+                  <div className="py-6 text-center">
+                    <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-500" aria-hidden="true" />
+                    <h3 className="mt-4 text-xl font-extrabold">{status === 'ok' ? s.successTitle : s.duplicateTitle}</h3>
+                    <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-600">{status === 'ok' ? s.successText : s.duplicateText}</p>
+                    <button type="button" onClick={reset} className="btn-secondary mt-6 py-2.5 text-sm">
                       {s.again}
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor={`${uid}-name`} className="mb-1.5 block text-sm font-semibold text-slate-800">
-                          {s.name} <span className="font-normal text-slate-500">{s.optional}</span>
-                        </label>
-                        <input
-                          id={`${uid}-name`}
-                          type="text"
-                          autoComplete="given-name"
-                          maxLength={80}
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder={s.namePh}
-                          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor={`${uid}-email`} className="mb-1.5 block text-sm font-semibold text-slate-800">
-                          {s.email} <span className="text-coral-700" aria-hidden="true">*</span>
-                        </label>
-                        <input
-                          id={`${uid}-email`}
-                          type="email"
-                          inputMode="email"
-                          autoComplete="email"
-                          required
-                          maxLength={254}
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          onBlur={() => setEmailTouched(true)}
-                          placeholder={s.emailPh}
-                          aria-invalid={showEmailError ? true : undefined}
-                          aria-describedby={showEmailError ? `${uid}-email-err` : undefined}
-                          className={`w-full rounded-xl border px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
-                            showEmailError ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-300 focus:border-brand-600 focus:ring-brand-200'
-                          }`}
-                        />
-                        {showEmailError && (
-                          <p id={`${uid}-email-err`} className="mt-1.5 text-sm font-medium text-rose-700">
-                            {emailError}
-                          </p>
-                        )}
-                      </div>
+                  <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                    <div>
+                      <label htmlFor={`${uid}-name`} className="mb-1 block text-sm font-semibold text-slate-800">
+                        {s.name}
+                      </label>
+                      <input
+                        id={`${uid}-name`}
+                        type="text"
+                        autoComplete="name"
+                        required
+                        maxLength={80}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={() => setTouched((x) => ({ ...x, name: true }))}
+                        placeholder={s.namePh}
+                        aria-invalid={showNameError ? true : undefined}
+                        aria-describedby={showNameError ? `${uid}-name-err` : undefined}
+                        className={`${inputBase} ${showNameError ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-brand-600 focus:ring-brand-200'}`}
+                      />
+                      {showNameError && (
+                        <p id={`${uid}-name-err`} className="mt-1 text-xs font-medium text-rose-700">
+                          {nameError}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor={`${uid}-email`} className="mb-1 block text-sm font-semibold text-slate-800">
+                        {s.email}
+                      </label>
+                      <input
+                        id={`${uid}-email`}
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        required
+                        maxLength={254}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => setTouched((x) => ({ ...x, email: true }))}
+                        placeholder={s.emailPh}
+                        aria-invalid={showEmailError ? true : undefined}
+                        aria-describedby={showEmailError ? `${uid}-email-err` : undefined}
+                        className={`${inputBase} ${showEmailError ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-brand-600 focus:ring-brand-200'}`}
+                      />
+                      {showEmailError && (
+                        <p id={`${uid}-email-err`} className="mt-1 text-xs font-medium text-rose-700">
+                          {emailError}
+                        </p>
+                      )}
                     </div>
 
                     <fieldset>
-                      <legend className="text-sm font-semibold text-slate-800">
-                        {s.interests} <span className="font-normal text-slate-500">— {s.interestsHint}</span>
-                      </legend>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {s.interestOptions.map((o) => {
-                          const on = interests.includes(o.id);
+                      <legend className="mb-1.5 text-sm font-semibold text-slate-800">{s.plan}</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        {s.planOptions.map((o) => {
+                          const on = plan === o.id;
+                          const Icon = planIcons[o.id as Plan];
+                          const premium = o.id === 'premium';
                           return (
-                            <button
+                            <label
                               key={o.id}
-                              type="button"
-                              aria-pressed={on}
-                              onClick={() => toggleInterest(o.id)}
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-                                on ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700'
+                              className={`relative flex cursor-pointer items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 transition focus-within:ring-2 focus-within:ring-coral-500 ${
+                                on
+                                  ? premium
+                                    ? 'border-coral-600 bg-coral-50'
+                                    : 'border-brand-600 bg-brand-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
                               }`}
                             >
-                              {on && <Check className="h-4 w-4" aria-hidden="true" />}
-                              {o.label}
-                            </button>
+                              <input type="radio" name={`${uid}-plan`} value={o.id} checked={on} onChange={() => setPlan(o.id as Plan)} className="sr-only" />
+                              <span
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                  premium ? 'bg-gradient-to-br from-coral-500 to-coral-700 text-white' : 'bg-brand-100 text-brand-700'
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" aria-hidden="true" />
+                              </span>
+                              <span className="leading-tight">
+                                <span className="block text-sm font-bold text-slate-900">{o.label}</span>
+                                <span className="block text-xs text-slate-500">{o.price}</span>
+                              </span>
+                              {on && (
+                                <span
+                                  className={`absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full text-white ${premium ? 'bg-coral-600' : 'bg-brand-600'}`}
+                                >
+                                  <Check className="h-3 w-3" aria-hidden="true" />
+                                </span>
+                              )}
+                            </label>
                           );
                         })}
                       </div>
                     </fieldset>
-
-                    <div>
-                      <label htmlFor={`${uid}-country`} className="mb-1.5 block text-sm font-semibold text-slate-800">
-                        {s.country}
-                      </label>
-                      <select
-                        id={`${uid}-country`}
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-200"
-                      >
-                        {s.countries.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <RadioGroup legend={s.applied} name={`${uid}-applied`} options={s.appliedOptions} value={appliedBefore} onChange={setAppliedBefore} />
-                    <RadioGroup legend={s.pay} name={`${uid}-pay`} options={s.payOptions} value={wouldPay} onChange={setWouldPay} />
 
                     {/* Honeypot: hidden from people, bots tend to fill it. */}
                     <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
@@ -241,22 +225,25 @@ export default function SignupForm({ count, onJoined }: { count: number | null; 
                     </div>
 
                     {status === 'error' && (
-                      <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                      <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">
                         {s.error}
                       </p>
                     )}
 
-                    <button type="submit" disabled={status === 'submitting'} className="btn-primary w-full py-4 text-base">
+                    <button type="submit" disabled={status === 'submitting'} className="btn-primary w-full">
                       {status === 'submitting' ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                           {s.submitting}
                         </>
                       ) : (
-                        s.submit
+                        <>
+                          {s.submit}
+                          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                        </>
                       )}
                     </button>
-                    <p className="text-center text-xs leading-relaxed text-slate-500">{s.privacy}</p>
+                    <p className="text-center text-xs text-slate-600">{s.privacy}</p>
                   </form>
                 )}
               </div>

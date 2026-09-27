@@ -42,9 +42,16 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
         },
+        blob: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(30px, -20px) scale(1.08)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+        },
       },
       animation: {
         float: 'float 6s ease-in-out infinite',
+        'float-slow': 'float 8s ease-in-out infinite',
+        blob: 'blob 14s ease-in-out infinite',
       },
     },
   },

@@ -6,15 +6,15 @@ create extension if not exists citext;
 create table if not exists public.waitlist (
   id              uuid primary key default gen_random_uuid(),
   created_at      timestamptz not null default now(),
-  name            text check (char_length(name) <= 80),
+  name            text not null check (char_length(name) between 1 and 80),
   email           citext not null unique check (char_length(email) <= 254 and email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-  interests       text[] not null default '{}',
-  country         text check (char_length(country) <= 32),
-  applied_before  text check (applied_before in ('yes', 'no', 'planning')),
-  would_pay       text check (would_pay in ('yes', 'maybe', 'no')),
+  plan            text not null default 'basic' check (plan in ('basic', 'premium')),
   lang            text check (lang in ('az', 'en')),
   user_agent      text check (char_length(user_agent) <= 300)
 );
+
+-- Upgrading a table created by an older version of this file:
+alter table public.waitlist add column if not exists plan text not null default 'basic' check (plan in ('basic', 'premium'));
 
 alter table public.waitlist enable row level security;
 
@@ -40,6 +40,4 @@ revoke all on function public.waitlist_count() from public;
 grant execute on function public.waitlist_count() to anon, authenticated;
 
 -- Handy views for market-research analysis (run as project owner in SQL editor):
---   select would_pay, count(*) from waitlist group by 1;
---   select applied_before, count(*) from waitlist group by 1;
---   select unnest(interests) as interest, count(*) from waitlist group by 1 order by 2 desc;
+--   select plan, count(*) from waitlist group by 1;
