@@ -26,7 +26,12 @@ set search_path = public
 as $$
 begin
   insert into public.profiles (id, email, full_name)
-  values (new.id, new.email, coalesce(left(new.raw_user_meta_data ->> 'full_name', 80), ''))
+  values (
+    new.id,
+    new.email,
+    -- Email sign-up sends full_name; Google sends full_name and/or name.
+    coalesce(left(coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'), 80), '')
+  )
   on conflict (id) do nothing;
   return new;
 end;

@@ -19,11 +19,15 @@ export class BackendError extends Error {
 
 export interface Backend {
   mode: 'supabase' | 'demo';
+  /** Whether "Continue with Google" can be offered. */
+  supportsGoogle: boolean;
 
   getUserId(): Promise<string | null>;
   onAuthChange(cb: (userId: string | null) => void): () => void;
   signUp(email: string, password: string, fullName: string): Promise<SignUpResult>;
   signIn(email: string, password: string): Promise<void>;
+  /** Redirects to Google; the browser comes back to `nextPath` signed in. */
+  signInWithGoogle(nextPath: string): Promise<void>;
   signOut(): Promise<void>;
 
   getProfile(): Promise<Profile | null>;

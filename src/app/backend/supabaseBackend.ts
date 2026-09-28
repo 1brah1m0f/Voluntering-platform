@@ -25,6 +25,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
   return {
     mode: 'supabase',
+    supportsGoogle: true,
 
     getUserId: uid,
 
@@ -47,6 +48,14 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
     async signIn(email, password) {
       const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw authError(error);
+    },
+
+    async signInWithGoogle(nextPath) {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}${nextPath}` },
+      });
       if (error) throw authError(error);
     },
 

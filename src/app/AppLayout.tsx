@@ -14,7 +14,8 @@ export function RequireAuth() {
   const { loading, userId } = useAuth();
   const location = useLocation();
   if (loading) return <Spinner />;
-  if (!userId) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  // Keep the query/hash so an OAuth error from Supabase reaches the login page.
+  if (!userId) return <Navigate to={`/login${location.search}${location.hash}`} replace state={{ from: location.pathname }} />;
   return <Outlet />;
 }
 

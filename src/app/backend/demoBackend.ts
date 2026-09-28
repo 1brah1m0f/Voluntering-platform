@@ -220,6 +220,7 @@ export function createDemoBackend(): Backend {
 
   return {
     mode: 'demo',
+    supportsGoogle: false,
 
     async getUserId() {
       return me()?.id ?? null;
@@ -258,6 +259,10 @@ export function createDemoBackend(): Backend {
       if (!u) throw new BackendError('invalid_credentials');
       write(K.session, u.id);
       emit(u.id);
+    },
+
+    async signInWithGoogle() {
+      throw new BackendError('not_allowed');
     },
 
     async signOut() {
