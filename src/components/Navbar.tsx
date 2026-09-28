@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { BRAND } from '../config';
 import { useLang, type Lang } from '../i18n';
 import { Logo } from './Icons';
@@ -60,6 +61,9 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LangToggle />
+          <Link to="/login" className="hidden text-sm font-semibold text-slate-700 transition hover:text-brand-700 sm:inline">
+            {t.nav.login}
+          </Link>
           <a href="#signup" className="btn-primary hidden !px-5 !py-2 text-sm sm:inline-flex">
             {t.nav.cta}
           </a>
@@ -86,6 +90,11 @@ export default function Navbar() {
                 </a>
               </li>
             ))}
+            <li>
+              <Link to="/login" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-3 font-semibold text-slate-700 hover:bg-brand-50">
+                {t.nav.login}
+              </Link>
+            </li>
             <li className="pt-2">
               <a href="#signup" onClick={() => setOpen(false)} className="btn-primary w-full">
                 {t.nav.cta}

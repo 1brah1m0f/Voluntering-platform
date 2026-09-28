@@ -1,12 +1,14 @@
-# Openly — market-validation landing page
+# Openly
 
-Single-page landing site (Azerbaijani, with EN toggle) for **Openly**, a platform that gathers
-international and national volunteering opportunities (Erasmus+, SALTO-Youth, European Solidarity
-Corps, UN Volunteers, national programs) into a personalized daily digest with deadline reminders and
-application tracking. The goal of this page is to **measure interest and collect waitlist emails**
-before building the product.
+**Openly** gathers international and national volunteering opportunities (Erasmus+, SALTO-Youth,
+European Solidarity Corps, UN Volunteers, national programs) in one place. This repo holds:
 
-Stack: React 18 + TypeScript + Vite + Tailwind CSS, Supabase for storage.
+- **Landing page** at `/` (Azerbaijani, with EN toggle) with a waitlist form that posts to a Google Form.
+- **Web app** at `/app`: sign up / log in, pick interests, browse and filter opportunities, save
+  them and track application status (free plan: 3 at a time).
+- **Admin panel** at `/admin`: add, edit, publish/hide and delete opportunities.
+
+Stack: React 18 + TypeScript + Vite + Tailwind CSS + React Router, Supabase for auth and data.
 
 ## Run locally
 
@@ -17,10 +19,32 @@ npm run build      # type-check + production build into dist/
 npm run preview    # serve the build
 ```
 
-Without Supabase credentials the form uses a **mock handler** (see `src/lib/waitlist.ts`) that
-stores submissions in the browser's `localStorage`, so the page is fully demo-able.
+Without Supabase credentials the app runs on an **in-browser demo backend**
+(`src/app/backend/demoBackend.ts`): accounts and data live in `localStorage`, it comes with sample
+opportunities, and the first account you register becomes the admin. A yellow banner shows while
+demo mode is on.
 
-## Connect Supabase
+## Connect the app to Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. SQL Editor → run [`supabase/app.sql`](supabase/app.sql). It creates `profiles`,
+   `opportunities` and `saved_opportunities` with row-level security, a sign-up trigger that
+   creates the profile, and the 3-item free-plan limit.
+3. Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+   (Project Settings → API). Restart `npm run dev`. Set the same variables on your host.
+4. Authentication → URL Configuration: set **Site URL** to `https://www.openlyapply.com` and add
+   `https://www.openlyapply.com/**`, `https://openlyapply.com/**` and `http://localhost:5173/**`
+   to the redirect URLs (used by the confirmation email link).
+5. Register in the app, then make yourself admin in the SQL Editor:
+   `update public.profiles set is_admin = true where email = 'you@example.com';`
+   Premium is set the same way: `set plan = 'premium'`.
+
+## Waitlist (landing page)
+
+The landing form posts to the Google Form configured in `src/config.ts` (`GOOGLE_FORM`).
+Set it to `null` to use Supabase instead (see below) or the local mock.
+
+## Waitlist in Supabase (optional)
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. SQL Editor → run [`supabase/schema.sql`](supabase/schema.sql). It creates the `waitlist` table,
@@ -37,7 +61,9 @@ the bottom of the schema file.
 ## Deploy
 
 Any static host works. Vercel/Netlify: build command `npm run build`, output directory `dist`.
-Update the canonical URL and `og:url`/`og:image` in `index.html` to your real domain, and ideally
+`vercel.json` rewrites app routes (`/app`, `/login`, …) to `index.html`; on Netlify add a
+`_redirects` file with `/* /index.html 200`.
+The canonical URL and `og:url`/`og:image` in `index.html` point to `https://www.openlyapply.com`. Ideally
 replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't render SVG previews).
 
 ## Customize
@@ -53,11 +79,18 @@ replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't r
 
 ```
 src/
-  App.tsx               page composition, language state
-  i18n.ts               AZ/EN dictionaries + context
-  config.ts             brand constants
-  lib/waitlist.ts       submitSignup (Google Form, Supabase or mock)
-  components/           Navbar, Hero, DashboardMockup, Problem, HowItWorks,
-                        Features, AppPreview, Pricing, FAQ, SignupForm, Footer
-supabase/schema.sql     table, RLS
+  main.tsx              routes (landing, /login, /register, /app/*, /admin/*)
+  App.tsx               landing page composition
+  LangProvider.tsx      site-wide AZ/EN state
+  i18n.ts               landing AZ/EN dictionaries
+  config.ts             brand, free-plan limit, Google Form
+  components/           landing sections
+  lib/                  programs list, Supabase client, waitlist
+  app/
+    backend/            Backend interface + Supabase and demo implementations
+    pages/              auth, opportunities, detail, tracker, profile, admin
+    AppLayout.tsx       app shell + auth/admin route guards
+    text.ts             app AZ/EN strings
+supabase/app.sql        app tables, RLS, triggers
+supabase/schema.sql     optional waitlist table
 ```

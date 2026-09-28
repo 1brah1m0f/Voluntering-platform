@@ -1,0 +1,189 @@
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Globe2, MapPin, Search, Sparkles, X } from 'lucide-react';
+import { useAuth } from '../AuthContext';
+import { useData } from '../DataContext';
+import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
+import { useAppText } from '../text';
+import type { Kind, Opportunity } from '../types';
+import { Chip, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass } from '../ui';
+import { daysUntil } from '../util';
+
+const ONLINE = '__online__';
+
+export function OpportunityCard({ o }: { o: Opportunity }) {
+  const { tx, lang } = useAppText();
+  const closed = daysUntil(o.deadline) < 0;
+  return (
+    <article className={`group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-soft ${closed ? 'opacity-60' : ''}`}>
+      <div className="flex items-start gap-3">
+        <ProgramBadge program={o.program} />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-brand-700">{o.program}</p>
+          <h3 className="mt-0.5 font-bold leading-snug text-slate-900">
+            <Link to={`/app/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-3xl focus:outline-none">
+              {o.title}
+            </Link>
+          </h3>
+        </div>
+      </div>
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
+        <span className="inline-flex items-center gap-1">
+          {o.is_online ? <Globe2 className="h-3.5 w-3.5" aria-hidden="true" /> : <MapPin className="h-3.5 w-3.5" aria-hidden="true" />}
+          {o.is_online ? tx.list.online : [o.city, o.country].filter(Boolean).join(', ')}
+        </span>
+        {!(o.is_online && o.kind === 'online') && <span>{KINDS[o.kind][lang]}</span>}
+        {o.costs === 'full' && <span className="font-semibold text-emerald-700">{COSTS.full[lang]}</span>}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {o.interests.slice(0, 3).map((i) => (
+          <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            {INTERESTS[i as InterestId]?.[lang] ?? i}
+          </span>
+        ))}
+        {!o.published && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">{tx.list.draft}</span>}
+      </div>
+      <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-4">
+        <DeadlineChip deadline={o.deadline} />
+        <SaveButton id={o.id} withLabel />
+      </div>
+    </article>
+  );
+}
+
+export default function OpportunitiesPage() {
+  const { tx, lang } = useAppText();
+  const { profile } = useAuth();
+  const { opportunities, error, reload } = useData();
+  const myInterests = profile?.interests ?? [];
+
+  const [query, setQuery] = useState('');
+  const [forYou, setForYou] = useState(myInterests.length > 0);
+  const [program, setProgram] = useState('');
+  const [kind, setKind] = useState<Kind | ''>('');
+  const [country, setCountry] = useState('');
+  const [soon, setSoon] = useState(false);
+  const [funded, setFunded] = useState(false);
+  const [showClosed, setShowClosed] = useState(false);
+
+  const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
+  const programs = useMemo(() => [...new Set(published.map((o) => o.program))].sort(), [published]);
+  const countries = useMemo(() => [...new Set(published.filter((o) => !o.is_online && o.country).map((o) => o.country))].sort((a, b) => a.localeCompare(b, 'az')), [published]);
+  const openCount = published.filter((o) => daysUntil(o.deadline) >= 0).length;
+
+  const q = query.trim().toLowerCase();
+  const results = published.filter((o) => {
+    const d = daysUntil(o.deadline);
+    if (!showClosed && d < 0) return false;
+    if (soon && (d < 0 || d > 7)) return false;
+    if (funded && o.costs !== 'full') return false;
+    if (program && o.program !== program) return false;
+    if (kind && o.kind !== kind) return false;
+    if (country === ONLINE ? !o.is_online : country && o.country !== country) return false;
+    if (forYou && myInterests.length && !o.interests.some((i) => myInterests.includes(i))) return false;
+    if (q && !`${o.title} ${o.program} ${o.organizer} ${o.country} ${o.city} ${o.description}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
+  const clear = () => {
+    setQuery('');
+    setProgram('');
+    setKind('');
+    setCountry('');
+    setSoon(false);
+    setFunded(false);
+    setShowClosed(false);
+    setForYou(false);
+  };
+
+  if (error) return <ErrorState onRetry={reload} />;
+  if (!opportunities) return <Spinner label={tx.loading} />;
+
+  return (
+    <div>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.list.title}</h1>
+        <p className="text-slate-600">{tx.list.sub(openCount)}</p>
+      </div>
+
+      {myInterests.length === 0 && (
+        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-2 text-sm font-medium text-brand-900">
+            <Sparkles className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
+            {tx.list.noInterests}
+          </p>
+          <Link to="/app/profile" className="btn-primary !px-4 !py-2 text-sm">
+            {tx.list.pickInterests}
+          </Link>
+        </div>
+      )}
+
+      <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tx.list.search} aria-label={tx.list.search} className={`${inputClass} pl-10`} />
+        </label>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <select value={program} onChange={(e) => setProgram(e.target.value)} className={inputClass} aria-label={tx.detail.program}>
+            <option value="">{tx.list.allPrograms}</option>
+            {programs.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <select value={kind} onChange={(e) => setKind(e.target.value as Kind | '')} className={inputClass} aria-label={tx.detail.type}>
+            <option value="">{tx.list.allKinds}</option>
+            {(Object.keys(KINDS) as Kind[]).map((k) => (
+              <option key={k} value={k}>
+                {KINDS[k][lang]}
+              </option>
+            ))}
+          </select>
+          <select value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass} aria-label={tx.detail.where}>
+            <option value="">{tx.list.allCountries}</option>
+            <option value={ONLINE}>{tx.list.online}</option>
+            {countries.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {myInterests.length > 0 && (
+            <Chip on={forYou} onClick={() => setForYou((v) => !v)}>
+              {tx.list.forYou}
+            </Chip>
+          )}
+          <Chip on={soon} onClick={() => setSoon((v) => !v)}>
+            {tx.list.closingSoon}
+          </Chip>
+          <Chip on={funded} onClick={() => setFunded((v) => !v)}>
+            {tx.list.fullyFunded}
+          </Chip>
+          <Chip on={showClosed} onClick={() => setShowClosed((v) => !v)}>
+            {tx.list.showClosed}
+          </Chip>
+          {anyFilter && (
+            <button type="button" onClick={clear} className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-rose-600">
+              <X className="h-4 w-4" aria-hidden="true" />
+              {tx.list.clear}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {results.length === 0 ? (
+        <p className="mt-10 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">{tx.list.empty}</p>
+      ) : (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {results.map((o) => (
+            <OpportunityCard key={o.id} o={o} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
