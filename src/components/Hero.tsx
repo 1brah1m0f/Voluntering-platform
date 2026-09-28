@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { ArrowRight, PartyPopper, ShieldCheck, Sparkles } from 'lucide-react';
 import { useLang } from '../i18n';
 import DashboardMockup from './DashboardMockup';
@@ -50,10 +51,10 @@ export default function Hero() {
 
           <Reveal delay={300}>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <a href="#signup" className="btn-primary group w-full text-base sm:w-auto">
+              <Link to="/register" className="btn-primary group w-full text-base sm:w-auto">
                 {t.hero.cta}
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden="true" />
-              </a>
+              </Link>
               <a href="#features" className="btn-secondary w-full sm:w-auto">
                 {t.hero.secondary}
               </a>
@@ -70,7 +71,7 @@ export default function Hero() {
           </Reveal>
         </div>
 
-        <Reveal variant="right" delay={200}>
+        <Reveal variant="right" delay={200} className="hidden sm:block">
           <div className="tilt-card relative">
             <DashboardMockup />
 

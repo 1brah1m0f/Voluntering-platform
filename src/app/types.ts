@@ -40,6 +40,12 @@ export interface Opportunity {
 
 export type OpportunityInput = Omit<Opportunity, 'id' | 'created_at'>;
 
+/** A user row as seen in Admin → Users. */
+export type UserRow = Profile & { created_at: string };
+
+/** New opportunities are Premium-only for this long after publishing. */
+export const PREMIUM_EARLY_HOURS = 24;
+
 export interface SavedItem {
   opportunity_id: string;
   status: Status;

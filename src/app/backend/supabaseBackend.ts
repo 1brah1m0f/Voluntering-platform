@@ -1,5 +1,5 @@
 import type { AuthError, PostgrestError, SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Opportunity, type Profile, type SavedItem } from '../types';
+import { FreeLimitError, type Opportunity, type Profile, type SavedItem, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out';
@@ -124,6 +124,23 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
     async deleteOpportunity(id) {
       const { error } = await sb.from('opportunities').delete().eq('id', id);
+      if (error) throw dbError(error);
+    },
+
+    async premiumEarlyCount() {
+      const { data, error } = await sb.rpc('premium_early_count');
+      if (error) return 0; // function missing until app.sql is re-run — just hide the teaser
+      return typeof data === 'number' ? data : 0;
+    },
+
+    async listUsers() {
+      const { data, error } = await sb.from('profiles').select(`${PROFILE_COLS}, created_at`).order('created_at', { ascending: false });
+      if (error) throw dbError(error);
+      return data as UserRow[];
+    },
+
+    async setUserPlan(userId, plan) {
+      const { error } = await sb.rpc('set_user_plan', { target: userId, new_plan: plan });
       if (error) throw dbError(error);
     },
 

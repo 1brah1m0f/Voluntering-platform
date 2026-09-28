@@ -9,6 +9,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const FREE_DIGEST_WEEKDAY = 1;
 /** Premium deadline reminders fire when a saved opportunity closes in this many days. */
 export const REMINDER_DAYS = [7, 3, 1];
+/** New opportunities are Premium-only for this long (mirrors the RLS policy in app.sql). */
+export const PREMIUM_EARLY_HOURS = 24;
 /** At most this many opportunities are listed in one digest. */
 export const DIGEST_MAX_ITEMS = 10;
 
@@ -61,8 +63,10 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
     if (!p.digest_opt_out && (premium || weeklyDay) && !sent.has(logKey(p.id, 'digest', today))) {
       const since = p.last_digest_at ? new Date(p.last_digest_at) : new Date(now.getTime() - (premium ? 1 : 7) * DAY_MS);
       const interests = p.interests ?? [];
+      // Free users can't open opportunities that are still in the Premium window yet.
+      const visibleFrom = premium ? Infinity : now.getTime() - PREMIUM_EARLY_HOURS * 3_600_000;
       const items = open
-        .filter((o) => new Date(o.created_at) > since)
+        .filter((o) => new Date(o.created_at) > since && new Date(o.created_at).getTime() <= visibleFrom)
         .filter((o) => interests.length === 0 || (o.interests ?? []).some((i) => interests.includes(i)))
         .sort((a, b) => a.deadline.localeCompare(b.deadline));
       if (items.length) {

@@ -1,4 +1,4 @@
-import type { Opportunity, OpportunityInput, Profile, SavedItem, SignUpResult, Status } from '../types';
+import type { Opportunity, OpportunityInput, Plan, Profile, SavedItem, SignUpResult, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out'>>;
 
@@ -43,6 +43,13 @@ export interface Backend {
   createOpportunity(input: OpportunityInput): Promise<Opportunity>;
   updateOpportunity(id: string, input: OpportunityInput): Promise<Opportunity>;
   deleteOpportunity(id: string): Promise<void>;
+
+  /** Opportunities still in the Premium-only window (for the free-plan teaser). */
+  premiumEarlyCount(): Promise<number>;
+
+  /** Admin only. */
+  listUsers(): Promise<UserRow[]>;
+  setUserPlan(userId: string, plan: Plan): Promise<void>;
 
   listSaved(): Promise<SavedItem[]>;
   /** Throws FreeLimitError when a free-plan user is at the limit. */

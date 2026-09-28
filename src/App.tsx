@@ -3,11 +3,10 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProgramStrip from './components/ProgramStrip';
 import BackToTop from './components/BackToTop';
-import Problem from './components/Problem';
 import Features from './components/Features';
 import AppPreview from './components/AppPreview';
 import Pricing from './components/Pricing';
-import SignupForm from './components/SignupForm';
+import FinalCta from './components/FinalCta';
 import Footer from './components/Footer';
 
 /** The marketing landing page at "/". */
@@ -20,11 +19,10 @@ export default function App() {
       <main id="main">
         <Hero />
         <ProgramStrip />
-        <Problem />
         <Features />
         <AppPreview />
         <Pricing />
-        <SignupForm />
+        <FinalCta />
       </main>
       <Footer />
       <BackToTop />

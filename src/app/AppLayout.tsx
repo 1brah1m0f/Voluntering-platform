@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { ListChecks, LogOut, Search, Shield, UserRound } from 'lucide-react';
+import { Crown, ListChecks, LogOut, Search, Shield, UserRound, Users } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -35,9 +35,18 @@ export default function AppLayout() {
   const links = [
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
     { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
+    { to: '/app/premium', end: false, label: tx.nav.premium, Icon: Crown },
     { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
-    ...(profile?.is_admin ? [{ to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : []),
   ];
+  // Desktop sidebar lists both admin pages; the mobile tab bar has room for one.
+  const adminLinks = profile?.is_admin
+    ? [
+        { to: '/admin', end: true, label: tx.nav.admin, Icon: Shield },
+        { to: '/admin/users', end: false, label: tx.nav.users, Icon: Users },
+      ]
+    : [];
+  const mobileLinks = profile?.is_admin ? [...links, { to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : links;
+  const isPremium = profile?.plan === 'premium';
 
   const logout = async () => {
     await backend.signOut();
@@ -61,7 +70,7 @@ export default function AppLayout() {
             {BRAND}
           </Link>
           <nav className="mt-8 space-y-1" aria-label="App">
-            {links.map(({ to, end, label, Icon }) => (
+            {[...links, ...adminLinks].map(({ to, end, label, Icon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -95,7 +104,7 @@ export default function AppLayout() {
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 text-xs font-bold text-white">{initials}</span>
               <span className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
-                <span className="block text-xs text-slate-500">{profile?.plan === 'premium' ? tx.profile.premium : tx.profile.basic}</span>
+                <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500'}`}>{isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}</span>
               </span>
               <button type="button" onClick={logout} title={tx.nav.logout} aria-label={tx.nav.logout} className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-rose-600">
                 <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -129,8 +138,8 @@ export default function AppLayout() {
         </div>
 
         {/* mobile bottom tabs */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden" style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }} aria-label="App">
-          {links.map(({ to, end, label, Icon }) => (
+        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden" style={{ gridTemplateColumns: `repeat(${mobileLinks.length}, 1fr)` }} aria-label="App">
+          {mobileLinks.map(({ to, end, label, Icon }) => (
             <NavLink
               key={to}
               to={to}

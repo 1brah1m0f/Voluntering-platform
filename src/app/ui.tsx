@@ -44,12 +44,13 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
   );
 }
 
-export function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+export function Chip({ on, onClick, children, title }: { on: boolean; onClick: () => void; children: ReactNode; title?: string }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
+      title={title}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
         on ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700'
       }`}

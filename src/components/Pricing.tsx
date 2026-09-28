@@ -1,18 +1,18 @@
 import { Check, Sparkles } from 'lucide-react';
 import { useLang } from '../i18n';
 import { Reveal, SectionHeader } from './Section';
-import { selectPlan } from './SignupForm';
+import { Link } from 'react-router-dom';
 
 export default function Pricing() {
   const { t } = useLang();
   const p = t.pricing;
   return (
-    <section id="pricing" aria-labelledby="pricing-title" className="relative overflow-hidden bg-gradient-to-b from-white via-sky-50/60 to-white py-20 sm:py-24">
+    <section id="pricing" aria-labelledby="pricing-title" className="relative overflow-hidden bg-gradient-to-b from-white via-sky-50/60 to-white py-14 sm:py-20 lg:py-24">
       <div className="container-x">
         <SectionHeader id="pricing-title" eyebrow={p.eyebrow} title={p.title} subtitle={p.subtitle} tone="sky" />
-        <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
+        <div className="mx-auto mt-8 grid max-w-4xl gap-6 sm:mt-12 md:grid-cols-2">
           <Reveal className="h-full" variant="left">
-            <article className="flex h-full flex-col tilt-card rounded-3xl border border-slate-200 bg-white p-8 shadow-card hover:shadow-soft">
+            <article className="flex h-full flex-col tilt-card rounded-3xl border border-slate-200 bg-white p-6 shadow-card sm:p-8 hover:shadow-soft">
               <h3 className="text-xl font-bold">{p.free.name}</h3>
               <p className="mt-1 text-slate-700">{p.free.desc}</p>
               <p className="mt-6 flex items-baseline gap-1.5">
@@ -27,14 +27,14 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a href="#signup" onClick={() => selectPlan('basic')} className="btn-secondary mt-8 w-full">
+              <Link to="/register" className="btn-secondary mt-8 w-full">
                 {p.cta}
-              </a>
+              </Link>
             </article>
           </Reveal>
 
           <Reveal className="h-full" variant="right" delay={120}>
-            <article className="relative isolate flex h-full flex-col rounded-3xl bg-gradient-to-br from-brand-800 to-brand-950 p-8 text-brand-50 tilt-card shadow-soft ring-1 ring-brand-900">
+            <article className="relative isolate flex h-full flex-col rounded-3xl bg-gradient-to-br from-brand-800 to-brand-950 p-6 text-brand-50 sm:p-8 tilt-card shadow-soft ring-1 ring-brand-900">
               <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl" aria-hidden="true">
                 <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-coral-500/25 blur-3xl" />
                 <div className="bg-dots-light absolute inset-0 opacity-30" />
@@ -57,9 +57,9 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a href="#signup" onClick={() => selectPlan('premium')} className="btn-primary mt-8 w-full">
-                {p.cta}
-              </a>
+              <Link to="/register" className="btn-primary mt-8 w-full">
+                {p.premiumCta}
+              </Link>
             </article>
           </Reveal>
         </div>

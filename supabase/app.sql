@@ -3,6 +3,8 @@
 --
 -- After your first sign-up, make yourself an admin:
 --   update public.profiles set is_admin = true where email = 'you@example.com';
+-- Make someone Premium (or use Admin → Users in the app):
+--   update public.profiles set plan = 'premium' where email = 'them@example.com';
 
 -- ---------------------------------------------------------------------------
 -- Profiles (one row per auth user, created automatically on sign-up)
@@ -67,7 +69,28 @@ alter table public.profiles add column if not exists digest_opt_out boolean not 
 alter table public.profiles add column if not exists reminders_opt_out boolean not null default false;
 alter table public.profiles add column if not exists last_digest_at timestamptz;
 
--- Users may only edit these columns; plan and is_admin are set by an admin in SQL.
+-- Admins switch a user's plan from /admin/users. Users can't change their own
+-- plan: the column isn't in the grant below and this function checks is_admin().
+create or replace function public.set_user_plan(target uuid, new_plan text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'NOT_ADMIN' using errcode = '42501';
+  end if;
+  if new_plan not in ('basic', 'premium') then
+    raise exception 'BAD_PLAN';
+  end if;
+  update public.profiles set plan = new_plan where id = target;
+end;
+$$;
+revoke all on function public.set_user_plan(uuid, text) from public, anon;
+grant execute on function public.set_user_plan(uuid, text) to authenticated;
+
+-- Users may only edit these columns; plan and is_admin are set by an admin.
 revoke update on public.profiles from authenticated, anon;
 grant update (full_name, interests, country, digest_opt_out, reminders_opt_out) on public.profiles to authenticated;
 
@@ -113,9 +136,38 @@ create trigger opportunities_touch before update on public.opportunities
 
 alter table public.opportunities enable row level security;
 
+create or replace function public.is_premium()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select plan = 'premium' from public.profiles where id = auth.uid()), false);
+$$;
+
+-- Premium early access: new opportunities are visible to Premium users (and
+-- admins) right away, to everyone else 24 hours after they are published.
 drop policy if exists "read published opportunities" on public.opportunities;
 create policy "read published opportunities" on public.opportunities
-  for select to anon, authenticated using (published or public.is_admin());
+  for select to anon, authenticated using (
+    public.is_admin()
+    or (published and (created_at <= now() - interval '24 hours' or public.is_premium()))
+  );
+
+-- How many opportunities are currently in the Premium-only 24h window
+-- (shown to free users as "Premium users already see N new opportunities").
+create or replace function public.premium_early_count()
+returns integer
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select count(*)::int from public.opportunities
+  where published and created_at > now() - interval '24 hours' and deadline >= current_date;
+$$;
+grant execute on function public.premium_early_count() to anon, authenticated;
 
 drop policy if exists "admins manage opportunities" on public.opportunities;
 create policy "admins manage opportunities" on public.opportunities

@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Globe2, MapPin, Search, Sparkles, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Crown, Globe2, Lock, MapPin, Search, Sparkles, X } from 'lucide-react';
+import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
-import type { Kind, Opportunity } from '../types';
+import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity } from '../types';
 import { Chip, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass } from '../ui';
 import { daysUntil } from '../util';
 
@@ -42,6 +43,12 @@ export function OpportunityCard({ o }: { o: Opportunity }) {
           </span>
         ))}
         {!o.published && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">{tx.list.draft}</span>}
+        {Date.now() - new Date(o.created_at).getTime() < PREMIUM_EARLY_HOURS * 3_600_000 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-100 to-coral-100 px-2 py-0.5 text-xs font-bold text-coral-800">
+            <Sparkles className="h-3 w-3" aria-hidden="true" />
+            {tx.list.newBadge}
+          </span>
+        )}
       </div>
       <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-4">
         <DeadlineChip deadline={o.deadline} />
@@ -65,6 +72,17 @@ export default function OpportunitiesPage() {
   const [soon, setSoon] = useState(false);
   const [funded, setFunded] = useState(false);
   const [showClosed, setShowClosed] = useState(false);
+  const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
+  const [earlyCount, setEarlyCount] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isPremium) return;
+    backend.premiumEarlyCount().then(setEarlyCount, () => setEarlyCount(0));
+  }, [isPremium]);
+
+  /** Premium-only filters: free users are sent to the Premium page instead. */
+  const premiumToggle = (set: (fn: (v: boolean) => boolean) => void) => () => (isPremium ? set((v) => !v) : navigate('/app/premium'));
 
   const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
   const programs = useMemo(() => [...new Set(published.map((o) => o.program))].sort(), [published]);
@@ -119,6 +137,19 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
+      {!isPremium && earlyCount > 0 && (
+        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-coral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-2 text-sm font-medium text-amber-900">
+            <Lock className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
+            {tx.list.earlyTeaser(earlyCount)}
+          </p>
+          <Link to="/app/premium" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600">
+            <Crown className="h-4 w-4" aria-hidden="true" />
+            {tx.list.seePremium}
+          </Link>
+        </div>
+      )}
+
       <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -157,10 +188,12 @@ export default function OpportunitiesPage() {
               {tx.list.forYou}
             </Chip>
           )}
-          <Chip on={soon} onClick={() => setSoon((v) => !v)}>
+          <Chip on={soon} onClick={premiumToggle(setSoon)} title={isPremium ? undefined : tx.list.premiumFilter}>
+            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
             {tx.list.closingSoon}
           </Chip>
-          <Chip on={funded} onClick={() => setFunded((v) => !v)}>
+          <Chip on={funded} onClick={premiumToggle(setFunded)} title={isPremium ? undefined : tx.list.premiumFilter}>
+            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
             {tx.list.fullyFunded}
           </Chip>
           <Chip on={showClosed} onClick={() => setShowClosed((v) => !v)}>

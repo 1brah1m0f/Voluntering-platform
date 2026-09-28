@@ -14,7 +14,7 @@ const opp = (id, over = {}) => ({
   published: true,
   interests: ['environment'],
   deadline: '2026-10-20',
-  created_at: '2026-10-04T10:00:00Z',
+  created_at: '2026-10-03T10:00:00Z',
   ...over,
 });
 const profile = (id, over = {}) => ({ id, full_name: id, plan: 'basic', interests: ['environment'], digest_opt_out: false, reminders_opt_out: false, last_digest_at: null, ...over });
@@ -69,6 +69,20 @@ test('digest only lists new, open, published opportunities matching interests', 
     digests[0].items.map((o) => o.id),
     ['new'],
   );
+});
+
+test('free digest skips opportunities still in the 24h Premium window', () => {
+  const input = {
+    profiles: [profile('free'), profile('prem', { plan: 'premium' })],
+    confirmedEmails: new Map([
+      ['free', 'f@x.com'],
+      ['prem', 'p@x.com'],
+    ]),
+    opportunities: [opp('fresh', { created_at: '2026-10-05T01:00:00Z' }), opp('older')],
+  };
+  const byUser = Object.fromEntries(run(input).digests.map((d) => [d.userId, d.items.map((o) => o.id)]));
+  assert.deepEqual(byUser.free, ['older']); // fresh one is still Premium-only
+  assert.deepEqual(byUser.prem, ['fresh']); // Premium's first daily digest covers the last day
 });
 
 test('user with no interests gets everything new', () => {

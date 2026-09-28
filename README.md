@@ -3,7 +3,7 @@
 **Openly** gathers international and national volunteering opportunities (Erasmus+, SALTO-Youth,
 European Solidarity Corps, UN Volunteers, national programs) in one place. This repo holds:
 
-- **Landing page** at `/` (Azerbaijani, with EN toggle) with a waitlist form that posts to a Google Form.
+- **Landing page** at `/` (Azerbaijani, with EN toggle) that leads to sign-up and log-in.
 - **Web app** at `/app`: sign up / log in, pick interests, browse and filter opportunities, save
   them and track application status (free plan: 3 at a time).
 - **Admin panel** at `/admin`: add, edit, publish/hide and delete opportunities.
@@ -59,25 +59,6 @@ Actions → Email notifications → Run workflow (dry run is on by default). Loc
 Auth email designs (confirm sign-up, reset password) are in `supabase/email-templates/`; paste
 them into Supabase → Authentication → Email Templates.
 
-## Waitlist (landing page)
-
-The landing form posts to the Google Form configured in `src/config.ts` (`GOOGLE_FORM`).
-Set it to `null` to use Supabase instead (see below) or the local mock.
-
-## Waitlist in Supabase (optional)
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. SQL Editor → run [`supabase/schema.sql`](supabase/schema.sql). It creates the `waitlist` table,
-   and an insert-only RLS policy for anonymous visitors.
-3. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-   (Project Settings → API). Set the same variables in your hosting provider.
-
-Stored fields: `name` (full name, required), `email` (unique, case-insensitive), `plan`
-(`basic`/`premium`), `lang`, `user_agent`. If you created the table with an older version of the
-schema, re-run the file — it adds the `plan` column.
-Duplicate emails are shown to the user as "already on the list". Example analysis queries are at
-the bottom of the schema file.
-
 ## Deploy
 
 Any static host works. Vercel/Netlify: build command `npm run build`, output directory `dist`.
@@ -103,14 +84,13 @@ src/
   App.tsx               landing page composition
   LangProvider.tsx      site-wide AZ/EN state
   i18n.ts               landing AZ/EN dictionaries
-  config.ts             brand, free-plan limit, Google Form
+  config.ts             brand, free-plan limit
   components/           landing sections
-  lib/                  programs list, Supabase client, waitlist
+  lib/                  programs list, Supabase client
   app/
     backend/            Backend interface + Supabase and demo implementations
     pages/              auth, opportunities, detail, tracker, profile, admin
     AppLayout.tsx       app shell + auth/admin route guards
     text.ts             app AZ/EN strings
 supabase/app.sql        app tables, RLS, triggers
-supabase/schema.sql     optional waitlist table
 ```

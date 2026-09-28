@@ -112,7 +112,7 @@ export default function AppPreview() {
   ];
 
   return (
-    <section aria-labelledby="preview-title" className="relative overflow-hidden bg-brand-950 py-20 sm:py-24">
+    <section aria-labelledby="preview-title" className="relative overflow-hidden bg-brand-950 py-14 sm:py-20 lg:py-24">
       <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-20" />
       <div className="animate-blob pointer-events-none absolute -right-20 top-0 h-96 w-96 rounded-full bg-brand-600/30 blur-3xl" />
       <div className="animate-blob pointer-events-none absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-coral-500/20 blur-3xl [animation-delay:-5s]" />
@@ -120,7 +120,7 @@ export default function AppPreview() {
       <div className="container-x relative">
         <SectionHeader id="preview-title" eyebrow={p.eyebrow} title={p.title} subtitle={p.subtitle} light />
 
-        <Reveal className="mt-12" variant="scale">
+        <Reveal className="mt-8 sm:mt-12" variant="scale">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl ring-1 ring-white/10">
             {/* window chrome */}
             <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
@@ -236,7 +236,7 @@ export default function AppPreview() {
                   {visible.map(({ e, i }, k) => (
                     <li
                       key={`${tab}-${q}-${e.title}`}
-                      className="grid animate-[row-in_0.35s_ease_both] gap-3 rounded-xl py-4 transition hover:bg-slate-50 md:grid-cols-12 md:items-center md:gap-4 md:px-2"
+                      className={`${k >= 3 ? 'hidden md:grid' : 'grid'} animate-[row-in_0.35s_ease_both] gap-3 rounded-xl py-4 transition hover:bg-slate-50 md:grid-cols-12 md:items-center md:gap-4 md:px-2`}
                       style={{ animationDelay: `${k * 50}ms` }}
                     >
                       <div className="flex min-w-0 items-start gap-3 md:col-span-6">

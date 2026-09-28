@@ -1,5 +1,5 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, type Opportunity, type OpportunityInput, type Profile, type SavedItem } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 /**
@@ -8,7 +8,9 @@ import { BackendError, type Backend } from './types';
  * accounts are created on first use (see DEMO_ACCOUNTS).
  */
 
-type DemoUser = Profile & { password: string };
+type DemoUser = Profile & { password: string; created_at?: string };
+
+const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).getTime() < PREMIUM_EARLY_HOURS * 3_600_000;
 
 export const DEMO_ACCOUNTS = {
   admin: { email: 'admin@openlyapply.com', password: 'demo1234' },
@@ -48,8 +50,9 @@ const day = (offset: number) => {
 const wait = () => new Promise((r) => setTimeout(r, 150));
 
 function seed(): Opportunity[] {
-  const now = new Date().toISOString();
-  const base = { published: true, created_at: now, start_date: null, end_date: null, organizer: '', city: '', is_online: false };
+  // Created a few days ago, so free users see them; the last one is brand new
+  // to show the Premium early-access window.
+  const base = { published: true, created_at: new Date(Date.now() - 3 * 86_400_000).toISOString(), start_date: null, end_date: null, organizer: '', city: '', is_online: false };
   const rows: Array<Partial<Opportunity> & Pick<Opportunity, 'title' | 'program' | 'kind' | 'country' | 'interests' | 'deadline' | 'costs' | 'url' | 'description'>> = [
     {
       title: 'Youth Exchange: Green Futures',
@@ -144,6 +147,7 @@ function seed(): Opportunity[] {
       description: 'İlk yardım təlimi və humanitar yardım paylanmasında iştirak.',
     },
     {
+      created_at: new Date(Date.now() - 2 * 3_600_000).toISOString(),
       title: 'Youth Exchange: Art for Inclusion',
       program: 'Erasmus+',
       kind: 'youth_exchange',
@@ -166,7 +170,7 @@ export function createDemoBackend(): Backend {
   const emit = (id: string | null) => listeners.forEach((l) => l(id));
 
   const seedAccounts = (): DemoUser[] => {
-    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false };
+    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false, created_at: new Date().toISOString() };
     return [
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.admin, full_name: 'Openly Admin', interests: [], is_admin: true },
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.user, full_name: 'Aysel Məmmədova', interests: ['environment', 'education'], is_admin: false },
@@ -216,7 +220,7 @@ export function createDemoBackend(): Backend {
     const u = requireUser();
     if (!u.is_admin) throw new BackendError('not_allowed');
   };
-  const toProfile = ({ password: _pw, ...p }: DemoUser): Profile => p;
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => p;
 
   return {
     mode: 'demo',
@@ -248,6 +252,7 @@ export function createDemoBackend(): Backend {
         is_admin: false,
         digest_opt_out: false,
         reminders_opt_out: false,
+        created_at: new Date().toISOString(),
       };
       write(K.users, [...list, user]);
       write(K.session, user.id);
@@ -302,15 +307,19 @@ export function createDemoBackend(): Backend {
 
     async listOpportunities() {
       await wait();
-      const admin = me()?.is_admin;
+      const u = me();
+      const admin = u?.is_admin;
+      const premium = u?.plan === 'premium';
       return opps()
-        .filter((o) => o.published || admin)
+        .filter((o) => admin || (o.published && (premium || !inEarlyWindow(o))))
         .sort((a, b) => a.deadline.localeCompare(b.deadline));
     },
 
     async getOpportunity(id) {
       const o = opps().find((x) => x.id === id) ?? null;
-      return o && (o.published || me()?.is_admin) ? o : null;
+      const u = me();
+      if (!o) return null;
+      return u?.is_admin || (o.published && (u?.plan === 'premium' || !inEarlyWindow(o))) ? o : null;
     },
 
     async createOpportunity(input: OpportunityInput) {
@@ -340,6 +349,23 @@ export function createDemoBackend(): Backend {
       const all = allSaved();
       for (const k of Object.keys(all)) all[k] = all[k].filter((s) => s.opportunity_id !== id);
       write(K.saved, all);
+    },
+
+    async premiumEarlyCount() {
+      return opps().filter((o) => o.published && inEarlyWindow(o)).length;
+    },
+
+    async listUsers() {
+      requireAdmin();
+      return users().map((u) => ({ ...toProfile(u), created_at: u.created_at ?? new Date().toISOString() }) as UserRow);
+    },
+
+    async setUserPlan(userId, plan) {
+      requireAdmin();
+      write(
+        K.users,
+        users().map((u) => (u.id === userId ? { ...u, plan } : u)),
+      );
     },
 
     async listSaved() {

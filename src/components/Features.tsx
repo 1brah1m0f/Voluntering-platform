@@ -10,10 +10,10 @@ const cardTones: ToneName[] = ['brand', 'sky', 'violet', 'coral', 'emerald'];
 export default function Features() {
   const { t } = useLang();
   return (
-    <section id="features" aria-labelledby="features-title" className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-violet-50/60 py-20 sm:py-24">
+    <section id="features" aria-labelledby="features-title" className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-violet-50/60 py-14 sm:py-20 lg:py-24">
       <div className="container-x">
         <SectionHeader id="features-title" eyebrow={t.features.eyebrow} title={t.features.title} subtitle={t.features.subtitle} tone="violet" />
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mt-8 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
           {t.features.items.map((f, i) => {
             const Icon = icons[i];
             const tone = tones[cardTones[i]];
@@ -21,7 +21,7 @@ export default function Features() {
             const span = i < 3 ? 'lg:col-span-2' : 'lg:col-span-3';
             return (
               <Reveal key={f.title} delay={(i % 3) * 120} variant={i < 3 ? 'up' : i === 3 ? 'left' : 'right'} className={`h-full ${span} ${i === 4 ? 'sm:col-span-2' : ''}`}>
-                <article className={`group relative h-full overflow-hidden tilt-card rounded-3xl border border-slate-200 bg-white p-7 shadow-card hover:shadow-soft ${tone.border}`}>
+                <article className={`group relative h-full overflow-hidden tilt-card rounded-3xl border border-slate-200 bg-white p-5 shadow-card sm:p-7 hover:shadow-soft ${tone.border}`}>
                   <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tone.bar}`} aria-hidden="true" />
                   <span className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg transition group-hover:scale-110 group-hover:-rotate-3 ${tone.icon}`}>
                     <Icon className="h-6 w-6" aria-hidden="true" />

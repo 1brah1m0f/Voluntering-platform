@@ -17,6 +17,8 @@ const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const ProfilePage = lazy(() => import('./app/pages/ProfilePage'));
 const AdminListPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminListPage })));
+const PremiumPage = lazy(() => import('./app/pages/PremiumPage'));
+const AdminUsersPage = lazy(() => import('./app/pages/AdminUsersPage'));
 const AdminEditPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminEditPage })));
 import './index.css';
 
@@ -39,8 +41,10 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
+                  <Route path="/app/premium" element={<PremiumPage />} />
                   <Route element={<RequireAdmin />}>
                     <Route path="/admin" element={<AdminListPage />} />
+                    <Route path="/admin/users" element={<AdminUsersPage />} />
                     <Route path="/admin/new" element={<AdminEditPage />} />
                     <Route path="/admin/:id" element={<AdminEditPage />} />
                   </Route>

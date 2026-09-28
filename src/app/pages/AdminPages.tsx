@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { OTHER_PROGRAM, PROGRAMS } from '../../lib/programs';
 import { backend } from '../backend';
@@ -9,6 +9,29 @@ import { useAppText } from '../text';
 import type { Costs, Kind, Opportunity, OpportunityInput } from '../types';
 import { Chip, DeadlineChip, ErrorState, Field, ProgramBadge, Spinner, inputClass } from '../ui';
 import { formatDate } from '../util';
+
+/** "Opportunities | Users" switch shown at the top of the admin pages. */
+export function AdminTabs() {
+  const { tx } = useAppText();
+  const tabs = [
+    { to: '/admin', label: tx.list.title },
+    { to: '/admin/users', label: tx.users.title },
+  ];
+  return (
+    <nav className="mb-5 inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200" aria-label={tx.nav.admin}>
+      {tabs.map((t) => (
+        <NavLink
+          key={t.to}
+          to={t.to}
+          end
+          className={({ isActive }) => `rounded-full px-4 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-brand-700 text-white' : 'text-slate-600 hover:text-slate-900'}`}
+        >
+          {t.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
 
 export function AdminListPage() {
   const { tx, lang } = useAppText();
@@ -46,6 +69,7 @@ export function AdminListPage() {
 
   return (
     <div>
+      <AdminTabs />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.admin.title}</h1>
