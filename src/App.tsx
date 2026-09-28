@@ -4,7 +4,6 @@ import Hero from './components/Hero';
 import ProgramStrip from './components/ProgramStrip';
 import BackToTop from './components/BackToTop';
 import Features from './components/Features';
-import AppPreview from './components/AppPreview';
 import Pricing from './components/Pricing';
 import FinalCta from './components/FinalCta';
 import Footer from './components/Footer';
@@ -20,7 +19,6 @@ export default function App() {
         <Hero />
         <ProgramStrip />
         <Features />
-        <AppPreview />
         <Pricing />
         <FinalCta />
       </main>
