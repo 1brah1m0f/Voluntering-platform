@@ -11,6 +11,10 @@ export interface Profile {
   country: string;
   plan: Plan;
   is_admin: boolean;
+  /** Opted out of the new-opportunities digest email. */
+  digest_opt_out: boolean;
+  /** Opted out of deadline reminder emails (Premium). */
+  reminders_opt_out: boolean;
 }
 
 export interface Opportunity {

@@ -39,6 +39,26 @@ demo mode is on.
    `update public.profiles set is_admin = true where email = 'you@example.com';`
    Premium is set the same way: `set plan = 'premium'`.
 
+## Email notifications
+
+`jobs/notify.mjs` runs daily from GitHub Actions (`.github/workflows/notify.yml`, 08:00 Baku):
+
+- **New-opportunities digest** — opportunities published since the user's last digest that match
+  their interests, linking to `/app/o/<id>`. Free plan: Mondays; Premium: every day.
+- **Deadline reminders** (Premium) — saved (not yet applied) opportunities closing in 7, 3 or 1 days.
+
+Users can switch either off under Profile → Email notifications. Every email sent is recorded in
+`email_log`, so re-running the job never sends twice.
+
+Setup: re-run `supabase/app.sql`, then add these repository secrets (Settings → Secrets and
+variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` (e.g. `Openly <noreply@openlyapply.com>`). Test with
+Actions → Email notifications → Run workflow (dry run is on by default). Locally:
+`npm run notify -- --dry-run`. Planning logic tests: `npm run test:jobs`.
+
+Auth email designs (confirm sign-up, reset password) are in `supabase/email-templates/`; paste
+them into Supabase → Authentication → Email Templates.
+
 ## Waitlist (landing page)
 
 The landing form posts to the Google Form configured in `src/config.ts` (`GOOGLE_FORM`).

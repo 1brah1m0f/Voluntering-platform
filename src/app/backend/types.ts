@@ -1,6 +1,6 @@
 import type { Opportunity, OpportunityInput, Profile, SavedItem, SignUpResult, Status } from '../types';
 
-export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country'>>;
+export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out'>>;
 
 /**
  * Error codes surfaced to the UI. Implementations throw `BackendError` with one
@@ -29,6 +29,10 @@ export interface Backend {
   /** Redirects to Google; the browser comes back to `nextPath` signed in. */
   signInWithGoogle(nextPath: string): Promise<void>;
   signOut(): Promise<void>;
+  /** Emails a link to /reset-password. Resolves even if the address is unknown. */
+  requestPasswordReset(email: string): Promise<void>;
+  /** Sets a new password for the signed-in user (also used after a reset link). */
+  updatePassword(password: string): Promise<void>;
 
   getProfile(): Promise<Profile | null>;
   updateProfile(patch: ProfilePatch): Promise<Profile>;

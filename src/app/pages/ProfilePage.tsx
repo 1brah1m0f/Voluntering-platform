@@ -1,6 +1,7 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Loader2 } from 'lucide-react';
+import { Bell, Crown, KeyRound, Loader2 } from 'lucide-react';
+import { NewPasswordForm } from './AuthPages';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { COUNTRIES, INTERESTS, INTEREST_IDS } from '../taxonomy';
@@ -18,6 +19,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   const [interests, setInterests] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pwMsg, setPwMsg] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -108,6 +110,84 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           {onboarding ? tx.profile.continue : tx.profile.save}
         </button>
       </form>
+
+      {!onboarding && (
+        <>
+          <NotificationSettings />
+          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <KeyRound className="h-5 w-5 text-brand-600" aria-hidden="true" />
+              {tx.profile.security}
+            </h2>
+            <p className="mb-4 mt-1 text-sm text-slate-500">{tx.profile.securityHint}</p>
+            <NewPasswordForm submitLabel={tx.auth.savePassword} onDone={() => setPwMsg(true)} />
+            {pwMsg && (
+              <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
+                {tx.auth.passwordChanged}
+              </p>
+            )}
+          </section>
+        </>
+      )}
     </div>
+  );
+}
+
+/** Digest / reminder email toggles. Each switch saves immediately. */
+function NotificationSettings() {
+  const { tx } = useAppText();
+  const { profile, setProfile } = useAuth();
+  const [busy, setBusy] = useState<string | null>(null);
+  if (!profile) return null;
+  const premium = profile.plan === 'premium';
+
+  const toggle = async (key: 'digest_opt_out' | 'reminders_opt_out') => {
+    setBusy(key);
+    try {
+      setProfile(await backend.updateProfile({ [key]: !profile[key] }));
+    } catch (err) {
+      console.error('[profile] notification toggle failed', err);
+      alert(tx.saveError);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const rows = [
+    { key: 'digest_opt_out' as const, title: tx.profile.digest, sub: premium ? tx.profile.digestPremium : tx.profile.digestFree, available: true },
+    { key: 'reminders_opt_out' as const, title: tx.profile.reminders, sub: premium ? tx.profile.remindersPremium : tx.profile.remindersFree, available: premium },
+  ];
+
+  return (
+    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <h2 className="flex items-center gap-2 text-lg font-bold">
+        <Bell className="h-5 w-5 text-brand-600" aria-hidden="true" />
+        {tx.profile.notifications}
+      </h2>
+      <ul className="mt-4 divide-y divide-slate-100">
+        {rows.map(({ key, title, sub, available }) => {
+          const on = available && !profile[key];
+          return (
+            <li key={key} className="flex items-center justify-between gap-4 py-3">
+              <div>
+                <p className="font-semibold text-slate-900">{title}</p>
+                <p className="text-sm text-slate-500">{sub}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={title}
+                disabled={!available || busy === key}
+                onClick={() => toggle(key)}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${on ? 'bg-brand-600' : 'bg-slate-300'}`}
+              >
+                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

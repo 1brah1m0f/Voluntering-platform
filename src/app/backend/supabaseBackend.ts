@@ -2,7 +2,10 @@ import type { AuthError, PostgrestError, SupabaseClient } from '@supabase/supaba
 import { FreeLimitError, type Opportunity, type Profile, type SavedItem } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin';
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out';
+// Used if supabase/app.sql hasn't been re-run yet and the notification columns are missing.
+const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
+const UNDEFINED_COLUMN = '42703';
 
 function authError(e: AuthError): BackendError {
   const code = (e as AuthError & { code?: string }).code ?? '';
@@ -59,6 +62,16 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       if (error) throw authError(error);
     },
 
+    async requestPasswordReset(email) {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+      if (error) throw authError(error);
+    },
+
+    async updatePassword(password) {
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw authError(error);
+    },
+
     async signOut() {
       await sb.auth.signOut();
     },
@@ -67,6 +80,12 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       const id = await uid();
       if (!id) return null;
       const { data, error } = await sb.from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle();
+      if (error?.code === UNDEFINED_COLUMN) {
+        console.warn('[profile] notification columns missing — re-run supabase/app.sql');
+        const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
+        if (base.error) throw dbError(base.error);
+        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false } as Profile) : null;
+      }
       if (error) throw dbError(error);
       return data as Profile | null;
     },

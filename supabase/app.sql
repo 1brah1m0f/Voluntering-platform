@@ -62,9 +62,14 @@ drop policy if exists "update own profile" on public.profiles;
 create policy "update own profile" on public.profiles
   for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
+-- Email notification settings (see jobs/notify.mjs).
+alter table public.profiles add column if not exists digest_opt_out boolean not null default false;
+alter table public.profiles add column if not exists reminders_opt_out boolean not null default false;
+alter table public.profiles add column if not exists last_digest_at timestamptz;
+
 -- Users may only edit these columns; plan and is_admin are set by an admin in SQL.
 revoke update on public.profiles from authenticated, anon;
-grant update (full_name, interests, country) on public.profiles to authenticated;
+grant update (full_name, interests, country, digest_opt_out, reminders_opt_out) on public.profiles to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Opportunities (managed from /admin)
@@ -163,3 +168,18 @@ alter table public.saved_opportunities enable row level security;
 drop policy if exists "own saved rows" on public.saved_opportunities;
 create policy "own saved rows" on public.saved_opportunities
   for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---------------------------------------------------------------------------
+-- Email log: one row per notification sent, so a re-run never double-sends.
+-- Only the notification job (service role) touches it; no policies = no access
+-- for anon/authenticated.
+-- ---------------------------------------------------------------------------
+create table if not exists public.email_log (
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  kind     text not null check (kind in ('digest', 'reminder')),
+  ref      text not null,  -- digest: YYYY-MM-DD; reminder: <opportunity id>:<days before>
+  sent_at  timestamptz not null default now(),
+  primary key (user_id, kind, ref)
+);
+
+alter table public.email_log enable row level security;

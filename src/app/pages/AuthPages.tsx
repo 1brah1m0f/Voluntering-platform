@@ -8,7 +8,7 @@ import { backend, BackendError } from '../backend';
 import { DEMO_ACCOUNTS } from '../backend/demoBackend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
-import { Field, inputClass } from '../ui';
+import { Field, Spinner, inputClass } from '../ui';
 import { EMAIL_RE } from '../util';
 
 function LangToggle() {
@@ -202,6 +202,11 @@ export function LoginPage() {
         <Field label={tx.auth.password} htmlFor={`${uid}-pw`}>
           <input id={`${uid}-pw`} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
         </Field>
+        <div className="-mt-2 text-right">
+          <Link to="/forgot-password" className="text-sm font-semibold text-brand-700 hover:underline">
+            {tx.auth.forgot}
+          </Link>
+        </div>
         {error && (
           <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">
             {error}
@@ -296,6 +301,139 @@ export function RegisterPage() {
           {tx.auth.login}
         </Link>
       </p>
+    </AuthLayout>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const { tx } = useAppText();
+  const uid = useId();
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!EMAIL_RE.test(email.trim())) return setError(tx.auth.errors.emailInvalid);
+    setBusy(true);
+    try {
+      await backend.requestPasswordReset(email.trim());
+      setSentTo(email.trim());
+    } catch (err) {
+      setError(errorText(err, tx.auth.errors));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (sentTo) {
+    return (
+      <AuthLayout title={tx.auth.linkSentTitle} sub={tx.auth.linkSentText(sentTo)}>
+        <div className="flex flex-col items-center gap-6 rounded-3xl bg-brand-50 p-8 text-center">
+          <MailCheck className="h-12 w-12 text-brand-600" aria-hidden="true" />
+          {backend.mode === 'demo' && <p className="text-sm text-amber-800">{tx.auth.demoNoEmail}</p>}
+          <Link to="/login" className="btn-primary w-full">
+            {tx.auth.backToLogin}
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  return (
+    <AuthLayout title={tx.auth.forgotTitle} sub={tx.auth.forgotSub}>
+      <form onSubmit={submit} noValidate className="space-y-4">
+        <Field label={tx.auth.email} htmlFor={`${uid}-email`}>
+          <input id={`${uid}-email`} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tx.auth.emailPh} className={inputClass} />
+        </Field>
+        {error && (
+          <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={busy} className="btn-primary w-full">
+          {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+          {tx.auth.sendLink}
+        </button>
+      </form>
+      <p className="mt-6 text-center text-sm">
+        <Link to="/login" className="font-semibold text-brand-700 hover:underline">
+          {tx.auth.backToLogin}
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
+
+/** Shared "new password + repeat" form used by the reset page and the profile page. */
+export function NewPasswordForm({ onDone, submitLabel }: { onDone: () => void; submitLabel: string }) {
+  const { tx } = useAppText();
+  const uid = useId();
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (pw.length < 6) return setError(tx.auth.errors.passwordShort);
+    if (pw !== pw2) return setError(tx.auth.passwordsDiffer);
+    setBusy(true);
+    try {
+      await backend.updatePassword(pw);
+      setPw('');
+      setPw2('');
+      onDone();
+    } catch (err) {
+      setError(errorText(err, tx.auth.errors));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <Field label={tx.auth.newPassword} htmlFor={`${uid}-pw`}>
+        <input id={`${uid}-pw`} type="password" autoComplete="new-password" minLength={6} value={pw} onChange={(e) => setPw(e.target.value)} placeholder={tx.auth.passwordPh} className={inputClass} />
+      </Field>
+      <Field label={tx.auth.confirmPassword} htmlFor={`${uid}-pw2`}>
+        <input id={`${uid}-pw2`} type="password" autoComplete="new-password" minLength={6} value={pw2} onChange={(e) => setPw2(e.target.value)} className={inputClass} />
+      </Field>
+      {error && (
+        <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">
+          {error}
+        </p>
+      )}
+      <button type="submit" disabled={busy} className="btn-primary w-full sm:w-auto">
+        {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+        {submitLabel}
+      </button>
+    </form>
+  );
+}
+
+/** Landing page of the reset link: the link signs the user in, then they pick a new password. */
+export function ResetPasswordPage() {
+  const { tx } = useAppText();
+  const { userId, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) return <Spinner />;
+  if (!userId || oauthErrorInUrl()) {
+    return (
+      <AuthLayout title={tx.auth.resetTitle} sub={tx.auth.resetInvalid}>
+        <Link to="/forgot-password" className="btn-primary w-full">
+          {tx.auth.requestNew}
+        </Link>
+      </AuthLayout>
+    );
+  }
+  return (
+    <AuthLayout title={tx.auth.resetTitle} sub={tx.auth.resetSub}>
+      <NewPasswordForm submitLabel={tx.auth.savePassword} onDone={() => navigate('/app', { replace: true })} />
     </AuthLayout>
   );
 }

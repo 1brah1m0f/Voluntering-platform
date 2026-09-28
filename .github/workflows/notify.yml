@@ -1,0 +1,48 @@
+name: Email notifications
+
+# Every day at 08:00 Baku time (04:00 UTC): Premium digests + deadline
+# reminders every day, free-plan digests on Mondays. See jobs/notify.mjs.
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be sent, send nothing)'
+        type: boolean
+        default: true
+      only:
+        description: 'Only send to this email (optional, for testing)'
+        required: false
+      force_weekly:
+        description: 'Treat today as the weekly (free) digest day'
+        type: boolean
+        default: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - name: Send notifications
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          SITE_URL: https://www.openlyapply.com
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "${{ inputs.only }}" ]; then ARGS="$ARGS --only=${{ inputs.only }}"; fi
+          if [ "${{ inputs.force_weekly }}" = "true" ]; then ARGS="$ARGS --force-weekly"; fi
+          node jobs/notify.mjs $ARGS

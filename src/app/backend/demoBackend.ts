@@ -166,7 +166,7 @@ export function createDemoBackend(): Backend {
   const emit = (id: string | null) => listeners.forEach((l) => l(id));
 
   const seedAccounts = (): DemoUser[] => {
-    const base = { country: 'Azərbaycan', plan: 'basic' as const };
+    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false };
     return [
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.admin, full_name: 'Openly Admin', interests: [], is_admin: true },
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.user, full_name: 'Aysel Məmmədova', interests: ['environment', 'education'], is_admin: false },
@@ -246,6 +246,8 @@ export function createDemoBackend(): Backend {
         country: '',
         plan: 'basic',
         is_admin: false,
+        digest_opt_out: false,
+        reminders_opt_out: false,
       };
       write(K.users, [...list, user]);
       write(K.session, user.id);
@@ -263,6 +265,19 @@ export function createDemoBackend(): Backend {
 
     async signInWithGoogle() {
       throw new BackendError('not_allowed');
+    },
+
+    async requestPasswordReset() {
+      await wait(); // Demo mode has no email; the reset link can't be sent.
+    },
+
+    async updatePassword(password) {
+      const u = requireUser();
+      if (password.length < 6) throw new BackendError('weak_password');
+      write(
+        K.users,
+        users().map((x) => (x.id === u.id ? { ...x, password } : x)),
+      );
     },
 
     async signOut() {
