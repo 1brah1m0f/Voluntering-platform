@@ -448,6 +448,11 @@ export function createDemoBackend(): Backend {
       writeMySaved(mySaved().filter((s) => s.opportunity_id !== opportunityId));
     },
 
+    async updateTracking(opportunityId, patch) {
+      requireUser();
+      writeMySaved(mySaved().map((s) => (s.opportunity_id === opportunityId ? { ...s, ...patch } : s)));
+    },
+
     async setShareContact(opportunityId, share) {
       requireUser();
       writeMySaved(mySaved().map((s) => (s.opportunity_id === opportunityId ? { ...s, share_contact: share } : s)));

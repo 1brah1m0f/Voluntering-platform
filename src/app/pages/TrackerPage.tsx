@@ -6,6 +6,7 @@ import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { STATUSES, STATUS_ORDER } from '../taxonomy';
 import { useAppText } from '../text';
+import { prepProgress } from '../checklist';
 import type { Status } from '../types';
 import { DeadlineChip, ErrorState, ProgramBadge, Spinner, statusClass } from '../ui';
 import { daysUntil, formatDate } from '../util';
@@ -90,6 +91,7 @@ export default function TrackerPage() {
         <ul className="mt-4 space-y-3">
           {visible.map(({ o, item }) => {
             const d = daysUntil(o.deadline);
+            const prep = prepProgress(o, item.checklist);
             return (
               <li key={o.id} className="flex animate-[row-in_0.3s_ease] flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -110,6 +112,11 @@ export default function TrackerPage() {
                             style={{ width: `${Math.max(8, 100 - (d / 30) * 100)}%` }}
                           />
                         </span>
+                      )}
+                      {item.status === 'saved' && (
+                        <Link to={`/o/${o.id}`} className="text-xs font-semibold text-slate-500 hover:text-brand-700">
+                          {tx.dash.prep(prep.done, prep.total)}
+                        </Link>
                       )}
                     </div>
                   </div>

@@ -94,6 +94,10 @@ export interface SavedItem {
   updated_at: string;
   /** When accepted: shares name and email with others accepted to the same opportunity. */
   share_contact?: boolean;
+  /** Ticked application-prep items (ids from checklist.ts). */
+  checklist?: string[];
+  /** Private note, e.g. "wrote to the sending organisation on Monday". */
+  note?: string;
 }
 
 /** Another participant accepted to the same opportunity who shares their contact. */

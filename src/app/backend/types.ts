@@ -76,6 +76,8 @@ export interface Backend {
   getLetter(opportunityId: string): Promise<SavedLetter | null>;
   saveLetter(opportunityId: string, content: string): Promise<SavedLetter>;
 
+  /** Application prep for a tracked opportunity: checklist and private note. */
+  updateTracking(opportunityId: string, patch: { checklist?: string[]; note?: string }): Promise<void>;
   /** Opt in/out of sharing contact details with others accepted to the same opportunity. */
   setShareContact(opportunityId: string, share: boolean): Promise<void>;
   /** Others accepted to the opportunity who share (empty unless the caller is accepted and sharing). */

@@ -23,7 +23,7 @@ export default function FinalCta() {
                   {c.primary}
                   <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
-                <Link to="/login" className="inline-flex w-full items-center justify-center rounded-full border border-white/30 px-6 py-3 font-semibold text-white transition hover:bg-white/10 sm:w-auto">
+                <Link to="/app" className="inline-flex w-full items-center justify-center rounded-full border border-white/30 px-6 py-3 font-semibold text-white transition hover:bg-white/10 sm:w-auto">
                   {c.secondary}
                 </Link>
               </div>

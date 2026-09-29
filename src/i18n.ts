@@ -34,14 +34,14 @@ const az = {
     langLabel: 'Dili dəyiş',
   },
   hero: {
-    badge: 'Artıq açıqdır · Qeydiyyat pulsuzdur',
-    title1: 'Böyük könüllülük fürsətlərini',
-    title2: 'bir daha qaçırma.',
+    badge: 'Pulsuzdur · Qeydiyyatsız da baxa bilərsən',
+    title1: 'Xaricdə könüllü olmaq',
+    title2: 'düşündüyündən asandır.',
     subtitle:
-      'Erasmus+, SALTO-Youth, Avropa Həmrəylik Korpusu, BMT Könüllüləri və milli proqramlar — hamısı bir yerdə. Maraqlarını seç, sənə uyğun fürsətləri tap, saxla və müraciətlərini bir yerdə izlə.',
-    cta: 'Pulsuz qeydiyyat',
-    secondary: 'Xüsusiyyətlərə bax',
-    trust: 'Spam yoxdur. İstənilən vaxt abunəlikdən çıxa bilərsən.',
+      'Avropada gənclər üçün mübadilələr, təlimlər və könüllülük proqramları var — çox vaxt yol, yaşayış və yeməyi proqram özü ödəyir. Çətin olan onları vaxtında tapmaqdır. Openly Azərbaycandan qatıla biləcəyin fürsətləri bir yerə yığır, son tarixləri xatırladır və müraciətini izləməyə kömək edir.',
+    cta: 'Fürsətlərə bax',
+    secondary: 'Pulsuz qeydiyyat',
+    trust: 'Kart lazım deyil. Spam göndərmirik.',
   },
   mock: {
     greeting: 'Salam, Aysel 👋',
@@ -76,6 +76,34 @@ const az = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Yuxarı qalx',
+  explain: {
+    eyebrow: 'Sadə dillə',
+    title: 'Bu fürsətlər nədir?',
+    subtitle: '“Erasmus+”, “ESC”, “youth exchange” eşitmisən, amma nə olduğunu tam bilmirsən? Buradan başla.',
+    items: [
+      {
+        title: 'Gənclər mübadiləsi',
+        text: 'Bir neçə ölkədən gənclər 5–21 gün bir yerdə yaşayır və bir mövzu üzərində — ekologiya, incəsənət, insan hüquqları — birlikdə işləyir. Yol, yaşayış və yemək adətən qarşılanır.',
+        meta: '13–30 yaş · Erasmus+',
+      },
+      {
+        title: 'Təlim kursu',
+        text: 'Gənclərlə işləyənlər, könüllülər və gənc liderlər üçün bir neçə günlük təlim. Yeni metodlar öyrənirsən, başqa ölkələrdən həmkarlarla tanış olursan.',
+        meta: 'Adətən 18+ · SALTO-Youth',
+      },
+      {
+        title: 'Uzunmüddətli könüllülük',
+        text: '2–12 ay başqa ölkədə bir təşkilatda könüllü işləyirsən. Yaşayış, yemək, sığorta və aylıq cib pulu verilir.',
+        meta: '18–30 yaş · Avropa Həmrəylik Korpusu',
+      },
+      {
+        title: 'Onlayn fürsətlər',
+        text: 'Evdən çıxmadan qatıla biləcəyin vebinarlar, onlayn kurslar və BMT-nin onlayn könüllülük layihələri.',
+        meta: 'Onlayn · BMT Könüllüləri, SALTO',
+      },
+    ],
+    note: 'Hər fürsətin öz şərtləri var. Dəqiq məlumat həmişə rəsmi səhifədədir — hər fürsətdə linkini veririk.',
+  },
   live: {
     eyebrow: 'Canlı',
     titleNew: (n: number) => `Bu həftə ${n} yeni fürsət`,
@@ -88,9 +116,9 @@ const az = {
     eyebrow: 'Necə işləyir',
     title: 'Üç addımda fürsətdən müraciətə',
     steps: [
-      { title: 'Maraqlarını seç', text: 'Ekologiya, təhsil, insan hüquqları, incəsənət… Pulsuz qeydiyyatdan keç və sənə nə maraqlıdır, qeyd et.' },
-      { title: 'Uyğun fürsəti tap', text: 'Proqram, ölkə və növ üzrə süz. Yeni fürsətlər e-poçtuna gəlsin: həftədə bir dəfə, Premium-da hər gün.' },
-      { title: 'Saxla, müraciət et, izlə', text: 'Rəsmi mənbədə müraciət et, statusunu bir paneldə izlə. Son tarixi qaçırmamaq üçün xatırlatma al.' },
+      { title: 'Nə sevdiyini de', text: 'Pulsuz qeydiyyatdan keç və maraqlarını seç: ekologiya, təhsil, incəsənət, idman… Bir dəqiqə çəkir.' },
+      { title: 'Sənə uyğun olanı tap', text: 'Siyahıda proqram, ölkə və növə görə süz. Yeni fürsətlər həm də e-poçtuna gəlir — axtarmağa ehtiyac qalmır.' },
+      { title: 'Müraciət et, biz izləyək', text: 'Rəsmi səhifədə müraciət edirsən, biz son tarixi xatırladırıq və statusunu bir yerdə saxlayırıq.' },
     ],
   },
   faq: {
@@ -119,23 +147,10 @@ const az = {
       },
     ],
   },
-  features: {
-    eyebrow: 'Xüsusiyyətlər',
-    title: 'Könüllü həyatını asanlaşdıran hər şey',
-    subtitle: 'Fürsəti tapmaqdan qəbul məktubuna qədər — bütün yol bir tətbiqdə.',
-    items: [
-      { title: 'Maraqlara əsaslanan seçim', text: 'Qeydiyyatda maraq sahələrini, ölkələri və proqram növlərini seç. Yalnız sənə aid olan fürsətləri görəcəksən.' },
-      { title: 'E-poçt xülasəsi', text: 'Maraqlarına uyğun yeni fürsətlər e-poçtla gəlir: həftədə bir dəfə, Premium-da isə hər gün.' },
-      { title: 'Bir kliklə saxla', text: 'Bəyəndiyin fürsəti şəxsi siyahına əlavə et ki, sonra rahatca qayıdasan.' },
-      { title: 'Son tarix xatırlatmaları', text: 'Saxladığın fürsətin müraciət müddəti bitməyə yaxınlaşanda avtomatik bildiriş alırsan.' },
-      { title: 'Müraciət paneli', text: 'Bütün müraciətlərin bir yerdə: Saxlanılıb → Müraciət edilib → Qəbul / İmtina.' },
-    ],
-    interests: ['Ekologiya', 'Təhsil', 'İnsan hüquqları', 'İncəsənət', 'İdman'],
-  },
   pricing: {
     eyebrow: 'Qiymətlər',
-    title: 'Pulsuz başla, lazım olsa genişlət',
-    subtitle: 'Kart tələb olunmur. Pulsuz başla, lazım olanda Premium-a keç.',
+    title: 'Əsas hər şey pulsuzdur',
+    subtitle: 'Premium daha çox köməyə ehtiyacı olanlar üçündür — ayda 3 ₼, istədiyin vaxt ləğv edə bilərsən.',
     perMonth: '/ ay',
     popular: 'Ən sərfəli',
     free: {
@@ -166,10 +181,10 @@ const az = {
     premiumCta: 'Premium ilə başla',
   },
   finalCta: {
-    title: 'Növbəti böyük fürsətin səni gözləyir',
-    sub: 'Qeydiyyat 1 dəqiqə çəkir. Kart tələb olunmur.',
+    title: 'İlk fürsətini bu gün tap',
+    sub: 'Qeydiyyat bir dəqiqə çəkir. Kart lazım deyil, istədiyin vaxt çıxa bilərsən.',
     primary: 'Pulsuz qeydiyyat',
-    secondary: 'Hesabım var',
+    secondary: 'Əvvəlcə fürsətlərə bax',
   },
   signup: {
     eyebrow: 'Erkən giriş',
@@ -226,14 +241,14 @@ const en: Dict = {
     langLabel: 'Change language',
   },
   hero: {
-    badge: 'Now open · Sign-up is free',
-    title1: 'Never miss a big',
-    title2: 'volunteering opportunity again.',
+    badge: 'Free · Browse without an account',
+    title1: 'Volunteering abroad is',
+    title2: 'easier than you think.',
     subtitle:
-      'Erasmus+, SALTO-Youth, European Solidarity Corps, UN Volunteers and national programs — all in one place. Pick your interests, find matching opportunities, save them and track every application in one place.',
-    cta: 'Sign up free',
-    secondary: 'See features',
-    trust: 'No spam. Unsubscribe anytime.',
+      'Europe runs youth exchanges, training courses and volunteering programmes for young people — often with travel, accommodation and food paid by the programme. The hard part is finding them in time. Openly collects the ones you can join from Azerbaijan, reminds you of deadlines and helps you keep track of your applications.',
+    cta: 'Browse opportunities',
+    secondary: 'Sign up free',
+    trust: 'No card needed. No spam.',
   },
   mock: {
     greeting: 'Hi, Aysel 👋',
@@ -268,6 +283,34 @@ const en: Dict = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Back to top',
+  explain: {
+    eyebrow: 'In plain words',
+    title: 'What are these opportunities?',
+    subtitle: 'Heard of “Erasmus+”, “ESC” or “youth exchanges” but not sure what they are? Start here.',
+    items: [
+      {
+        title: 'Youth exchange',
+        text: 'Young people from several countries live together for 5–21 days and work on one topic — environment, arts, human rights. Travel, accommodation and food are usually covered.',
+        meta: 'Ages 13–30 · Erasmus+',
+      },
+      {
+        title: 'Training course',
+        text: 'A few days of training for youth workers, volunteers and young leaders. You learn new methods and meet peers from other countries.',
+        meta: 'Usually 18+ · SALTO-Youth',
+      },
+      {
+        title: 'Long-term volunteering',
+        text: 'You volunteer with an organisation in another country for 2–12 months. Accommodation, food, insurance and monthly pocket money are provided.',
+        meta: 'Ages 18–30 · European Solidarity Corps',
+      },
+      {
+        title: 'Online opportunities',
+        text: 'Webinars, online courses and UN online volunteering projects you can join from home.',
+        meta: 'Online · UN Volunteers, SALTO',
+      },
+    ],
+    note: 'Every opportunity has its own rules. The exact details are always on the official page — we link it on every opportunity.',
+  },
   live: {
     eyebrow: 'Live',
     titleNew: (n: number) => `${n} new opportunities this week`,
@@ -280,9 +323,9 @@ const en: Dict = {
     eyebrow: 'How it works',
     title: 'From opportunity to application in three steps',
     steps: [
-      { title: 'Pick your interests', text: 'Environment, education, human rights, arts… Sign up for free and tell us what you care about.' },
-      { title: 'Find what fits', text: 'Filter by programme, country and type. Get new opportunities by email: weekly, or daily with Premium.' },
-      { title: 'Save, apply, track', text: 'Apply at the official source and track your status in one place. Get reminded before deadlines.' },
+      { title: 'Tell us what you like', text: 'Sign up for free and pick your interests: environment, education, arts, sports… It takes a minute.' },
+      { title: 'Find what fits you', text: 'Filter the list by programme, country and type. New opportunities also land in your inbox — no more searching.' },
+      { title: 'Apply, we keep track', text: 'You apply on the official page; we remind you of the deadline and keep your status in one place.' },
     ],
   },
   faq: {
@@ -311,23 +354,10 @@ const en: Dict = {
       },
     ],
   },
-  features: {
-    eyebrow: 'Features',
-    title: 'Everything that makes volunteering life easier',
-    subtitle: 'From discovering an opportunity to your acceptance letter — the whole journey in one app.',
-    items: [
-      { title: 'Interest-based personalization', text: 'Pick your interest areas, countries and program types at signup. You only see opportunities that matter to you.' },
-      { title: 'Email digest', text: 'New opportunities matching your interests land in your inbox — weekly, or every day with Premium.' },
-      { title: 'Save in one click', text: 'Add any opportunity to your personal list and come back to it anytime.' },
-      { title: 'Deadline reminders', text: 'Get notified automatically when a saved opportunity’s application deadline is approaching.' },
-      { title: 'Application dashboard', text: 'All your applications in one place: Saved → Applied → Accepted / Rejected.' },
-    ],
-    interests: ['Environment', 'Education', 'Human rights', 'Arts', 'Sports'],
-  },
   pricing: {
     eyebrow: 'Pricing',
-    title: 'Start free, upgrade if you need more',
-    subtitle: 'No card needed. Start free, upgrade to Premium when you need more.',
+    title: 'The essentials are free',
+    subtitle: 'Premium is for when you want more help — 3 ₼ a month, cancel anytime.',
     perMonth: '/ month',
     popular: 'Best value',
     free: {
@@ -358,10 +388,10 @@ const en: Dict = {
     premiumCta: 'Start with Premium',
   },
   finalCta: {
-    title: 'Your next big opportunity is waiting',
-    sub: 'Sign-up takes a minute. No card needed.',
+    title: 'Find your first opportunity today',
+    sub: 'Sign-up takes a minute. No card needed, leave whenever you like.',
     primary: 'Sign up free',
-    secondary: 'I have an account',
+    secondary: 'Browse opportunities first',
   },
   signup: {
     eyebrow: 'Early access',

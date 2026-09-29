@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Crown, Globe2, Lock, MapPin, Search, Sparkles, X } from 'lucide-react';
+import { Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { backend } from '../backend';
+import { Dashboard } from '../Dashboard';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
@@ -103,6 +104,7 @@ export default function OpportunitiesPage() {
   const funded = flag('funded');
   const showClosed = flag('closed');
   const sort = params.get('sort') === 'deadline' ? 'deadline' : 'best';
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [earlyCount, setEarlyCount] = useState(0);
   const navigate = useNavigate();
@@ -145,16 +147,23 @@ export default function OpportunitiesPage() {
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
   const clear = () => setParams(myInterests.length ? { mine: '0' } : {}, { replace: true });
+  // Selects and chips (not the search box) that are switched on, for the mobile "Filters (n)" button.
+  const activeFilters = [program, kind, country, soon, funded, showClosed].filter(Boolean).length;
+  const fits = myInterests.length ? published.filter((o) => daysUntil(o.deadline) >= 0 && o.interests.some((i) => myInterests.includes(i))).length : 0;
 
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities) return <Spinner label={tx.loading} />;
 
   return (
     <div>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.list.title}</h1>
-        <p className="text-slate-600">{tx.list.sub(openCount)}</p>
-      </div>
+      {profile ? (
+        <Dashboard openCount={openCount} fits={fits} />
+      ) : (
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.list.title}</h1>
+          <p className="text-slate-600">{tx.list.sub(openCount)}</p>
+        </div>
+      )}
 
       {!profile && (
         <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -208,19 +217,39 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        <label className="relative block">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setParam('q', e.target.value)}
-            placeholder={tx.list.search}
-            aria-label={tx.list.search}
-            className={`${inputClass} pl-10`}
-          />
-        </label>
-        <div className="grid gap-2 sm:grid-cols-3">
+      {profile && (
+        <div className="mt-8 flex items-baseline justify-between gap-2">
+          <h2 className="text-xl font-extrabold tracking-tight">{tx.list.allTitle}</h2>
+          <p className="text-sm text-slate-500">{tx.list.sub(openCount)}</p>
+        </div>
+      )}
+
+      <div className="mt-4 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex gap-2">
+          <label className="relative block flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setParam('q', e.target.value)}
+              placeholder={tx.list.search}
+              aria-label={tx.list.search}
+              className={`${inputClass} pl-10`}
+            />
+          </label>
+          {/* Phones: the filters fold behind one button so the list starts sooner. */}
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold sm:hidden ${filtersOpen || activeFilters ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-700'}`}
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+            {tx.list.filters}
+            {activeFilters > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-xs font-bold text-white">{activeFilters}</span>}
+          </button>
+        </div>
+        <div className={`${filtersOpen ? 'grid' : 'hidden'} gap-2 sm:grid sm:grid-cols-3`}>
           <select value={program} onChange={(e) => setParam('program', e.target.value)} className={inputClass} aria-label={tx.detail.program}>
             <option value="">{tx.list.allPrograms}</option>
             {programs.map((p) => (
@@ -247,7 +276,7 @@ export default function OpportunitiesPage() {
             ))}
           </select>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={`${filtersOpen ? 'flex' : 'hidden'} flex-wrap items-center gap-2 sm:flex`}>
           {myInterests.length > 0 && (
             <Chip on={forYou} onClick={() => setParam('mine', forYou ? '0' : null)}>
               {tx.list.forYou}

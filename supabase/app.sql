@@ -348,6 +348,10 @@ create policy "own letters" on public.letters
 -- ---------------------------------------------------------------------------
 alter table public.saved_opportunities add column if not exists share_contact boolean not null default false;
 
+-- Application prep per tracked opportunity: ticked checklist items (see src/app/checklist.ts) and a private note.
+alter table public.saved_opportunities add column if not exists checklist text[] not null default '{}' check (cardinality(checklist) <= 20);
+alter table public.saved_opportunities add column if not exists note text not null default '' check (char_length(note) <= 1000);
+
 create or replace function public.accepted_peers(opp uuid)
 returns table (full_name text, email text, avatar_url text, headline text, country text)
 language sql

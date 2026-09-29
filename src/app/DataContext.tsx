@@ -16,6 +16,7 @@ interface DataState {
   unsave: (id: string) => Promise<void>;
   setStatus: (id: string, status: Status) => Promise<void>;
   setShareContact: (id: string, share: boolean) => Promise<void>;
+  updateTracking: (id: string, patch: { checklist?: string[]; note?: string }) => Promise<void>;
   /** Keep the cache in sync after admin edits. */
   upsertOpportunity: (o: Opportunity) => void;
   removeOpportunity: (id: string) => void;
@@ -88,6 +89,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateTracking = useCallback(async (id: string, patch: { checklist?: string[]; note?: string }) => {
+    // Optimistic: checkboxes should respond instantly; roll back if the save fails.
+    let before: SavedItem | undefined;
+    setSaved((m) => {
+      before = m.get(id);
+      return before ? new Map(m).set(id, { ...before, ...patch }) : m;
+    });
+    try {
+      await backend.updateTracking(id, patch);
+    } catch (err) {
+      setSaved((m) => (before ? new Map(m).set(id, before) : m));
+      throw err;
+    }
+  }, []);
+
   const upsertOpportunity = useCallback((o: Opportunity) => {
     setOpportunities((list) => {
       const rest = (list ?? []).filter((x) => x.id !== o.id);
@@ -105,8 +121,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, upsertOpportunity, removeOpportunity }),
-    [opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, upsertOpportunity, removeOpportunity],
+    () => ({ opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, updateTracking, upsertOpportunity, removeOpportunity }),
+    [opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, updateTracking, upsertOpportunity, removeOpportunity],
   );
 
   return (

@@ -7,10 +7,11 @@ import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
-import type { Peer, Status } from '../types';
-import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, statusClass } from '../ui';
+import type { Opportunity, Peer, Status } from '../types';
+import { prepItems, type PrepItem } from '../checklist';
+import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass, statusClass } from '../ui';
 import { backend } from '../backend';
-import { formatDate, formatRange } from '../util';
+import { daysUntil, formatDate, formatRange } from '../util';
 
 export default function DetailPage() {
   const { id = '' } = useParams();
@@ -245,12 +246,14 @@ export default function DetailPage() {
                   </div>
                 </fieldset>
               )}
+              {item && <PrepChecklist o={o} checklist={item.checklist ?? []} note={item.note ?? ''} />}
             </div>
             {item?.status === 'accepted' && <AcceptedPeers opportunityId={o.id} sharing={item.share_contact === true} />}
             <ShareCard o={o} />
           </aside>
         </div>
       </article>
+      <SimilarOpportunities current={o} />
     </div>
   );
 }
@@ -358,5 +361,118 @@ function SendingOrg({ name, contact }: { name: string; contact: string }) {
         )}
       </div>
     </div>
+  );
+}
+
+/** Application prep for a tracked opportunity: tick the steps, keep a private note. */
+function PrepChecklist({ o, checklist, note }: { o: Opportunity; checklist: string[]; note: string }) {
+  const { tx } = useAppText();
+  const { updateTracking } = useData();
+  const [draft, setDraft] = useState(note);
+  const [noteSaved, setNoteSaved] = useState(false);
+  const items = prepItems(o);
+  const done = items.filter((i) => checklist.includes(i)).length;
+
+  const toggle = async (i: PrepItem) => {
+    const next = checklist.includes(i) ? checklist.filter((x) => x !== i) : [...checklist, i];
+    try {
+      await updateTracking(o.id, { checklist: next });
+    } catch (err) {
+      console.error('[prep] save failed', err);
+      alert(tx.saveError);
+    }
+  };
+
+  const saveNote = async () => {
+    if (draft === note) return;
+    try {
+      await updateTracking(o.id, { note: draft.trim() });
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 2000);
+    } catch (err) {
+      console.error('[prep] note save failed', err);
+      alert(tx.saveError);
+    }
+  };
+
+  return (
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tx.prep.title}</p>
+        <span className="text-xs font-bold text-brand-700">
+          {done}/{items.length}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+        <div className="h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 transition-all" style={{ width: `${(done / items.length) * 100}%` }} />
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {items.map((i) => (
+          <li key={i}>
+            <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+              <input type="checkbox" checked={checklist.includes(i)} onChange={() => toggle(i)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+              <span className={checklist.includes(i) ? 'text-slate-400 line-through' : 'text-slate-800'}>{tx.prep.items[i]}</span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor={`note-${o.id}`}>
+        {tx.prep.note}
+      </label>
+      <textarea
+        id={`note-${o.id}`}
+        rows={3}
+        maxLength={1000}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={saveNote}
+        placeholder={tx.prep.notePh}
+        className={`${inputClass} mt-1.5 resize-y !py-2 text-sm`}
+      />
+      {noteSaved && (
+        <p role="status" className="mt-1 text-xs font-medium text-emerald-700">
+          {tx.prep.noteSaved}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Up to three other open opportunities on the same topics (or of the same kind / programme). */
+function SimilarOpportunities({ current }: { current: Opportunity }) {
+  const { tx } = useAppText();
+  const { opportunities } = useData();
+  const similar = (opportunities ?? [])
+    .filter((o) => o.id !== current.id && o.published && daysUntil(o.deadline) >= 0)
+    .map((o) => ({
+      o,
+      score: 2 * o.interests.filter((i) => current.interests.includes(i)).length + (o.kind === current.kind ? 1 : 0) + (o.program === current.program ? 1 : 0),
+    }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.o.deadline.localeCompare(b.o.deadline))
+    .slice(0, 3);
+  if (!similar.length) return null;
+
+  return (
+    <section aria-labelledby="similar-title" className="mt-8">
+      <h2 id="similar-title" className="text-lg font-extrabold">
+        {tx.similar.title}
+      </h2>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {similar.map(({ o }) => (
+          <Link
+            key={o.id}
+            to={`/o/${o.id}`}
+            className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
+          >
+            <p className="text-xs font-bold text-brand-700">{o.program}</p>
+            <p className="line-clamp-2 font-semibold leading-snug text-slate-900 group-hover:text-brand-800">{o.title}</p>
+            <div className="mt-auto pt-1">
+              <DeadlineChip deadline={o.deadline} />
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

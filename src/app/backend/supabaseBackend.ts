@@ -201,9 +201,9 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     },
 
     async listSaved() {
-      const { data, error } = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at, share_contact');
+      const { data, error } = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at, share_contact, checklist, note');
       if (error?.code === UNDEFINED_COLUMN) {
-        // supabase/app.sql not re-run yet: no contact sharing column.
+        // supabase/app.sql not re-run yet: no sharing / prep columns.
         const base = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at');
         if (base.error) throw dbError(base.error);
         return base.data as SavedItem[];
@@ -225,6 +225,11 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
     async unsave(opportunityId) {
       const { error } = await sb.from('saved_opportunities').delete().eq('opportunity_id', opportunityId);
+      if (error) throw dbError(error);
+    },
+
+    async updateTracking(opportunityId, patch) {
+      const { error } = await sb.from('saved_opportunities').update(patch).eq('opportunity_id', opportunityId);
       if (error) throw dbError(error);
     },
 
