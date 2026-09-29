@@ -1,8 +1,8 @@
-import type { AuthError, PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
 import { FreeLimitError, type Opportunity, type Profile, type SavedItem, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out';
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about';
 // Used if supabase/app.sql hasn't been re-run yet and the notification columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
@@ -84,7 +84,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
         console.warn('[profile] notification columns missing — re-run supabase/app.sql');
         const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
         if (base.error) throw dbError(base.error);
-        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false } as Profile) : null;
+        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '' } as Profile) : null;
       }
       if (error) throw dbError(error);
       return data as Profile | null;
@@ -142,6 +142,23 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     async setUserPlan(userId, plan) {
       const { error } = await sb.rpc('set_user_plan', { target: userId, new_plan: plan });
       if (error) throw dbError(error);
+    },
+
+    async ai(request) {
+      const { data, error } = await sb.functions.invoke('ai', { body: request });
+      if (error) {
+        let code = '';
+        if (error instanceof FunctionsHttpError) {
+          try {
+            code = ((await error.context.json()) as { error?: string }).error ?? '';
+          } catch {
+            /* non-JSON error body */
+          }
+        }
+        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused') throw new BackendError(code);
+        throw new BackendError('ai_unavailable', error.message);
+      }
+      return data as { result: unknown; remaining: number };
     },
 
     async listSaved() {

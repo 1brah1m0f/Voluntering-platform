@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ExternalLink, Globe2, MapPin, Wallet, Shapes, Building2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Crown, ExternalLink, Globe2, MapPin, Wallet, Shapes, Building2, Sparkles } from 'lucide-react';
+import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
@@ -12,6 +13,8 @@ export default function DetailPage() {
   const { id = '' } = useParams();
   const { tx, lang } = useAppText();
   const { opportunities, saved, setStatus, error, reload } = useData();
+  const { profile } = useAuth();
+  const premium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [busy, setBusy] = useState(false);
 
   if (error) return <ErrorState onRetry={reload} />;
@@ -127,6 +130,20 @@ export default function DetailPage() {
                 </fieldset>
               )}
             </div>
+            <Link
+              to={premium ? `/app/o/${o.id}/ai` : '/app/premium'}
+              className="group block overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-700 to-brand-900 p-4 text-white shadow-soft transition hover:-translate-y-0.5"
+            >
+              <p className="flex items-center gap-2 font-bold">
+                <Sparkles className="h-4 w-4 text-violet-200" aria-hidden="true" />
+                {tx.ai.title}
+                {!premium && <Crown className="ml-auto h-4 w-4 text-amber-300" aria-hidden="true" />}
+              </p>
+              <p className="mt-1 text-sm text-violet-100">{premium ? tx.ai.sub : tx.ai.locked}</p>
+              <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold transition group-hover:bg-white/25">
+                {premium ? tx.ai.open : tx.list.seePremium} →
+              </span>
+            </Link>
           </aside>
         </div>
       </article>

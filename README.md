@@ -39,6 +39,32 @@ demo mode is on.
    `update public.profiles set is_admin = true where email = 'you@example.com';`
    Premium is set the same way: `set plan = 'premium'`.
 
+## Premium AI assistant
+
+Premium users get, on every opportunity page (`/app/o/<id>/ai`):
+
+- **Motivation letter assistant** — Claude first asks 4–6 questions tailored to the opportunity
+  and the user's profile, then builds a draft *only* from the answers (placeholders in
+  `[brackets]` instead of invented facts); the user rewrites it in their own voice.
+- **Application review** — paste a letter or CV and get a 1–10 fit score, strengths, concrete
+  issues (quote → problem → suggestion) and what the committee will look for.
+
+Plus rule-based **smart matching** in the list (fit %, "best match" sort, "N new opportunities
+for you"), see `src/app/match.ts`.
+
+The AI runs in the Supabase Edge Function `supabase/functions/ai` (Claude Opus 5 with server-side
+refusal fallbacks). It checks that the caller is signed in and Premium, and allows 30 requests
+per user per day (`ai_usage` table). The Anthropic key never reaches the browser.
+
+Setup:
+1. Re-run `supabase/app.sql` (adds `profiles.about`, `ai_usage`, `bump_ai_usage`).
+2. Create an API key at console.anthropic.com and set it as a function secret:
+   `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...` (or Dashboard → Edge Functions → Secrets).
+3. Deploy: `supabase functions deploy ai` (or Dashboard → Edge Functions → Deploy a new function
+   → name `ai` → paste `supabase/functions/ai/index.ts`).
+
+Type-check locally: `deno check supabase/functions/ai/index.ts`.
+
 ## Email notifications
 
 `jobs/notify.mjs` runs daily from GitHub Actions (`.github/workflows/notify.yml`, 08:00 Baku):

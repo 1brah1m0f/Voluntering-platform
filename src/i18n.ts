@@ -108,6 +108,8 @@ const az = {
       price: '3 ₼',
       desc: 'Aktiv müraciət edən və heç nəyi qaçırmaq istəməyənlər üçün.',
       features: [
+        'AI motivasiya məktubu köməkçisi və müraciət yoxlanışı',
+        'Ağıllı uyğunlaşdırma: hər fürsət üçün uyğunluq faizi',
         'Gündəlik xülasə e-poçtu',
         'Limitsiz saxlama və müraciət izləmə',
         'Yeni fürsətləri 24 saat əvvəl gör',
@@ -251,6 +253,8 @@ const en: Dict = {
       price: '3 ₼',
       desc: 'For active applicants who don’t want to miss anything.',
       features: [
+        'AI motivation letter assistant and application review',
+        'Smart matching: a fit score for every opportunity',
         'Daily digest email',
         'Unlimited saved & tracked opportunities',
         'See new opportunities 24 hours earlier',

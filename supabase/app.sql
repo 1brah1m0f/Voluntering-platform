@@ -68,6 +68,8 @@ create policy "update own profile" on public.profiles
 alter table public.profiles add column if not exists digest_opt_out boolean not null default false;
 alter table public.profiles add column if not exists reminders_opt_out boolean not null default false;
 alter table public.profiles add column if not exists last_digest_at timestamptz;
+-- Free-text background (education, experience, skills) used by the AI assistant.
+alter table public.profiles add column if not exists about text not null default '' check (char_length(about) <= 2000);
 
 -- Admins switch a user's plan from /admin/users. Users can't change their own
 -- plan: the column isn't in the grant below and this function checks is_admin().
@@ -92,7 +94,7 @@ grant execute on function public.set_user_plan(uuid, text) to authenticated;
 
 -- Users may only edit these columns; plan and is_admin are set by an admin.
 revoke update on public.profiles from authenticated, anon;
-grant update (full_name, interests, country, digest_opt_out, reminders_opt_out) on public.profiles to authenticated;
+grant update (full_name, interests, country, digest_opt_out, reminders_opt_out, about) on public.profiles to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Opportunities (managed from /admin)
@@ -235,3 +237,29 @@ create table if not exists public.email_log (
 );
 
 alter table public.email_log enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- AI usage counter (Premium AI assistant, see supabase/functions/ai).
+-- Written only by the edge function with the service role; no policies.
+-- ---------------------------------------------------------------------------
+create table if not exists public.ai_usage (
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  day      date not null default current_date,
+  count    int  not null default 0,
+  primary key (user_id, day)
+);
+
+alter table public.ai_usage enable row level security;
+
+-- Atomically counts one AI request; returns the new total for today.
+create or replace function public.bump_ai_usage(target uuid)
+returns integer
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.ai_usage (user_id, day, count) values (target, current_date, 1)
+  on conflict (user_id, day) do update set count = public.ai_usage.count + 1
+  returning count;
+$$;
+revoke all on function public.bump_ai_usage(uuid) from public, anon, authenticated;

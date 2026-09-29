@@ -17,6 +17,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
+  const [about, setAbout] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwMsg, setPwMsg] = useState(false);
@@ -26,6 +27,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setName(profile.full_name);
     setCountry(profile.country);
     setInterests(profile.interests);
+    setAbout(profile.about ?? '');
   }, [profile]);
 
   if (!profile) return <Spinner label={tx.loading} />;
@@ -38,7 +40,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setBusy(true);
     setMsg(null);
     try {
-      const updated = await backend.updateProfile({ full_name: name.trim(), country, interests });
+      const updated = await backend.updateProfile({ full_name: name.trim(), country, interests, about: about.trim() });
       setProfile(updated);
       if (onboarding) navigate('/app', { replace: true });
       else setMsg({ ok: true, text: tx.profile.saved });
@@ -84,6 +86,10 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
             </select>
           </Field>
         </div>
+
+        <Field label={tx.profile.about} htmlFor={`${uid}-about`} hint={tx.profile.aboutHint}>
+          <textarea id={`${uid}-about`} rows={4} maxLength={2000} value={about} onChange={(e) => setAbout(e.target.value)} placeholder={tx.profile.aboutPh} className={`${inputClass} resize-y`} />
+        </Field>
 
         {!onboarding && (
           <div className="grid gap-4 sm:grid-cols-2">

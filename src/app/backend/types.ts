@@ -1,12 +1,23 @@
-import type { Opportunity, OpportunityInput, Plan, Profile, SavedItem, SignUpResult, Status, UserRow } from '../types';
+import type { AiRequest, Opportunity, OpportunityInput, Plan, Profile, SavedItem, SignUpResult, Status, UserRow } from '../types';
 
-export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out'>>;
+export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about'>>;
 
 /**
  * Error codes surfaced to the UI. Implementations throw `BackendError` with one
  * of these so pages can show a translated message.
  */
-export type ErrorCode = 'invalid_credentials' | 'email_taken' | 'weak_password' | 'email_not_confirmed' | 'not_allowed' | 'unknown';
+export type ErrorCode =
+  | 'invalid_credentials'
+  | 'email_taken'
+  | 'weak_password'
+  | 'email_not_confirmed'
+  | 'not_allowed'
+  | 'unknown'
+  // AI assistant
+  | 'premium_required'
+  | 'daily_limit'
+  | 'ai_unavailable'
+  | 'refused';
 
 export class BackendError extends Error {
   constructor(
@@ -50,6 +61,9 @@ export interface Backend {
   /** Admin only. */
   listUsers(): Promise<UserRow[]>;
   setUserPlan(userId: string, plan: Plan): Promise<void>;
+
+  /** Premium AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
+  ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
 
   listSaved(): Promise<SavedItem[]>;
   /** Throws FreeLimitError when a free-plan user is at the limit. */

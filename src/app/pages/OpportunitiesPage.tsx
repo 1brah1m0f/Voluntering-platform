@@ -7,12 +7,25 @@ import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
 import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity } from '../types';
+import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
 import { Chip, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass } from '../ui';
 import { daysUntil } from '../util';
 
 const ONLINE = '__online__';
 
-export function OpportunityCard({ o }: { o: Opportunity }) {
+function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
+  const { tx } = useAppText();
+  const tone = score >= 80 ? 'bg-emerald-100 text-emerald-800' : score >= GOOD_MATCH ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600';
+  const why = reasons.map((r) => tx.list.matchReasons[r]).join(' · ');
+  return (
+    <span title={why} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${tone}`}>
+      <Sparkles className="h-3 w-3" aria-hidden="true" />
+      {tx.list.match(score)}
+    </span>
+  );
+}
+
+export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score: number; reasons: MatchReason[] } }) {
   const { tx, lang } = useAppText();
   const closed = daysUntil(o.deadline) < 0;
   return (
@@ -37,6 +50,7 @@ export function OpportunityCard({ o }: { o: Opportunity }) {
         {o.costs === 'full' && <span className="font-semibold text-emerald-700">{COSTS.full[lang]}</span>}
       </p>
       <div className="mt-3 flex flex-wrap gap-1.5">
+        {match && <MatchBadge score={match.score} reasons={match.reasons} />}
         {o.interests.slice(0, 3).map((i) => (
           <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
             {INTERESTS[i as InterestId]?.[lang] ?? i}
@@ -72,6 +86,7 @@ export default function OpportunitiesPage() {
   const [soon, setSoon] = useState(false);
   const [funded, setFunded] = useState(false);
   const [showClosed, setShowClosed] = useState(false);
+  const [sort, setSort] = useState<'best' | 'deadline'>('best');
   const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [earlyCount, setEarlyCount] = useState(0);
   const navigate = useNavigate();
@@ -102,6 +117,19 @@ export default function OpportunitiesPage() {
     if (q && !`${o.title} ${o.program} ${o.organizer} ${o.country} ${o.city} ${o.description}`.toLowerCase().includes(q)) return false;
     return true;
   });
+
+  // Premium smart matching: fit score per card, "best match" ordering, and a
+  // personal "N new opportunities for you" summary.
+  const matches = useMemo(
+    () => (isPremium && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile)])) : null),
+    [isPremium, profile, published],
+  );
+  const ordered = matches && sort === 'best' ? [...results].sort((a, b) => matches.get(b.id)!.score - matches.get(a.id)!.score || a.deadline.localeCompare(b.deadline)) : results;
+  const weekAgo = Date.now() - 7 * 86_400_000;
+  const freshForYou = matches
+    ? published.filter((o) => daysUntil(o.deadline) >= 0 && new Date(o.created_at).getTime() > weekAgo && matches.get(o.id)!.score >= GOOD_MATCH)
+    : [];
+  const soonestDays = freshForYou.length ? Math.min(...freshForYou.map((o) => daysUntil(o.deadline))) : null;
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
   const clear = () => {
@@ -134,6 +162,18 @@ export default function OpportunitiesPage() {
           <Link to="/app/profile" className="btn-primary !px-4 !py-2 text-sm">
             {tx.list.pickInterests}
           </Link>
+        </div>
+      )}
+
+      {freshForYou.length > 0 && (
+        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 to-brand-50 p-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-brand-700 text-white">
+            <Sparkles className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <p className="text-sm text-violet-950">
+            <span className="font-bold">{tx.list.forYouTitle(freshForYou.length)}</span>
+            {soonestDays !== null && soonestDays <= 14 && <span> — {tx.list.forYouSoon(soonestDays)}</span>}
+          </p>
         </div>
       )}
 
@@ -208,12 +248,30 @@ export default function OpportunitiesPage() {
         </div>
       </div>
 
+      {matches && results.length > 1 && (
+        <div className="mt-5 flex justify-end">
+          <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm shadow-sm ring-1 ring-slate-200">
+            {(['best', 'deadline'] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={sort === k}
+                onClick={() => setSort(k)}
+                className={`rounded-full px-3 py-1 font-semibold transition ${sort === k ? 'bg-violet-600 text-white' : 'text-slate-600 hover:text-slate-900'}`}
+              >
+                {k === 'best' ? tx.list.sortBest : tx.list.sortDeadline}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {results.length === 0 ? (
         <p className="mt-10 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">{tx.list.empty}</p>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {results.map((o) => (
-            <OpportunityCard key={o.id} o={o} />
+          {ordered.map((o) => (
+            <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
           ))}
         </div>
       )}

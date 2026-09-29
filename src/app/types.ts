@@ -15,6 +15,8 @@ export interface Profile {
   digest_opt_out: boolean;
   /** Opted out of deadline reminder emails (Premium). */
   reminders_opt_out: boolean;
+  /** Education, experience, skills — context for the AI assistant. */
+  about: string;
 }
 
 export interface Opportunity {
@@ -39,6 +41,29 @@ export interface Opportunity {
 }
 
 export type OpportunityInput = Omit<Opportunity, 'id' | 'created_at'>;
+
+// --- Premium AI assistant (supabase/functions/ai) ---------------------------
+
+export type AiRequest =
+  | { action: 'questions'; opportunityId: string; lang: 'az' | 'en' }
+  | { action: 'draft'; opportunityId: string; lang: 'az' | 'en'; letterLang: 'az' | 'en'; answers: { question: string; answer: string }[] }
+  | { action: 'review'; opportunityId: string; lang: 'az' | 'en'; docType: 'letter' | 'cv'; text: string };
+
+export interface AiQuestions {
+  questions: { question: string; why: string }[];
+}
+export interface AiDraft {
+  draft: string;
+  tips: string[];
+  missing_info: string[];
+}
+export interface AiReview {
+  score: number;
+  verdict: string;
+  strengths: string[];
+  issues: { quote: string; problem: string; suggestion: string }[];
+  missing: string[];
+}
 
 /** A user row as seen in Admin → Users. */
 export type UserRow = Profile & { created_at: string };

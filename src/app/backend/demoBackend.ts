@@ -170,7 +170,7 @@ export function createDemoBackend(): Backend {
   const emit = (id: string | null) => listeners.forEach((l) => l(id));
 
   const seedAccounts = (): DemoUser[] => {
-    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false, created_at: new Date().toISOString() };
+    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false, about: '', created_at: new Date().toISOString() };
     return [
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.admin, full_name: 'Openly Admin', interests: [], is_admin: true },
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.user, full_name: 'Aysel Məmmədova', interests: ['environment', 'education'], is_admin: false },
@@ -252,6 +252,7 @@ export function createDemoBackend(): Backend {
         is_admin: false,
         digest_opt_out: false,
         reminders_opt_out: false,
+        about: '',
         created_at: new Date().toISOString(),
       };
       write(K.users, [...list, user]);
@@ -366,6 +367,11 @@ export function createDemoBackend(): Backend {
         K.users,
         users().map((u) => (u.id === userId ? { ...u, plan } : u)),
       );
+    },
+
+    async ai() {
+      // The AI assistant runs in a Supabase Edge Function; there's no demo version.
+      throw new BackendError('ai_unavailable');
     },
 
     async listSaved() {
