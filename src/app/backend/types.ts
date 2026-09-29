@@ -1,6 +1,6 @@
-import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedSearch, SignUpResult, Status, UserRow } from '../types';
+import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
-export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline'>>;
+export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap'>>;
 
 /**
  * Error codes surfaced to the UI. Implementations throw `BackendError` with one
@@ -71,6 +71,15 @@ export interface Backend {
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
   /** Whether the AI assistant is deployed and has an API key; false until it's set up. */
   aiStatus(): Promise<boolean>;
+
+  /** Student section. Catalogue reads fail (RLS) unless the user is on the Student plan. */
+  studentCounts(): Promise<{ scholarships: number; universities: number }>;
+  listScholarships(): Promise<Scholarship[]>;
+  listUniversities(): Promise<University[]>;
+  listShortlist(): Promise<ShortlistItem[]>;
+  addToShortlist(universityId: string): Promise<void>;
+  setShortlistStatus(universityId: string, status: ShortlistStatus): Promise<void>;
+  removeFromShortlist(universityId: string): Promise<void>;
 
   /** Saved searches (max 10). */
   listSearches(): Promise<SavedSearch[]>;

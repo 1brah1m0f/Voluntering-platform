@@ -9,6 +9,7 @@ import { COUNTRIES, INTERESTS, INTEREST_IDS } from '../taxonomy';
 import { useAppText } from '../text';
 import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
 import { squareImage } from '../util';
+import { isPaidPlan } from '../plans';
 
 type Tab = 'profile' | 'premium' | 'settings';
 
@@ -208,7 +209,7 @@ function ProfileHeader() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   if (!profile) return null;
-  const premium = profile.plan === 'premium';
+  const premium = isPaidPlan(profile.plan);
 
   const change = async (image: Blob | null) => {
     setBusy(true);
@@ -260,7 +261,7 @@ function ProfileHeader() {
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${premium ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}
           >
             {premium && <Crown className="h-3.5 w-3.5" aria-hidden="true" />}
-            {premium ? tx.profile.premium : tx.profile.basic}
+            {profile.plan === 'student' ? tx.profile.student : premium ? tx.profile.premium : tx.profile.basic}
           </span>
           {profile.avatar_url && (
             <button type="button" onClick={() => change(null)} disabled={busy} className="text-xs font-semibold text-slate-500 hover:text-rose-600">
@@ -284,7 +285,7 @@ function NotificationSettings() {
   const { profile, setProfile } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   if (!profile) return null;
-  const premium = profile.plan === 'premium';
+  const premium = isPaidPlan(profile.plan);
 
   const toggle = async (key: 'digest_opt_out' | 'reminders_opt_out') => {
     setBusy(key);

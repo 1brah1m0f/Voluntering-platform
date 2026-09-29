@@ -182,6 +182,19 @@ const az = {
     },
     cta: 'Pulsuz başla',
     premiumCta: 'Premium ilə başla',
+    student: {
+      name: 'Tələbə',
+      price: '7 ₼',
+      desc: 'Xaricdə bakalavr və ya magistr oxumaq istəyənlər üçün.',
+      features: [
+        'Premium-un bütün imkanları',
+        'Təqaüdlər: kim üçündür, nəyi qarşılayır, son tarixlər',
+        'Universitetlər: ixtisaslar, təhsil və müraciət haqları, tələblər',
+        '16 addımlıq müraciət yol xəritəsi',
+        'Planlayıcı: balına və büdcənə uyğun universitetlər',
+      ],
+      cta: 'Nələr daxildir?',
+    },
   },
   finalCta: {
     title: 'İlk fürsətini bu gün tap',
@@ -392,6 +405,19 @@ const en: Dict = {
     },
     cta: 'Start free',
     premiumCta: 'Start with Premium',
+    student: {
+      name: 'Student',
+      price: '7 ₼',
+      desc: 'For anyone who wants a bachelor’s or master’s abroad.',
+      features: [
+        'Everything in Premium',
+        'Scholarships: who they’re for, what they cover, deadlines',
+        'Universities: fields, tuition and application fees, requirements',
+        'A 16-step application roadmap',
+        'Planner: universities that fit your score and budget',
+      ],
+      cta: 'See what’s inside',
+    },
   },
   finalCta: {
     title: 'Find your first opportunity today',

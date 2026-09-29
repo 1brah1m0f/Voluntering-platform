@@ -56,7 +56,7 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
     const email = confirmedEmails.get(p.id);
     if (!email) continue; // unconfirmed or deleted account
     if (only && email.toLowerCase() !== only.toLowerCase()) continue;
-    const premium = p.plan === 'premium';
+    const premium = p.plan === 'premium' || p.plan === 'student'; // Student includes Premium
     const name = p.full_name || '';
 
     // --- new-opportunities digest -------------------------------------------

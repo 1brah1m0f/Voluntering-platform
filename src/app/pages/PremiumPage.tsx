@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, Crown, Loader2, Minus, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Check, Crown, GraduationCap, Loader2, Minus, Sparkles } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
@@ -10,11 +11,36 @@ function Cell({ value, strong = false }: { value: boolean | string; strong?: boo
   return <span className={`font-semibold ${strong ? 'text-coral-700' : 'text-slate-700'}`}>{value}</span>;
 }
 
-/** Premium users see their plan and a cancel option — no sales pitch. */
+/** Card offering the Student plan (shown to Free and Premium users). */
+function StudentUpsell() {
+  const { tx } = useAppText();
+  const p = tx.premium;
+  return (
+    <Link
+      to="/student"
+      className="group mt-6 flex items-start gap-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-brand-50 p-5 transition hover:-translate-y-0.5 hover:shadow-card sm:p-6"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-700 text-white shadow">
+        <GraduationCap className="h-6 w-6" aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-extrabold text-violet-950">{p.studentUpsellTitle}</span>
+        <span className="mt-1 block text-sm leading-relaxed text-violet-900/80">{p.studentUpsellText}</span>
+        <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-violet-700">
+          {p.studentUpsellCta}
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+/** Paid users see their plan and a cancel option — no sales pitch (Premium users also see the Student offer). */
 function ActivePremium() {
   const { tx } = useAppText();
   const p = tx.premium;
-  const { setProfile } = useAuth();
+  const { profile, setProfile } = useAuth();
+  const student = profile?.plan === 'student';
   const [busy, setBusy] = useState(false);
 
   const cancel = async () => {
@@ -39,9 +65,17 @@ function ActivePremium() {
           <Crown className="h-4 w-4 text-amber-300" aria-hidden="true" />
           {p.current}
         </p>
-        <h2 className="relative mt-2 text-2xl font-extrabold !text-white">{p.active}</h2>
-        <p className="relative mt-2 max-w-lg text-brand-100">{p.activeSub}</p>
+        <h2 className="relative mt-2 text-2xl font-extrabold !text-white">{student ? p.studentActive : p.active}</h2>
+        <p className="relative mt-2 max-w-lg text-brand-100">{student ? p.studentActiveSub : p.activeSub}</p>
+        {student && (
+          <Link to="/student" className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/25">
+            {p.openStudent}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        )}
       </div>
+
+      {!student && <StudentUpsell />}
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <h2 className="text-lg font-bold">{p.cancelTitle}</h2>
@@ -65,7 +99,7 @@ export default function PremiumPlan() {
   const { tx } = useAppText();
   const p = tx.premium;
   const { profile } = useAuth();
-  if (profile?.plan === 'premium') return <ActivePremium />;
+  if (profile?.plan === 'premium' || profile?.plan === 'student') return <ActivePremium />;
 
   return (
     <div>
@@ -124,6 +158,7 @@ export default function PremiumPlan() {
         </button>
         <p className="max-w-md text-sm text-slate-500">{p.ctaNote}</p>
       </div>
+      <StudentUpsell />
     </div>
   );
 }

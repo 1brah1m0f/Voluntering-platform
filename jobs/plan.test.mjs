@@ -153,3 +153,17 @@ test('--only restricts to one address', () => {
     ['b@x.com'],
   );
 });
+
+test('student plan gets the Premium daily digest and reminders', () => {
+  const { digests, reminders } = planNotifications({
+    now: TUESDAY, // not the free weekly day
+    profiles: [profile('stu', { plan: 'student' })],
+    confirmedEmails: new Map([['stu', 's@x.com']]),
+    opportunities: [opp('a', { deadline: '2026-10-09', created_at: '2026-10-05T12:00:00Z' })], // new since yesterday; closes in 3 days
+    saved: [{ user_id: 'stu', opportunity_id: 'a', status: 'saved' }],
+    sent: new Set(),
+  });
+  assert.equal(digests.length, 1);
+  assert.equal(digests[0].premium, true);
+  assert.equal(reminders.length, 1);
+});

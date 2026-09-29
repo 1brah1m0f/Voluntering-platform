@@ -16,6 +16,7 @@ const OpportunitiesPage = lazy(() => import('./app/pages/OpportunitiesPage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
+const StudentPage = lazy(() => import('./app/pages/StudentPage'));
 const GuidesPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidesPage })));
 const GuidePage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidePage })));
 const ProgramPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.ProgramPage })));
@@ -43,6 +44,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/app" element={<OpportunitiesPage />} />
                 <Route path="/o/:id" element={<DetailPage />} />
                 <Route path="/app/calendar" element={<CalendarPage />} />
+                <Route path="/student" element={<StudentPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/guides/:slug" element={<GuidePage />} />
                 <Route path="/programs/:slug" element={<ProgramPage />} />

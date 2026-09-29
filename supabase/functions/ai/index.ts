@@ -282,7 +282,8 @@ Deno.serve(async (req) => {
     .select("full_name, interests, country, about, plan, is_admin")
     .eq("id", user.id)
     .single();
-  if (!profile || (profile.plan !== "premium" && !profile.is_admin)) return json({ error: "premium_required" }, 403);
+  // Student (7 ₼) includes everything in Premium.
+  if (!profile || (profile.plan !== "premium" && profile.plan !== "student" && !profile.is_admin)) return json({ error: "premium_required" }, 403);
 
   const { data: opportunity } = await admin.from("opportunities").select("*").eq("id", body.opportunityId).single();
   if (!opportunity || (!opportunity.published && !profile.is_admin)) return json({ error: "not_found" }, 404);

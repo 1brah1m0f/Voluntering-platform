@@ -1,8 +1,8 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type UserRow } from '../types';
+import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline';
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap';
 // Used if supabase/app.sql hasn't been re-run yet and the newer columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
@@ -84,7 +84,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
         console.warn('[profile] profile columns missing — re-run supabase/app.sql');
         const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
         if (base.error) throw dbError(base.error);
-        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '' } as Profile) : null;
+        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '', roadmap: [] } as Profile) : null;
       }
       if (error) throw dbError(error);
       return data as Profile | null;
@@ -242,6 +242,45 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       const { data, error } = await sb.rpc('accepted_peers', { opp: opportunityId });
       if (error) throw dbError(error);
       return (data ?? []) as Peer[];
+    },
+
+    async studentCounts() {
+      const { data, error } = await sb.rpc('student_catalog_counts');
+      if (error) throw dbError(error);
+      return data as { scholarships: number; universities: number };
+    },
+
+    async listScholarships() {
+      const { data, error } = await sb.from('scholarships').select('*').order('sort');
+      if (error) throw dbError(error);
+      return data as Scholarship[];
+    },
+
+    async listUniversities() {
+      const { data, error } = await sb.from('universities').select('*').order('sort');
+      if (error) throw dbError(error);
+      return data as University[];
+    },
+
+    async listShortlist() {
+      const { data, error } = await sb.from('student_shortlist').select('university_id, status');
+      if (error) throw dbError(error);
+      return data as ShortlistItem[];
+    },
+
+    async addToShortlist(universityId) {
+      const { error } = await sb.from('student_shortlist').upsert({ university_id: universityId }, { onConflict: 'user_id,university_id', ignoreDuplicates: true });
+      if (error) throw dbError(error);
+    },
+
+    async setShortlistStatus(universityId, status) {
+      const { error } = await sb.from('student_shortlist').update({ status }).eq('university_id', universityId);
+      if (error) throw dbError(error);
+    },
+
+    async removeFromShortlist(universityId) {
+      const { error } = await sb.from('student_shortlist').delete().eq('university_id', universityId);
+      if (error) throw dbError(error);
     },
 
     async listSearches() {

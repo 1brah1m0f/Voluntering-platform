@@ -8,6 +8,7 @@ import { useAppText } from './text';
 import type { AiDraft, AiQuestions, AiRequest, AiReview, SavedLetter } from './types';
 import { inputClass } from './ui';
 import { formatDateTime } from './util';
+import { hasPremium } from './plans';
 
 type Lang = 'az' | 'en';
 
@@ -502,7 +503,7 @@ export type AiTool = 'letter' | 'review';
 export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: AiTool }) {
   const { tx } = useAppText();
   const { profile } = useAuth();
-  const premium = profile?.plan === 'premium' || profile?.is_admin === true;
+  const premium = hasPremium(profile);
   const ready = useAiReady(premium);
   const location = useLocation();
 

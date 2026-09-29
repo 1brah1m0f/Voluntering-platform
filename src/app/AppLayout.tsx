@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
+import { hasStudent, isPaidPlan } from './plans';
 
 /** Renders children only for signed-in users; otherwise redirects to /login. */
 export function RequireAuth() {
@@ -43,10 +44,11 @@ export default function AppLayout() {
   // After signing in, come back to the page the guest was looking at.
   const back = { from: location.pathname + location.search };
 
-  type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string };
+  type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string; badge?: string };
   const explore: NavItem[] = [
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
     { to: '/app/calendar', end: false, label: tx.nav.calendar, Icon: CalendarDays },
+    { to: '/student', end: false, label: tx.nav.student, Icon: GraduationCap, badge: hasStudent(profile) ? undefined : '7 ₼' },
     // Programme pages belong to the guides section.
     { to: '/guides', end: false, label: tx.nav.guides, Icon: BookOpen, also: '/programs/' },
   ];
@@ -62,10 +64,11 @@ export default function AppLayout() {
     { label: tx.navGroups.explore, items: explore },
     { label: tx.navGroups.mine, items: mine },
   ].filter((g) => g.items.length);
-  // Phones: guests get the explore tabs; members their daily pages (guides are linked from the dashboard).
-  const links = guest ? explore : [explore[0], explore[1], ...mine];
+  // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
+  // Guides are linked from the dashboard; admin pages are for desktop.
+  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : [explore[0], explore[1], explore[2], ...mine.filter((i) => i.to !== '/admin')];
   const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
-  const isPremium = profile?.plan === 'premium';
+  const isPremium = isPaidPlan(profile?.plan);
 
   const logout = async () => {
     await backend.signOut();
@@ -101,6 +104,7 @@ export default function AppLayout() {
                     >
                       <item.Icon className="h-4 w-4" aria-hidden="true" />
                       {item.label}
+                      {item.badge && <span className="ml-auto rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">{item.badge}</span>}
                     </NavLink>
                   ))}
                 </div>
@@ -137,7 +141,7 @@ export default function AppLayout() {
                 <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
                   <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500 hover:text-brand-700'}`}>
-                    {isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
+                    {profile?.plan === 'student' ? `🎓 ${tx.profile.student}` : isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
                   </span>
                 </Link>
                 <button

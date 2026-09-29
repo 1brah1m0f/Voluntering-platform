@@ -1,5 +1,5 @@
 export type Status = 'saved' | 'applied' | 'accepted' | 'rejected';
-export type Plan = 'basic' | 'premium';
+export type Plan = 'basic' | 'premium' | 'student';
 export type Kind = 'youth_exchange' | 'training' | 'volunteering' | 'seminar' | 'online' | 'other';
 export type Costs = 'full' | 'partial' | 'none' | 'unknown';
 
@@ -21,6 +21,8 @@ export interface Profile {
   avatar_url: string;
   /** One line under the name, e.g. "Student · ADA University". */
   headline: string;
+  /** Student plan: ids of the ticked study-abroad roadmap steps. */
+  roadmap?: string[];
 }
 
 export interface Opportunity {
@@ -107,6 +109,57 @@ export interface Peer {
   avatar_url: string;
   headline: string;
   country: string;
+}
+
+// --- Student section (Student plan) ----------------------------------------
+export type StudyLevel = 'bachelor' | 'master' | 'phd';
+
+export interface Scholarship {
+  id: string;
+  name: string;
+  provider: string;
+  country: string;
+  levels: StudyLevel[];
+  /** Empty = any field. */
+  fields: string[];
+  coverage: string;
+  deadline: string | null;
+  deadline_note: string;
+  eligibility: string;
+  how_to_apply: string;
+  url: string;
+  sort: number;
+}
+
+export interface University {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  fields: string[];
+  levels: StudyLevel[];
+  language: string;
+  /** Per year, euros; estimates. */
+  tuition_min_eur: number | null;
+  tuition_max_eur: number | null;
+  tuition_note: string;
+  living_eur_month: number | null;
+  /** 0 = no fee, null = unknown. */
+  app_fee_eur: number | null;
+  app_fee_note: string;
+  min_ielts: number | null;
+  exams: string;
+  requirements: string;
+  deadline_note: string;
+  scholarships_note: string;
+  url: string;
+  sort: number;
+}
+
+export type ShortlistStatus = 'planning' | 'applied' | 'accepted' | 'rejected';
+export interface ShortlistItem {
+  university_id: string;
+  status: ShortlistStatus;
 }
 
 export interface SavedSearch {

@@ -34,8 +34,9 @@ export default function AdminUsersPage() {
   if (error) return <ErrorState onRetry={load} />;
   if (!users) return <Spinner label={tx.loading} />;
 
+  const planName = (pl: Plan) => (pl === 'student' ? tx.profile.student : pl === 'premium' ? tx.profile.premium : tx.profile.basic);
   const setPlan = async (row: UserRow, plan: Plan) => {
-    if (!confirm(plan === 'premium' ? u.confirmPremium(row.email) : u.confirmBasic(row.email))) return;
+    if (!confirm(u.confirmPlan(row.email, planName(plan)))) return;
     setBusyId(row.id);
     try {
       await backend.setUserPlan(row.id, plan);
@@ -52,12 +53,13 @@ export default function AdminUsersPage() {
   const q = query.trim().toLowerCase();
   const visible = users.filter((x) => !q || `${x.full_name} ${x.email}`.toLowerCase().includes(q));
   const premiumCount = users.filter((x) => x.plan === 'premium').length;
+  const studentCount = users.filter((x) => x.plan === 'student').length;
 
   return (
     <div>
       <AdminTabs />
       <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{u.title}</h1>
-      <p className="mt-1 text-slate-600">{u.sub(users.length, premiumCount)}</p>
+      <p className="mt-1 text-slate-600">{u.sub(users.length, premiumCount, studentCount)}</p>
 
       <label className="relative mt-5 block">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -69,7 +71,7 @@ export default function AdminUsersPage() {
       ) : (
         <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           {visible.map((x) => {
-            const premium = x.plan === 'premium';
+            const premium = x.plan !== 'basic';
             const initials = (x.full_name || x.email)
               .split(/\s+/)
               .map((w) => w[0])
@@ -103,18 +105,22 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:shrink-0">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${premium ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
-                    {premium && <Crown className="h-3.5 w-3.5" aria-hidden="true" />}
-                    {premium ? 'Premium' : tx.premium.free}
-                  </span>
-                  <button
-                    type="button"
+                  {premium && <Crown className={`h-4 w-4 ${x.plan === 'student' ? 'text-violet-600' : 'text-amber-500'}`} aria-hidden="true" />}
+                  <select
+                    value={x.plan}
                     disabled={busyId === x.id}
-                    onClick={() => setPlan(x, premium ? 'basic' : 'premium')}
-                    className={premium ? 'btn-secondary !px-3 !py-1.5 text-sm' : 'btn-primary !px-3 !py-1.5 text-sm'}
+                    onChange={(e) => setPlan(x, e.target.value as Plan)}
+                    aria-label={u.planLabel}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-bold ${
+                      x.plan === 'student' ? 'border-violet-200 bg-violet-50 text-violet-800' : premium ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-white text-slate-700'
+                    }`}
                   >
-                    {premium ? u.makeBasic : u.makePremium}
-                  </button>
+                    {(['basic', 'premium', 'student'] as const).map((pl) => (
+                      <option key={pl} value={pl}>
+                        {planName(pl)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </li>
             );

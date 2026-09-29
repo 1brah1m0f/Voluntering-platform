@@ -15,7 +15,7 @@ create table if not exists public.profiles (
   full_name   text not null default '' check (char_length(full_name) <= 80),
   interests   text[] not null default '{}',
   country     text not null default '' check (char_length(country) <= 60),
-  plan        text not null default 'basic' check (plan in ('basic', 'premium')),
+  plan        text not null default 'basic' check (plan in ('basic', 'premium', 'student')),
   is_admin    boolean not null default false,
   created_at  timestamptz not null default now()
 );
@@ -90,6 +90,12 @@ from auth.users u
 where p.id = u.id and p.avatar_url = ''
   and char_length(u.raw_user_meta_data ->> 'avatar_url') <= 500 and u.raw_user_meta_data ->> 'avatar_url' ~ '^https://';
 
+-- Plans: basic (free), premium (3 ₼), student (7 ₼: everything in Premium plus the student section).
+alter table public.profiles drop constraint if exists profiles_plan_check;
+alter table public.profiles add constraint profiles_plan_check check (plan in ('basic', 'premium', 'student'));
+-- Student roadmap: ids of the steps the user has ticked (see src/app/student/roadmap.ts).
+alter table public.profiles add column if not exists roadmap text[] not null default '{}' check (cardinality(roadmap) <= 50);
+
 -- Admins switch a user's plan from /admin/users. Users can't change their own
 -- plan: the column isn't in the grant below and this function checks is_admin().
 create or replace function public.set_user_plan(target uuid, new_plan text)
@@ -102,7 +108,7 @@ begin
   if not public.is_admin() then
     raise exception 'NOT_ADMIN' using errcode = '42501';
   end if;
-  if new_plan not in ('basic', 'premium') then
+  if new_plan not in ('basic', 'premium', 'student') then
     raise exception 'BAD_PLAN';
   end if;
   update public.profiles set plan = new_plan where id = target;
@@ -125,7 +131,7 @@ grant execute on function public.cancel_premium() to authenticated;
 
 -- Users may only edit these columns; plan and is_admin are set by an admin.
 revoke update on public.profiles from authenticated, anon;
-grant update (full_name, interests, country, digest_opt_out, reminders_opt_out, about, avatar_url, headline) on public.profiles to authenticated;
+grant update (full_name, interests, country, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap) on public.profiles to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Opportunities (managed from /admin)
@@ -180,7 +186,8 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce((select plan = 'premium' from public.profiles where id = auth.uid()), false);
+  -- Student includes everything in Premium.
+  select coalesce((select plan in ('premium', 'student') from public.profiles where id = auth.uid()), false);
 $$;
 
 -- Premium early access: new opportunities are visible to Premium users (and
@@ -414,3 +421,102 @@ $$;
 drop trigger if exists saved_search_limit on public.saved_searches;
 create trigger saved_search_limit before insert on public.saved_searches
   for each row execute function public.enforce_saved_search_limit();
+
+-- ---------------------------------------------------------------------------
+-- Student section (Student plan, 7 ₼): scholarships and universities.
+-- Readable only by Student-plan users and admins — enforced here, not just in
+-- the app. Content comes from supabase/seed-student.sql; admins can edit rows.
+-- ---------------------------------------------------------------------------
+create or replace function public.is_student()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select plan = 'student' or is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+create table if not exists public.scholarships (
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null check (char_length(name) <= 160),
+  provider      text not null default '' check (char_length(provider) <= 160),
+  country       text not null default '' check (char_length(country) <= 60),
+  levels        text[] not null default '{}',   -- bachelor, master, phd
+  fields        text[] not null default '{}',   -- empty = any field
+  coverage      text not null default '' check (char_length(coverage) <= 600),
+  deadline      date,                           -- next known deadline, if announced
+  deadline_note text not null default '' check (char_length(deadline_note) <= 200),
+  eligibility   text not null default '' check (char_length(eligibility) <= 1000),
+  how_to_apply  text not null default '' check (char_length(how_to_apply) <= 1000),
+  url           text not null check (url ~ '^https?://'),
+  sort          int not null default 100,
+  updated_at    timestamptz not null default now()
+);
+
+create table if not exists public.universities (
+  id               uuid primary key default gen_random_uuid(),
+  name             text not null check (char_length(name) <= 160),
+  country          text not null check (char_length(country) <= 60),
+  city             text not null default '' check (char_length(city) <= 60),
+  fields           text[] not null default '{}',
+  levels           text[] not null default '{}',
+  language         text not null default '' check (char_length(language) <= 60),
+  tuition_min_eur  int,                          -- per year, estimate
+  tuition_max_eur  int,
+  tuition_note     text not null default '' check (char_length(tuition_note) <= 300),
+  living_eur_month int,
+  app_fee_eur      int,                          -- 0 = no fee, null = unknown
+  app_fee_note     text not null default '' check (char_length(app_fee_note) <= 300),
+  min_ielts        numeric(2, 1),
+  exams            text not null default '' check (char_length(exams) <= 200),
+  requirements     text not null default '' check (char_length(requirements) <= 1000),
+  deadline_note    text not null default '' check (char_length(deadline_note) <= 200),
+  scholarships_note text not null default '' check (char_length(scholarships_note) <= 400),
+  url              text not null check (url ~ '^https?://'),
+  sort             int not null default 100,
+  updated_at       timestamptz not null default now()
+);
+
+alter table public.scholarships enable row level security;
+alter table public.universities enable row level security;
+
+drop policy if exists "students read scholarships" on public.scholarships;
+create policy "students read scholarships" on public.scholarships for select to authenticated using (public.is_student());
+drop policy if exists "admins manage scholarships" on public.scholarships;
+create policy "admins manage scholarships" on public.scholarships for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "students read universities" on public.universities;
+create policy "students read universities" on public.universities for select to authenticated using (public.is_student());
+drop policy if exists "admins manage universities" on public.universities;
+create policy "admins manage universities" on public.universities for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- What's inside, for the paywall page ("12 scholarships, 11 universities").
+create or replace function public.student_catalog_counts()
+returns json
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select json_build_object(
+    'scholarships', (select count(*) from public.scholarships),
+    'universities', (select count(*) from public.universities)
+  );
+$$;
+grant execute on function public.student_catalog_counts() to anon, authenticated;
+
+-- Universities a student is considering, with their own application status.
+create table if not exists public.student_shortlist (
+  user_id        uuid not null references auth.users (id) on delete cascade default auth.uid(),
+  university_id  uuid not null references public.universities (id) on delete cascade,
+  status         text not null default 'planning' check (status in ('planning', 'applied', 'accepted', 'rejected')),
+  created_at     timestamptz not null default now(),
+  primary key (user_id, university_id)
+);
+
+alter table public.student_shortlist enable row level security;
+
+drop policy if exists "own shortlist" on public.student_shortlist;
+create policy "own shortlist" on public.student_shortlist
+  for all to authenticated using (user_id = auth.uid() and public.is_student()) with check (user_id = auth.uid() and public.is_student());

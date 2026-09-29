@@ -12,6 +12,7 @@ import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity, type SavedSearch } fr
 import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
 import { Chip, DeadlineChip, ErrorState, Notice, ProgramBadge, SaveButton, Spinner, inputClass, useDismissed } from '../ui';
 import { daysUntil } from '../util';
+import { hasPremium } from '../plans';
 
 function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
   const { tx } = useAppText();
@@ -98,7 +99,7 @@ export default function OpportunitiesPage() {
   const { q: query, forYou, program, kind, country, soon, funded, showClosed } = filters;
   const sort = params.get('sort') === 'deadline' ? 'deadline' : 'best';
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
+  const isPremium = hasPremium(profile);
   const [earlyCount, setEarlyCount] = useState(0);
   const navigate = useNavigate();
 

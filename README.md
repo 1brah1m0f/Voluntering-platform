@@ -69,6 +69,21 @@ Setup:
 
 Type-check locally: `deno check supabase/functions/ai/index.ts`.
 
+## Student plan (7 ₼)
+
+A third plan above Premium: everything in Premium plus the student section at `/student` —
+scholarships, universities (fields, tuition, application fees, requirements), a 16-step
+study-abroad roadmap (progress saved in `profiles.roadmap`) and a planner that matches
+universities to the user's level, field, IELTS score and budget, with a shortlist that adds up
+application fees and first-year costs.
+
+The catalogue lives only in the database (`scholarships`, `universities`), readable by
+Student-plan users and admins through RLS (`is_student()`); other users see a preview with counts
+(`student_catalog_counts()`). Setup: re-run `supabase/app.sql`, then run
+`supabase/seed-student.sql` (safe to re-run; rows are matched by name). Switch a user's plan in
+Admin → Users. Fees and deadlines are estimates researched in September 2026 — review them each
+year.
+
 ## Email notifications
 
 `jobs/notify.mjs` runs daily from GitHub Actions (`.github/workflows/notify.yml`, 08:00 Baku):

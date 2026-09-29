@@ -10,6 +10,7 @@ import { prepProgress } from '../checklist';
 import type { Status } from '../types';
 import { DeadlineChip, ErrorState, ProgramBadge, Spinner, statusClass } from '../ui';
 import { daysUntil, formatDate } from '../util';
+import { isPaidPlan } from '../plans';
 
 export default function TrackerPage() {
   const { tx, lang } = useAppText();
@@ -25,7 +26,7 @@ export default function TrackerPage() {
     .map((o) => ({ o, item: saved.get(o.id)! }))
     .sort((a, b) => a.o.deadline.localeCompare(b.o.deadline));
   const visible = tab === 'all' ? rows : rows.filter((r) => r.item.status === tab);
-  const isFree = profile?.plan !== 'premium';
+  const isFree = !isPaidPlan(profile?.plan);
 
   const run = async (fn: () => Promise<void>) => {
     try {

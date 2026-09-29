@@ -14,13 +14,14 @@ import { prepItems, type PrepItem } from '../checklist';
 import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass, statusClass } from '../ui';
 import { backend } from '../backend';
 import { daysUntil, formatDate, formatRange } from '../util';
+import { hasPremium } from '../plans';
 
 export default function DetailPage() {
   const { id = '' } = useParams();
   const { tx, lang } = useAppText();
   const { opportunities, saved, save, setStatus, error, reload } = useData();
   const { userId, profile } = useAuth();
-  const premium = profile?.plan === 'premium' || profile?.is_admin === true;
+  const premium = hasPremium(profile);
   const [busy, setBusy] = useState(false);
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'letter' || params.get('tab') === 'review' ? (params.get('tab') as 'letter' | 'review') : 'about';

@@ -1,6 +1,11 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type UserRow } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
+import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
+
+// Stable ids so the shortlist survives reloads.
+const demoScholarships: Scholarship[] = DEMO_SCHOLARSHIPS.map((s, i) => ({ ...s, id: `demo-sch-${i}` }));
+const demoUniversities: University[] = DEMO_UNIVERSITIES.map((u, i) => ({ ...u, id: `demo-uni-${i}` }));
 
 /**
  * In-browser backend used when Supabase isn't configured. Everything lives in
@@ -24,6 +29,7 @@ const K = {
   saved: 'openly_demo_saved',
   letters: 'openly_demo_letters',
   searches: 'openly_demo_searches',
+  shortlist: 'openly_demo_shortlist',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -232,7 +238,13 @@ export function createDemoBackend(): Backend {
     if (!u.is_admin) throw new BackendError('not_allowed');
   };
   // Older demo data predates the personalisation fields.
-  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '' });
+  // Mirrors the database rule: the student catalogue is for the Student plan (and admins).
+  const requireStudent = () => {
+    const u = requireUser();
+    if (u.plan !== 'student' && !u.is_admin) throw new BackendError('not_allowed');
+    return u;
+  };
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [] });
 
   return {
     mode: 'demo',
@@ -353,7 +365,7 @@ export function createDemoBackend(): Backend {
       await wait();
       const u = me();
       const admin = u?.is_admin;
-      const premium = u?.plan === 'premium';
+      const premium = u?.plan === 'premium' || u?.plan === 'student';
       return opps()
         .filter((o) => admin || (o.published && (premium || !inEarlyWindow(o))))
         .sort((a, b) => a.deadline.localeCompare(b.deadline));
@@ -363,7 +375,7 @@ export function createDemoBackend(): Backend {
       const o = opps().find((x) => x.id === id) ?? null;
       const u = me();
       if (!o) return null;
-      return u?.is_admin || (o.published && (u?.plan === 'premium' || !inEarlyWindow(o))) ? o : null;
+      return u?.is_admin || (o.published && (u?.plan === 'premium' || u?.plan === 'student' || !inEarlyWindow(o))) ? o : null;
     },
 
     async createOpportunity(input: OpportunityInput) {
@@ -467,6 +479,44 @@ export function createDemoBackend(): Backend {
       return users()
         .filter((x) => x.id !== u.id && sharing(all[x.id]?.find((s) => s.opportunity_id === opportunityId)))
         .map((x) => ({ full_name: x.full_name, email: x.email, avatar_url: x.avatar_url ?? '', headline: x.headline ?? '', country: x.country }));
+    },
+
+    async studentCounts() {
+      return { scholarships: demoScholarships.length, universities: demoUniversities.length };
+    },
+
+    async listScholarships() {
+      requireStudent();
+      return demoScholarships;
+    },
+
+    async listUniversities() {
+      requireStudent();
+      return demoUniversities;
+    },
+
+    async listShortlist() {
+      const u = requireStudent();
+      return read<Record<string, ShortlistItem[]>>(K.shortlist, {})[u.id] ?? [];
+    },
+
+    async addToShortlist(universityId) {
+      const u = requireStudent();
+      const all = read<Record<string, ShortlistItem[]>>(K.shortlist, {});
+      const mine = all[u.id] ?? [];
+      if (!mine.some((x) => x.university_id === universityId)) write(K.shortlist, { ...all, [u.id]: [...mine, { university_id: universityId, status: 'planning' }] });
+    },
+
+    async setShortlistStatus(universityId, status) {
+      const u = requireStudent();
+      const all = read<Record<string, ShortlistItem[]>>(K.shortlist, {});
+      write(K.shortlist, { ...all, [u.id]: (all[u.id] ?? []).map((x) => (x.university_id === universityId ? { ...x, status } : x)) });
+    },
+
+    async removeFromShortlist(universityId) {
+      const u = requireStudent();
+      const all = read<Record<string, ShortlistItem[]>>(K.shortlist, {});
+      write(K.shortlist, { ...all, [u.id]: (all[u.id] ?? []).filter((x) => x.university_id !== universityId) });
     },
 
     async listSearches() {
