@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ClipboardCheck, Clock, Copy, Crown, Info, Loader2, PenLine, RotateCcw, Sparkles, UserRound } from 'lucide-react';
+import { Check, ClipboardCheck, Clock, Copy, Crown, FileText, Info, Loader2, PenLine, RotateCcw, Sparkles, Upload, UserRound, X } from 'lucide-react';
 import { backend, BackendError } from './backend';
+import { MAX_DOC_BYTES, docKind, docxText, fileToBase64 } from './docText';
 import { useAuth } from './AuthContext';
 import { useAppText } from './text';
 import type { AiDraft, AiQuestions, AiRequest, AiReview } from './types';
@@ -236,13 +237,51 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
   const ai = useAi();
   const [docType, setDocType] = useState<'letter' | 'cv'>('letter');
   const [text, setText] = useState('');
+  const [pdf, setPdf] = useState<{ name: string; size: number; data: string } | null>(null);
+  const [fromFile, setFromFile] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [review, setReview] = useState<AiReview | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const submit = async () => {
-    if (text.trim().length < 50) return setLocalError(tx.ai.tooShort);
+  const pick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow picking the same file again
+    if (!file) return;
+    const kind = docKind(file);
+    if (!kind) return setLocalError(tx.ai.fileType);
+    if (file.size > MAX_DOC_BYTES) return setLocalError(tx.ai.fileTooBig);
     setLocalError(null);
-    const r = await ai.run<AiReview>({ action: 'review', opportunityId, lang, docType, text });
+    setReading(true);
+    try {
+      if (kind === 'pdf') {
+        setPdf({ name: file.name, size: file.size, data: await fileToBase64(file) });
+      } else {
+        const extracted = (kind === 'docx' ? await docxText(file) : await file.text()).trim();
+        if (!extracted) throw new Error('empty document');
+        setPdf(null);
+        setText(extracted.slice(0, 12000));
+        setFromFile(file.name);
+      }
+    } catch (err) {
+      console.error('[ai] could not read file', err);
+      setLocalError(tx.ai.fileRead);
+    } finally {
+      setReading(false);
+    }
+  };
+
+  const submit = async () => {
+    if (!pdf && text.trim().length < 50) return setLocalError(tx.ai.tooShort);
+    setLocalError(null);
+    const r = await ai.run<AiReview>({
+      action: 'review',
+      opportunityId,
+      lang,
+      docType,
+      text: pdf ? '' : text,
+      ...(pdf ? { file: { name: pdf.name, mimeType: 'application/pdf' as const, data: pdf.data } } : {}),
+    });
     if (r) setReview(r);
   };
 
@@ -266,15 +305,48 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
           </button>
         ))}
       </div>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={12}
-        maxLength={12000}
-        placeholder={tx.ai.reviewPh}
-        className={`${inputClass} resize-y`}
-        aria-label={tx.ai.reviewPh}
-      />
+      <div className="flex flex-col gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-4 sm:flex-row sm:items-center">
+        <button type="button" onClick={() => fileRef.current?.click()} disabled={reading} className="btn-secondary shrink-0 !px-4 !py-2 text-sm">
+          {reading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Upload className="h-4 w-4" aria-hidden="true" />}
+          {tx.ai.upload}
+        </button>
+        <p className="text-xs text-slate-500">{tx.ai.uploadHint}</p>
+        <input ref={fileRef} type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain" onChange={pick} className="hidden" />
+      </div>
+      {pdf ? (
+        <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+          <div className="flex items-center gap-3">
+            <FileText className="h-8 w-8 shrink-0 text-violet-600" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-slate-900">{pdf.name}</p>
+              <p className="text-xs text-slate-500">{Math.max(1, Math.round(pdf.size / 1024))} KB · PDF</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPdf(null)}
+              aria-label={tx.ai.removeFile}
+              title={tx.ai.removeFile}
+              className="rounded-full p-2 text-slate-500 hover:bg-white hover:text-rose-600"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-violet-800">{tx.ai.pdfAttached}</p>
+        </div>
+      ) : (
+        <>
+          {fromFile && <p className="text-xs font-medium text-emerald-700">{tx.ai.fromFile(fromFile)}</p>}
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={12}
+            maxLength={12000}
+            placeholder={tx.ai.reviewPh}
+            className={`${inputClass} resize-y`}
+            aria-label={tx.ai.reviewPh}
+          />
+        </>
+      )}
       {!ai.busy && (
         <button type="button" onClick={submit} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />

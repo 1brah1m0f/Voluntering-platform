@@ -51,7 +51,15 @@ export type OpportunityInput = Omit<Opportunity, 'id' | 'created_at'>;
 export type AiRequest =
   | { action: 'questions'; opportunityId: string; lang: 'az' | 'en' }
   | { action: 'draft'; opportunityId: string; lang: 'az' | 'en'; letterLang: 'az' | 'en'; answers: { question: string; answer: string }[] }
-  | { action: 'review'; opportunityId: string; lang: 'az' | 'en'; docType: 'letter' | 'cv'; text: string };
+  | {
+      action: 'review';
+      opportunityId: string;
+      lang: 'az' | 'en';
+      docType: 'letter' | 'cv';
+      /** Pasted / extracted text; ignored when a PDF `file` is attached. */
+      text: string;
+      file?: { name: string; mimeType: 'application/pdf'; data: string };
+    };
 
 export interface AiQuestions {
   questions: { question: string; why: string }[];

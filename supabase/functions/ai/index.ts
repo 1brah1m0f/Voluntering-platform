@@ -3,7 +3,8 @@
 // Actions (POST JSON body):
 //   { action: "questions", opportunityId, lang }                → interview questions for a motivation letter
 //   { action: "draft", opportunityId, lang, letterLang, answers } → letter draft built only from the user's answers
-//   { action: "review", opportunityId, lang, docType, text }     → score + concrete feedback on a letter / CV
+//   { action: "review", opportunityId, lang, docType, text, file? } → score + concrete feedback on a letter / CV
+//                                                                 (file: { name, mimeType: "application/pdf", data: base64 })
 //   { action: "status" }                                          → { configured } (is an API key set?)
 //
 // Security: the caller must be signed in and on the Premium plan (or admin);
@@ -23,6 +24,7 @@ const API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-3.1-flash-lite";
 const DAILY_LIMIT = 30;
 const MAX_TEXT = 12_000;
+const MAX_PDF_BASE64 = Math.ceil((3 * 1024 * 1024 * 4) / 3) + 4; // 3 MB file
 const MAX_ANSWERS = 8;
 const MAX_ANSWER = 2_000;
 
@@ -37,6 +39,7 @@ const json = (body: unknown, status = 200) =>
 
 type Lang = "az" | "en";
 type Answer = { question: string; answer: string };
+type PdfFile = { name?: string; mimeType: "application/pdf"; data: string };
 
 // ---------------------------------------------------------------------------
 // Prompts
@@ -156,9 +159,11 @@ Letter language: ${letterLang}. Also return "tips": 3-5 short suggestions (in ${
   }
 
   const docType = body.docType === "cv" ? "CV" : "motivation letter";
+  // An uploaded PDF travels as a separate part of the request, before this prompt.
+  const document = body.file ? "(the applicant's document is the attached PDF file)" : body.text;
   return `${opportunityBlock(o)}
 <document type="${docType}">
-${body.text}
+${document}
 </document>
 
 Review this ${docType} as a selection committee member for this opportunity would, before the applicant sends it. Return:
@@ -181,14 +186,14 @@ class GeminiError extends Error {
   }
 }
 
-/** One generateContent call with JSON output; returns the parsed object. */
-async function gemini(action: Action, prompt: string): Promise<unknown> {
+/** One generateContent call with JSON output (plus an optional PDF); returns the parsed object. */
+async function gemini(action: Action, prompt: string, pdf?: PdfFile): Promise<unknown> {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": API_KEY },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [...(pdf ? [{ inlineData: { mimeType: "application/pdf", data: pdf.data } }] : []), { text: prompt }] }],
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: SCHEMAS[action],
@@ -235,8 +240,15 @@ function validate(body: Record<string, unknown>): string | null {
     if (!a.some((x) => x.answer.trim().length > 0)) return "answers empty";
   }
   if (body.action === "review") {
-    if (typeof body.text !== "string" || body.text.trim().length < 50) return "text too short";
-    if (body.text.length > MAX_TEXT) return "text too long";
+    const file = body.file as Partial<PdfFile> | undefined | null;
+    if (file) {
+      if (file.mimeType !== "application/pdf" || typeof file.data !== "string") return "bad file";
+      if (file.data.length > MAX_PDF_BASE64) return "file too large";
+      if (!file.data.startsWith("JVBERi")) return "not a pdf"; // base64 of "%PDF-"
+    } else {
+      if (typeof body.text !== "string" || body.text.trim().length < 50) return "text too short";
+      if (body.text.length > MAX_TEXT) return "text too long";
+    }
   }
   return null;
 }
@@ -281,7 +293,8 @@ Deno.serve(async (req) => {
 
   const action = body.action as Action;
   try {
-    const result = await gemini(action, buildPrompt(action, opportunity, profile, body));
+    const pdf = action === "review" && body.file ? (body.file as PdfFile) : undefined;
+    const result = await gemini(action, buildPrompt(action, opportunity, profile, body), pdf);
     return json({ result, remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
   } catch (err) {
     if (err instanceof GeminiError) {
