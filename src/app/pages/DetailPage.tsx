@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users } from 'lucide-react';
 import { AiTools } from '../AiTools';
+import { ShareCard } from '../ShareTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
@@ -14,8 +15,8 @@ import { formatDate, formatRange } from '../util';
 export default function DetailPage() {
   const { id = '' } = useParams();
   const { tx, lang } = useAppText();
-  const { opportunities, saved, setStatus, error, reload } = useData();
-  const { profile } = useAuth();
+  const { opportunities, saved, save, setStatus, error, reload } = useData();
+  const { userId, profile } = useAuth();
   const premium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [busy, setBusy] = useState(false);
   const [params, setParams] = useSearchParams();
@@ -25,6 +26,36 @@ export default function DetailPage() {
   const openTab = (t: typeof tab) => {
     if (t !== 'about') setAiOpened(true);
     setParams(t === 'about' ? {} : { tab: t }, { replace: true });
+  };
+
+  // "Did you apply?": after the user opens the official page and comes back,
+  // offer to mark the opportunity as applied. The flag survives a reload.
+  const applyKey = `openly_apply_${id}`;
+  const [askApplied, setAskApplied] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        if (sessionStorage.getItem(applyKey)) setAskApplied(true);
+      } catch {
+        /* storage blocked */
+      }
+    };
+    check();
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
+  }, [applyKey]);
+  const closeApplied = () => {
+    setAskApplied(false);
+    try {
+      sessionStorage.removeItem(applyKey);
+    } catch {
+      /* storage blocked */
+    }
   };
 
   if (error) return <ErrorState onRetry={reload} />;
@@ -59,6 +90,29 @@ export default function DetailPage() {
       setBusy(false);
     }
   };
+
+  const onApplyClick = () => {
+    if (!userId || (item && item.status !== 'saved')) return;
+    try {
+      sessionStorage.setItem(applyKey, '1');
+    } catch {
+      /* storage blocked */
+    }
+  };
+  const markApplied = async () => {
+    closeApplied();
+    setBusy(true);
+    try {
+      if (!item && !(await save(o.id))) return; // free-plan limit dialog is shown
+      await setStatus(o.id, 'applied');
+    } catch (err) {
+      console.error('[status] failed', err);
+      alert(tx.saveError);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const showApplied = askApplied && !!userId && (!item || item.status === 'saved');
 
   const facts = [
     { Icon: CalendarDays, label: tx.card.deadline, value: formatDate(o.deadline, lang) },
@@ -142,15 +196,30 @@ export default function DetailPage() {
                   </div>
                 ))}
               </dl>
+              {o.sending_org && <SendingOrg name={o.sending_org} contact={o.sending_org_contact ?? ''} />}
             </div>
           </div>
 
           <aside className="space-y-4">
-            <a href={o.url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full !px-4 text-[15px]">
+            <a href={o.url} target="_blank" rel="noopener noreferrer" onClick={onApplyClick} className="btn-primary w-full !px-4 text-[15px]">
               {tx.detail.apply}
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </a>
             <p className="text-xs leading-relaxed text-slate-500">{tx.detail.applyHint}</p>
+            {showApplied && (
+              <div role="status" className="animate-[row-in_0.3s_ease] rounded-2xl border border-brand-200 bg-brand-50 p-4">
+                <p className="font-bold text-brand-900">{tx.applied.question}</p>
+                <p className="mt-1 text-sm text-brand-900/80">{tx.applied.text}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={markApplied} className="btn-primary !px-4 !py-2 text-sm">
+                    {tx.applied.yes}
+                  </button>
+                  <button type="button" onClick={closeApplied} className="btn-secondary !px-4 !py-2 text-sm">
+                    {tx.applied.no}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="rounded-2xl border border-slate-200 p-4">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-bold text-slate-900">{tx.nav.tracker}</span>
@@ -178,6 +247,7 @@ export default function DetailPage() {
               )}
             </div>
             {item?.status === 'accepted' && <AcceptedPeers opportunityId={o.id} sharing={item.share_contact === true} />}
+            <ShareCard o={o} />
           </aside>
         </div>
       </article>
@@ -230,13 +300,7 @@ function AcceptedPeers({ opportunityId, sharing }: { opportunityId: string; shar
       </h2>
       <p className="mt-1 text-sm text-slate-600">{tx.peers.sub}</p>
       <label className="mt-3 flex cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          checked={sharing}
-          disabled={busy}
-          onChange={toggle}
-          className="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600"
-        />
+        <input type="checkbox" checked={sharing} disabled={busy} onChange={toggle} className="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600" />
         <span className="text-sm font-semibold text-slate-800">{tx.peers.share}</span>
       </label>
       {sharing && peers === null && <p className="mt-3 text-sm text-slate-500">{tx.loading}</p>}
@@ -258,5 +322,41 @@ function AcceptedPeers({ opportunityId, sharing }: { opportunityId: string; shar
         </ul>
       )}
     </section>
+  );
+}
+
+/** Youth exchanges: who in Azerbaijan the application goes through, and how to reach them. */
+function SendingOrg({ name, contact }: { name: string; contact: string }) {
+  const { tx } = useAppText();
+  const c = contact.trim();
+  const href = c.includes('@')
+    ? `mailto:${c}`
+    : /^https?:\/\//i.test(c)
+      ? c
+      : /^www\./i.test(c)
+        ? `https://${c}`
+        : /^\+?[\d\s()-]{7,}$/.test(c)
+          ? `tel:${c.replace(/[\s()-]/g, '')}`
+          : null;
+  return (
+    <div className="mt-6 flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50/60 p-4">
+      <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-brand-700" aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-800">{tx.detail.sendingOrg}</p>
+        <p className="mt-0.5 font-bold text-slate-900">{name}</p>
+        {c && (
+          <p className="mt-1 text-sm text-slate-600">
+            {tx.detail.sendingOrgHint}{' '}
+            {href ? (
+              <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="break-all font-semibold text-brand-700 hover:underline">
+                {c}
+              </a>
+            ) : (
+              <span className="font-semibold text-slate-800">{c}</span>
+            )}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

@@ -54,8 +54,10 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     try {
       const updated = await backend.updateProfile({ full_name: name.trim(), headline: headline.trim(), country, interests, about: about.trim() });
       setProfile(updated);
-      if (onboarding) navigate('/app', { replace: true });
-      else setMsg({ ok: true, text: tx.profile.saved });
+      if (onboarding) {
+        const next = params.get('next') ?? '';
+        navigate(next.startsWith('/') && !next.startsWith('//') ? next : '/app', { replace: true }); // same-site paths only
+      } else setMsg({ ok: true, text: tx.profile.saved });
     } catch (err) {
       console.error('[profile] save failed', err);
       setMsg({ ok: false, text: tx.saveError });

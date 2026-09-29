@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { Bookmark, CalendarClock, Check, Loader2, RefreshCw } from 'lucide-react';
 import { programLogo } from '../lib/programs';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import { useData } from './DataContext';
 import { useAppText } from './text';
 import { daysUntil } from './util';
@@ -105,10 +107,15 @@ export function statusClass(s: Status) {
 export function SaveButton({ id, withLabel = false }: { id: string; withLabel?: boolean }) {
   const { tx } = useAppText();
   const { saved, save, unsave } = useData();
+  const { userId } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [busy, setBusy] = useState(false);
   const on = saved.has(id);
 
   const toggle = async () => {
+    // Guests sign up first, then come back to this page.
+    if (!userId) return navigate('/register', { state: { from: location.pathname + location.search } });
     setBusy(true);
     try {
       if (on) await unsave(id);

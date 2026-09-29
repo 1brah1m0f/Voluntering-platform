@@ -21,8 +21,10 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { href: '#features', label: t.nav.features },
+    { href: '/app', label: t.nav.opportunities },
+    { href: '#how', label: t.nav.how },
     { href: '#pricing', label: t.nav.pricing },
+    { href: '#faq', label: t.faq.eyebrow },
   ];
 
   return (

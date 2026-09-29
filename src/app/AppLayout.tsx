@@ -1,4 +1,4 @@
-import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ListChecks, LogOut, Search, Shield, UserRound } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
@@ -26,25 +26,40 @@ export function RequireAdmin() {
   return <Outlet />;
 }
 
+/** /app/o/:id moved to /o/:id; keeps links in already-sent emails working. */
+export function OldDetailRedirect() {
+  const { id = '' } = useParams();
+  return <Navigate to={`/o/${id}`} replace />;
+}
+
+/** App shell. Guests (on the public list and opportunity pages) get sign-in buttons instead of the account menu. */
 export default function AppLayout() {
   const { tx } = useAppText();
   const { lang, setLang } = useLang();
-  const { profile } = useAuth();
+  const { loading, userId, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const guest = !userId;
+  // After signing in, come back to the page the guest was looking at.
+  const back = { from: location.pathname + location.search };
 
-  const links = [
-    { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
-    { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
-    { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
-    // Opportunities and Users live under one Admin entry (tabs inside).
-    ...(profile?.is_admin ? [{ to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : []),
-  ];
+  const links = guest
+    ? [{ to: '/app', end: true, label: tx.nav.opportunities, Icon: Search }]
+    : [
+        { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
+        { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
+        { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
+        // Opportunities and Users live under one Admin entry (tabs inside).
+        ...(profile?.is_admin ? [{ to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : []),
+      ];
   const isPremium = profile?.plan === 'premium';
 
   const logout = async () => {
     await backend.signOut();
     navigate('/login', { replace: true });
   };
+
+  if (loading) return <Spinner />;
 
   return (
     <DataProvider>
@@ -86,28 +101,40 @@ export default function AppLayout() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-              <Avatar profile={profile} />
-              <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
-                <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
-                <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500 hover:text-brand-700'}`}>
-                  {isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
-                </span>
-              </Link>
-              <button
-                type="button"
-                onClick={logout}
-                title={tx.nav.logout}
-                aria-label={tx.nav.logout}
-                className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-rose-600"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
+            {guest ? (
+              <div className="space-y-2 rounded-2xl bg-slate-50 p-3">
+                <p className="text-sm text-slate-600">{tx.guest.sidebar}</p>
+                <Link to="/register" state={back} className="btn-primary w-full !py-2 text-sm">
+                  {tx.guest.signUp}
+                </Link>
+                <Link to="/login" state={back} className="btn-secondary w-full !py-2 text-sm">
+                  {tx.guest.logIn}
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                <Avatar profile={profile} />
+                <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
+                  <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
+                  <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500 hover:text-brand-700'}`}>
+                    {isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  title={tx.nav.logout}
+                  aria-label={tx.nav.logout}
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-rose-600"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 pb-20 lg:pb-0">
+        <div className={`min-w-0 flex-1 lg:pb-0 ${guest ? '' : 'pb-20'}`}>
           {/* mobile top bar */}
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
             <Link to="/" className="flex items-center gap-2 font-extrabold text-slate-900">
@@ -115,6 +142,11 @@ export default function AppLayout() {
               {BRAND}
             </Link>
             <div className="flex items-center gap-2">
+              {!guest && (
+                <Link to="/app/profile" aria-label={tx.nav.profile}>
+                  <Avatar profile={profile} className="h-8 w-8 text-[11px]" />
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => setLang(lang === 'az' ? 'en' : 'az')}
@@ -122,9 +154,15 @@ export default function AppLayout() {
               >
                 {lang === 'az' ? 'en' : 'az'}
               </button>
-              <button type="button" onClick={logout} aria-label={tx.nav.logout} className="rounded-lg p-2 text-slate-500 hover:text-rose-600">
-                <LogOut className="h-5 w-5" aria-hidden="true" />
-              </button>
+              {guest ? (
+                <Link to="/register" state={back} className="btn-primary !px-4 !py-1.5 text-sm">
+                  {tx.guest.signUp}
+                </Link>
+              ) : (
+                <button type="button" onClick={logout} aria-label={tx.nav.logout} className="rounded-lg p-2 text-slate-500 hover:text-rose-600">
+                  <LogOut className="h-5 w-5" aria-hidden="true" />
+                </button>
+              )}
             </div>
           </header>
 
@@ -136,23 +174,25 @@ export default function AppLayout() {
         </div>
 
         {/* mobile bottom tabs */}
-        <nav
-          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden"
-          style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
-          aria-label="App"
-        >
-          {links.map(({ to, end, label, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${isActive ? 'text-brand-700' : 'text-slate-500'}`}
-            >
-              <Icon className="h-5 w-5" aria-hidden="true" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+        {!guest && (
+          <nav
+            className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden"
+            style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
+            aria-label="App"
+          >
+            {links.map(({ to, end, label, Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${isActive ? 'text-brand-700' : 'text-slate-500'}`}
+              >
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </div>
     </DataProvider>
   );

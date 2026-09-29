@@ -110,7 +110,14 @@ export function AdminListPage() {
                 <Link to={`/admin/${o.id}`} className="rounded-full p-2 text-slate-500 hover:bg-brand-50 hover:text-brand-700" aria-label={tx.admin.edit} title={tx.admin.edit}>
                   <Pencil className="h-4 w-4" aria-hidden="true" />
                 </Link>
-                <button type="button" onClick={() => remove(o)} disabled={busyId === o.id} className="rounded-full p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600" aria-label={tx.admin.delete} title={tx.admin.delete}>
+                <button
+                  type="button"
+                  onClick={() => remove(o)}
+                  disabled={busyId === o.id}
+                  className="rounded-full p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                  aria-label={tx.admin.delete}
+                  title={tx.admin.delete}
+                >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
@@ -196,7 +203,12 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
       description: v.description.trim(),
       start_date: v.start_date || null,
       end_date: v.end_date || null,
+      sending_org: v.sending_org?.trim(),
+      sending_org_contact: v.sending_org_contact?.trim(),
     };
+    // Leave the new columns out when unused, so saving still works before app.sql is re-run.
+    if (!input.sending_org && !(existing && 'sending_org' in existing)) delete input.sending_org;
+    if (!input.sending_org_contact && !(existing && 'sending_org_contact' in existing)) delete input.sending_org_contact;
     const errs = validate(input);
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -273,7 +285,12 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
         </div>
 
         <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <input type="checkbox" checked={v.is_online} onChange={(e) => set('is_online', e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+          <input
+            type="checkbox"
+            checked={v.is_online}
+            onChange={(e) => set('is_online', e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+          />
           {f.online}
         </label>
 
@@ -320,12 +337,33 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
           <input id={id('url')} type="url" inputMode="url" value={v.url} placeholder="https://" onChange={(e) => set('url', e.target.value)} className={inputClass} />
         </Field>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={f.sendingOrg} htmlFor={id('sorg')} hint={f.sendingOrgHint}>
+            <input id={id('sorg')} value={v.sending_org ?? ''} maxLength={120} onChange={(e) => set('sending_org', e.target.value)} className={inputClass} />
+          </Field>
+          <Field label={f.sendingOrgContact} htmlFor={id('sorgc')}>
+            <input
+              id={id('sorgc')}
+              value={v.sending_org_contact ?? ''}
+              maxLength={200}
+              placeholder="info@example.az"
+              onChange={(e) => set('sending_org_contact', e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+
         <Field label={f.description} htmlFor={id('desc')}>
           <textarea id={id('desc')} rows={6} maxLength={5000} value={v.description} onChange={(e) => set('description', e.target.value)} className={`${inputClass} resize-y`} />
         </Field>
 
         <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <input type="checkbox" checked={v.published} onChange={(e) => set('published', e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+          <input
+            type="checkbox"
+            checked={v.published}
+            onChange={(e) => set('published', e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+          />
           {f.publish}
         </label>
 

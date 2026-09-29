@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Crown, Globe2, Lock, MapPin, Search, Sparkles, X } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
@@ -29,13 +29,15 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
   const { tx, lang } = useAppText();
   const closed = daysUntil(o.deadline) < 0;
   return (
-    <article className={`group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-soft ${closed ? 'opacity-60' : ''}`}>
+    <article
+      className={`group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-soft ${closed ? 'opacity-60' : ''}`}
+    >
       <div className="flex items-start gap-3">
         <ProgramBadge program={o.program} />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-brand-700">{o.program}</p>
           <h3 className="mt-0.5 font-bold leading-snug text-slate-900">
-            <Link to={`/app/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-3xl focus:outline-none">
+            <Link to={`/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-3xl focus:outline-none">
               {o.title}
             </Link>
           </h3>
@@ -78,15 +80,29 @@ export default function OpportunitiesPage() {
   const { opportunities, error, reload } = useData();
   const myInterests = profile?.interests ?? [];
 
-  const [query, setQuery] = useState('');
-  const [forYou, setForYou] = useState(myInterests.length > 0);
-  const [program, setProgram] = useState('');
-  const [kind, setKind] = useState<Kind | ''>('');
-  const [country, setCountry] = useState('');
-  const [soon, setSoon] = useState(false);
-  const [funded, setFunded] = useState(false);
-  const [showClosed, setShowClosed] = useState(false);
-  const [sort, setSort] = useState<'best' | 'deadline'>('best');
+  // Filters live in the URL, so they survive opening an opportunity and coming
+  // back, and a filtered list can be shared as a link.
+  const [params, setParams] = useSearchParams();
+  const setParam = (key: string, value: string | null) =>
+    setParams(
+      (cur) => {
+        const next = new URLSearchParams(cur);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+  const flag = (key: string) => params.get(key) === '1';
+  const query = params.get('q') ?? '';
+  const forYou = myInterests.length > 0 && params.get('mine') !== '0'; // on by default
+  const program = params.get('program') ?? '';
+  const kind = (params.get('kind') ?? '') as Kind | '';
+  const country = params.get('country') ?? '';
+  const soon = flag('soon');
+  const funded = flag('funded');
+  const showClosed = flag('closed');
+  const sort = params.get('sort') === 'deadline' ? 'deadline' : 'best';
   const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [earlyCount, setEarlyCount] = useState(0);
   const navigate = useNavigate();
@@ -96,8 +112,9 @@ export default function OpportunitiesPage() {
     backend.premiumEarlyCount().then(setEarlyCount, () => setEarlyCount(0));
   }, [isPremium]);
 
+  const toggle = (key: string) => () => setParam(key, flag(key) ? null : '1');
   /** Premium-only filters: free users are sent to the Premium page instead. */
-  const premiumToggle = (set: (fn: (v: boolean) => boolean) => void) => () => (isPremium ? set((v) => !v) : navigate('/app/profile?tab=premium'));
+  const premiumToggle = (key: string) => () => (isPremium ? toggle(key)() : navigate('/app/profile?tab=premium'));
 
   const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
   const programs = useMemo(() => [...new Set(published.map((o) => o.program))].sort(), [published]);
@@ -120,28 +137,14 @@ export default function OpportunitiesPage() {
 
   // Premium smart matching: fit score per card, "best match" ordering, and a
   // personal "N new opportunities for you" summary.
-  const matches = useMemo(
-    () => (isPremium && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile)])) : null),
-    [isPremium, profile, published],
-  );
+  const matches = useMemo(() => (isPremium && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile)])) : null), [isPremium, profile, published]);
   const ordered = matches && sort === 'best' ? [...results].sort((a, b) => matches.get(b.id)!.score - matches.get(a.id)!.score || a.deadline.localeCompare(b.deadline)) : results;
   const weekAgo = Date.now() - 7 * 86_400_000;
-  const freshForYou = matches
-    ? published.filter((o) => daysUntil(o.deadline) >= 0 && new Date(o.created_at).getTime() > weekAgo && matches.get(o.id)!.score >= GOOD_MATCH)
-    : [];
+  const freshForYou = matches ? published.filter((o) => daysUntil(o.deadline) >= 0 && new Date(o.created_at).getTime() > weekAgo && matches.get(o.id)!.score >= GOOD_MATCH) : [];
   const soonestDays = freshForYou.length ? Math.min(...freshForYou.map((o) => daysUntil(o.deadline))) : null;
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
-  const clear = () => {
-    setQuery('');
-    setProgram('');
-    setKind('');
-    setCountry('');
-    setSoon(false);
-    setFunded(false);
-    setShowClosed(false);
-    setForYou(false);
-  };
+  const clear = () => setParams(myInterests.length ? { mine: '0' } : {}, { replace: true });
 
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities) return <Spinner label={tx.loading} />;
@@ -153,7 +156,19 @@ export default function OpportunitiesPage() {
         <p className="text-slate-600">{tx.list.sub(openCount)}</p>
       </div>
 
-      {myInterests.length === 0 && (
+      {!profile && (
+        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-2 text-sm font-medium text-brand-900">
+            <Sparkles className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
+            {tx.guest.listBanner}
+          </p>
+          <Link to="/register" className="btn-primary shrink-0 !px-4 !py-2 text-sm">
+            {tx.guest.signUp}
+          </Link>
+        </div>
+      )}
+
+      {profile && myInterests.length === 0 && (
         <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-2 text-sm font-medium text-brand-900">
             <Sparkles className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
@@ -183,7 +198,10 @@ export default function OpportunitiesPage() {
             <Lock className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
             {tx.list.earlyTeaser(earlyCount)}
           </p>
-          <Link to="/app/profile?tab=premium" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600">
+          <Link
+            to="/app/profile?tab=premium"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600"
+          >
             <Crown className="h-4 w-4" aria-hidden="true" />
             {tx.list.seePremium}
           </Link>
@@ -193,10 +211,17 @@ export default function OpportunitiesPage() {
       <div className="mt-6 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tx.list.search} aria-label={tx.list.search} className={`${inputClass} pl-10`} />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setParam('q', e.target.value)}
+            placeholder={tx.list.search}
+            aria-label={tx.list.search}
+            className={`${inputClass} pl-10`}
+          />
         </label>
         <div className="grid gap-2 sm:grid-cols-3">
-          <select value={program} onChange={(e) => setProgram(e.target.value)} className={inputClass} aria-label={tx.detail.program}>
+          <select value={program} onChange={(e) => setParam('program', e.target.value)} className={inputClass} aria-label={tx.detail.program}>
             <option value="">{tx.list.allPrograms}</option>
             {programs.map((p) => (
               <option key={p} value={p}>
@@ -204,7 +229,7 @@ export default function OpportunitiesPage() {
               </option>
             ))}
           </select>
-          <select value={kind} onChange={(e) => setKind(e.target.value as Kind | '')} className={inputClass} aria-label={tx.detail.type}>
+          <select value={kind} onChange={(e) => setParam('kind', e.target.value)} className={inputClass} aria-label={tx.detail.type}>
             <option value="">{tx.list.allKinds}</option>
             {(Object.keys(KINDS) as Kind[]).map((k) => (
               <option key={k} value={k}>
@@ -212,7 +237,7 @@ export default function OpportunitiesPage() {
               </option>
             ))}
           </select>
-          <select value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass} aria-label={tx.detail.where}>
+          <select value={country} onChange={(e) => setParam('country', e.target.value)} className={inputClass} aria-label={tx.detail.where}>
             <option value="">{tx.list.allCountries}</option>
             <option value={ONLINE}>{tx.list.online}</option>
             {countries.map((c) => (
@@ -224,19 +249,19 @@ export default function OpportunitiesPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {myInterests.length > 0 && (
-            <Chip on={forYou} onClick={() => setForYou((v) => !v)}>
+            <Chip on={forYou} onClick={() => setParam('mine', forYou ? '0' : null)}>
               {tx.list.forYou}
             </Chip>
           )}
-          <Chip on={soon} onClick={premiumToggle(setSoon)} title={isPremium ? undefined : tx.list.premiumFilter}>
+          <Chip on={soon} onClick={premiumToggle('soon')} title={isPremium ? undefined : tx.list.premiumFilter}>
             {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
             {tx.list.closingSoon}
           </Chip>
-          <Chip on={funded} onClick={premiumToggle(setFunded)} title={isPremium ? undefined : tx.list.premiumFilter}>
+          <Chip on={funded} onClick={premiumToggle('funded')} title={isPremium ? undefined : tx.list.premiumFilter}>
             {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
             {tx.list.fullyFunded}
           </Chip>
-          <Chip on={showClosed} onClick={() => setShowClosed((v) => !v)}>
+          <Chip on={showClosed} onClick={toggle('closed')}>
             {tx.list.showClosed}
           </Chip>
           {anyFilter && (
@@ -256,7 +281,7 @@ export default function OpportunitiesPage() {
                 key={k}
                 type="button"
                 aria-pressed={sort === k}
-                onClick={() => setSort(k)}
+                onClick={() => setParam('sort', k === 'deadline' ? 'deadline' : null)}
                 className={`rounded-full px-3 py-1 font-semibold transition ${sort === k ? 'bg-violet-600 text-white' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 {k === 'best' ? tx.list.sortBest : tx.list.sortDeadline}

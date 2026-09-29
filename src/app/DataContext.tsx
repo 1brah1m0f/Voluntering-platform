@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react';
 import { backend } from './backend';
 import { FreeLimitError, type Opportunity, type SavedItem, type Status } from './types';
 import { useAppText } from './text';
+import { useAuth } from './AuthContext';
 
 interface DataState {
   opportunities: Opportunity[] | null;
@@ -29,17 +30,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [limitOpen, setLimitOpen] = useState(false);
 
+  const { userId } = useAuth();
+
+  // Guests browse the public list; saved items exist only for signed-in users.
   const reload = useCallback(async () => {
     setError(false);
     try {
-      const [opps, items] = await Promise.all([backend.listOpportunities(), backend.listSaved()]);
+      const [opps, items] = await Promise.all([backend.listOpportunities(), userId ? backend.listSaved() : Promise.resolve([])]);
       setOpportunities(opps);
       setSaved(new Map(items.map((s) => [s.opportunity_id, s])));
     } catch (err) {
       console.error('[data] load failed', err);
       setError(true);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     void reload();

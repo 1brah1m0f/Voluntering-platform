@@ -155,6 +155,10 @@ create table if not exists public.opportunities (
 
 create index if not exists opportunities_deadline_idx on public.opportunities (deadline);
 
+-- Youth exchanges are applied to through a partner ("sending") organisation in Azerbaijan.
+alter table public.opportunities add column if not exists sending_org text not null default '' check (char_length(sending_org) <= 120);
+alter table public.opportunities add column if not exists sending_org_contact text not null default '' check (char_length(sending_org_contact) <= 200);
+
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$
 begin

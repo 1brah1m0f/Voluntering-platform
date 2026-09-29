@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App';
 import { LangProvider } from './LangProvider';
 import { AuthProvider } from './app/AuthContext';
-import AppLayout, { RequireAdmin, RequireAuth } from './app/AppLayout';
+import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth } from './app/AppLayout';
 import { Spinner } from './app/ui';
 
 // App pages load on demand so the landing page stays light.
@@ -33,10 +33,12 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route element={<RequireAuth />}>
-                <Route element={<AppLayout />}>
-                  <Route path="/app" element={<OpportunitiesPage />} />
-                  <Route path="/app/o/:id" element={<DetailPage />} />
+              {/* The opportunity list and pages are public (shareable, indexable);
+                  saving, tracking, the AI tools and the account need an account. */}
+              <Route element={<AppLayout />}>
+                <Route path="/app" element={<OpportunitiesPage />} />
+                <Route path="/o/:id" element={<DetailPage />} />
+                <Route element={<RequireAuth />}>
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
@@ -49,6 +51,8 @@ createRoot(document.getElementById('root')!).render(
                   </Route>
                 </Route>
               </Route>
+              {/* Old links (emails sent before the move). */}
+              <Route path="/app/o/:id" element={<OldDetailRedirect />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

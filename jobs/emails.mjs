@@ -55,7 +55,7 @@ function layout({ preheader, eyebrow, title, body, site }) {
 }
 
 function card(o, site, badge) {
-  const url = `${site}/app/o/${o.id}`;
+  const url = `${site}/o/${o.id}`;
   return `<tr><td style="padding:0 32px 12px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e2e8f0;border-radius:14px;">
     <tr><td style="padding:16px 18px;font-family:Arial,Helvetica,sans-serif;">
@@ -101,7 +101,7 @@ export function digestEmail({ name, premium, items, total, today, site }) {
     '',
     `${premium ? 'Dünəndən bəri' : 'Keçən həftə'} maraqlarına uyğun yeni fürsətlər:`,
     '',
-    ...items.map((o) => `• ${o.title} (${o.program}) — son tarix ${date(o.deadline)}\n  ${site}/app/o/${o.id}`),
+    ...items.map((o) => `• ${o.title} (${o.program}) — son tarix ${date(o.deadline)}\n  ${site}/o/${o.id}`),
     total > items.length ? `\n…və daha ${total - items.length}: ${site}/app` : '',
     '',
     `Bildiriş ayarları: ${site}/app/profile?tab=settings`,
@@ -133,7 +133,7 @@ export function reminderEmail({ name, items, site }) {
     '',
     'Saxladığın fürsətlərin son tarixi yaxınlaşır:',
     '',
-    ...items.map(({ opportunity: o, days }) => `• ${o.title} — ${daysLeft(days)} (${date(o.deadline)})\n  ${site}/app/o/${o.id}`),
+    ...items.map(({ opportunity: o, days }) => `• ${o.title} — ${daysLeft(days)} (${date(o.deadline)})\n  ${site}/o/${o.id}`),
     '',
     `Müraciət etmisənsə, statusu yenilə: ${site}/app/tracker`,
     `Bildiriş ayarları: ${site}/app/profile?tab=settings`,

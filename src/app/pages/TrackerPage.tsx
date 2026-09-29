@@ -95,7 +95,7 @@ export default function TrackerPage() {
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <ProgramBadge program={o.program} />
                   <div className="min-w-0">
-                    <Link to={`/app/o/${o.id}`} className="font-bold text-slate-900 hover:text-brand-700">
+                    <Link to={`/o/${o.id}`} className="font-bold text-slate-900 hover:text-brand-700">
                       {o.title}
                     </Link>
                     <p className="mt-0.5 text-sm text-slate-500">

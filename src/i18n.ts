@@ -22,6 +22,8 @@ const az = {
     title: `${BRAND} — Könüllülük fürsətlərini bir daha qaçırma`,
   },
   nav: {
+    how: 'Necə işləyir',
+    opportunities: 'Fürsətlər',
     features: 'Xüsusiyyətlər',
     pricing: 'Qiymətlər',
     cta: 'Qeydiyyat',
@@ -74,6 +76,49 @@ const az = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Yuxarı qalx',
+  live: {
+    eyebrow: 'Canlı',
+    titleNew: (n: number) => `Bu həftə ${n} yeni fürsət`,
+    titleOpen: (n: number) => `İndi ${n} açıq fürsət`,
+    subtitle: 'Hamısı Azərbaycandan iştirakçılar üçün açıqdır. Qeydiyyatsız bax, bəyəndiyini saxlamaq üçün qoşul.',
+    all: 'Bütün fürsətlərə bax',
+    online: 'Onlayn',
+  },
+  how: {
+    eyebrow: 'Necə işləyir',
+    title: 'Üç addımda fürsətdən müraciətə',
+    steps: [
+      { title: 'Maraqlarını seç', text: 'Ekologiya, təhsil, insan hüquqları, incəsənət… Pulsuz qeydiyyatdan keç və sənə nə maraqlıdır, qeyd et.' },
+      { title: 'Uyğun fürsəti tap', text: 'Proqram, ölkə və növ üzrə süz. Yeni fürsətlər e-poçtuna gəlsin: həftədə bir dəfə, Premium-da hər gün.' },
+      { title: 'Saxla, müraciət et, izlə', text: 'Rəsmi mənbədə müraciət et, statusunu bir paneldə izlə. Son tarixi qaçırmamaq üçün xatırlatma al.' },
+    ],
+  },
+  faq: {
+    eyebrow: 'Suallar',
+    title: 'Tez-tez verilən suallar',
+    items: [
+      {
+        q: `${BRAND} pulsuzdur?`,
+        a: `Bəli. Fürsətlər siyahısı, filtrlər, ${FREE_EVENT_LIMIT} fürsətə qədər izləmə və həftəlik xülasə pulsuzdur. Premium (ayda 3 ₼) limitsiz izləmə, gündəlik xülasə, son tarix xatırlatmaları, erkən giriş və AI müraciət köməkçisi əlavə edir.`,
+      },
+      {
+        q: 'Müraciəti özüm edə bilərəm? Siz mənim adımdan müraciət edirsiniz?',
+        a: 'Müraciəti həmişə özün, rəsmi mənbədə edirsən — biz hər fürsətdə rəsmi linki veririk. Gənclər mübadilələrinə adətən Azərbaycandakı göndərən (partnyor) təşkilat vasitəsilə müraciət olunur; belə fürsətlərdə təşkilatı və əlaqəsini göstəririk.',
+      },
+      {
+        q: 'Hansı proqramları əhatə edirsiniz?',
+        a: 'SALTO-Youth təlim kursları, Erasmus+ gənclər mübadilələri, Avropa Həmrəylik Korpusu (ESC), BMT Könüllüləri (UNV) və milli proqramlar. Fürsətləri komandamız rəsmi mənbələrdən əl ilə əlavə edir.',
+      },
+      {
+        q: 'Premium-u necə ləğv edə bilərəm?',
+        a: 'Profil → Plan bölməsində bir kliklə. Saxladığın fürsətlər itmir, sadəcə pulsuz plana keçirsən.',
+      },
+      {
+        q: 'Məlumatlarım təhlükəsizdir?',
+        a: 'E-poçtunu yalnız sənə fürsətlər və xatırlatmalar göndərmək üçün istifadə edirik və heç kimə ötürmürük. Bildirişləri istənilən vaxt Profil → Parametrlər bölməsində söndürə bilərsən.',
+      },
+    ],
+  },
   features: {
     eyebrow: 'Xüsusiyyətlər',
     title: 'Könüllü həyatını asanlaşdıran hər şey',
@@ -156,6 +201,8 @@ const az = {
   footer: {
     tagline: 'Gənclər və könüllülər üçün bütün böyük fürsətlər bir yerdə.',
     rights: 'Bütün hüquqlar qorunur.',
+    contact: 'Əlaqə',
+    product: 'Məhsul',
     disclaimer: `${BRAND} Erasmus+, SALTO-Youth, ESC və ya BMT ilə rəsmi əlaqəli deyil. Bütün proqram adları müvafiq sahiblərinə məxsusdur.`,
   },
 };
@@ -167,6 +214,8 @@ const en: Dict = {
     title: `${BRAND} — Never miss a volunteering opportunity again`,
   },
   nav: {
+    how: 'How it works',
+    opportunities: 'Opportunities',
     features: 'Features',
     pricing: 'Pricing',
     cta: 'Sign up',
@@ -219,6 +268,49 @@ const en: Dict = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Back to top',
+  live: {
+    eyebrow: 'Live',
+    titleNew: (n: number) => `${n} new opportunities this week`,
+    titleOpen: (n: number) => `${n} open opportunities right now`,
+    subtitle: 'All open to participants from Azerbaijan. Browse without an account; sign up to save the ones you like.',
+    all: 'See all opportunities',
+    online: 'Online',
+  },
+  how: {
+    eyebrow: 'How it works',
+    title: 'From opportunity to application in three steps',
+    steps: [
+      { title: 'Pick your interests', text: 'Environment, education, human rights, arts… Sign up for free and tell us what you care about.' },
+      { title: 'Find what fits', text: 'Filter by programme, country and type. Get new opportunities by email: weekly, or daily with Premium.' },
+      { title: 'Save, apply, track', text: 'Apply at the official source and track your status in one place. Get reminded before deadlines.' },
+    ],
+  },
+  faq: {
+    eyebrow: 'Questions',
+    title: 'Frequently asked questions',
+    items: [
+      {
+        q: `Is ${BRAND} free?`,
+        a: `Yes. The opportunity list, filters, tracking up to ${FREE_EVENT_LIMIT} opportunities and the weekly digest are free. Premium (3 ₼ a month) adds unlimited tracking, a daily digest, deadline reminders, early access and the AI application assistant.`,
+      },
+      {
+        q: 'Can I apply myself? Do you apply on my behalf?',
+        a: 'You always apply yourself, at the official source — we link it on every opportunity. Youth exchanges are usually applied to through a sending (partner) organisation in Azerbaijan; for those we show the organisation and how to reach it.',
+      },
+      {
+        q: 'Which programmes do you cover?',
+        a: 'SALTO-Youth training courses, Erasmus+ youth exchanges, the European Solidarity Corps (ESC), UN Volunteers (UNV) and national programmes. Our team adds opportunities by hand from official sources.',
+      },
+      {
+        q: 'How do I cancel Premium?',
+        a: 'In one click under Profile → Plan. Your saved opportunities stay; you just move to the free plan.',
+      },
+      {
+        q: 'Is my data safe?',
+        a: 'We use your email only to send you opportunities and reminders, and never share it. You can turn notifications off anytime under Profile → Settings.',
+      },
+    ],
+  },
   features: {
     eyebrow: 'Features',
     title: 'Everything that makes volunteering life easier',
@@ -301,6 +393,8 @@ const en: Dict = {
   footer: {
     tagline: 'All the big opportunities for young people and volunteers in one place.',
     rights: 'All rights reserved.',
+    contact: 'Contact',
+    product: 'Product',
     disclaimer: `${BRAND} is not officially affiliated with Erasmus+, SALTO-Youth, ESC or the UN. All program names belong to their respective owners.`,
   },
 };

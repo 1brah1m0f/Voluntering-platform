@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Check, ClipboardCheck, Clock, Copy, Crown, FileText, Info, Loader2, PenLine, RotateCcw, Save, Sparkles, Upload, UserRound, X } from 'lucide-react';
 import { backend, BackendError } from './backend';
 import { MAX_DOC_BYTES, docKind, docxText, fileToBase64 } from './docText';
@@ -504,6 +504,19 @@ export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: 
   const { profile } = useAuth();
   const premium = profile?.plan === 'premium' || profile?.is_admin === true;
   const ready = useAiReady(premium);
+  const location = useLocation();
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-3xl border border-violet-200 bg-violet-50 px-6 py-10 text-center">
+        <Sparkles className="h-10 w-10 text-violet-500" aria-hidden="true" />
+        <p className="max-w-md text-violet-950">{tx.guest.aiText}</p>
+        <Link to="/register" state={{ from: location.pathname + location.search }} className="btn-primary">
+          {tx.guest.signUp}
+        </Link>
+      </div>
+    );
+  }
 
   if (!premium) {
     return (

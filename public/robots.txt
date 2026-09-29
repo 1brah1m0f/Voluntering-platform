@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /app/profile
+Disallow: /app/tracker
+Disallow: /app/welcome
+
+Sitemap: https://www.openlyapply.com/sitemap.xml

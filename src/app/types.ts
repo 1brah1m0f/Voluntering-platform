@@ -42,6 +42,10 @@ export interface Opportunity {
   description: string;
   published: boolean;
   created_at: string;
+  /** Youth exchanges are applied to through a partner organisation in Azerbaijan. */
+  sending_org?: string;
+  /** Its email, phone or website. */
+  sending_org_contact?: string;
 }
 
 export type OpportunityInput = Omit<Opportunity, 'id' | 'created_at'>;
