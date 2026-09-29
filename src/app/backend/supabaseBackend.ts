@@ -1,5 +1,5 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type UserRow } from '../types';
+import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline';
@@ -242,6 +242,28 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       const { data, error } = await sb.rpc('accepted_peers', { opp: opportunityId });
       if (error) throw dbError(error);
       return (data ?? []) as Peer[];
+    },
+
+    async listSearches() {
+      const { data, error } = await sb.from('saved_searches').select('id, name, params, last_seen_at, created_at').order('created_at');
+      if (error) throw dbError(error);
+      return data as SavedSearch[];
+    },
+
+    async saveSearch(name, params) {
+      const { data, error } = await sb.from('saved_searches').insert({ name, params }).select('id, name, params, last_seen_at, created_at').single();
+      if (error) throw dbError(error);
+      return data as SavedSearch;
+    },
+
+    async markSearchSeen(id) {
+      const { error } = await sb.from('saved_searches').update({ last_seen_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw dbError(error);
+    },
+
+    async deleteSearch(id) {
+      const { error } = await sb.from('saved_searches').delete().eq('id', id);
+      if (error) throw dbError(error);
     },
 
     async getLetter(opportunityId) {

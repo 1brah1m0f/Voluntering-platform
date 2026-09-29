@@ -12,6 +12,8 @@ export default function Footer() {
   const { t } = useLang();
   const product = [
     { to: '/app', label: t.nav.opportunities },
+    { to: '/app/calendar', label: t.nav.calendar },
+    { to: '/guides', label: t.nav.guides },
     { to: '#how', label: t.nav.how },
     { to: '#pricing', label: t.nav.pricing },
     { to: '#faq', label: t.faq.eyebrow },

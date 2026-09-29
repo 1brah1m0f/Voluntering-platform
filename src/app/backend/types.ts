@@ -1,4 +1,4 @@
-import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SignUpResult, Status, UserRow } from '../types';
+import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedSearch, SignUpResult, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline'>>;
 
@@ -71,6 +71,13 @@ export interface Backend {
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
   /** Whether the AI assistant is deployed and has an API key; false until it's set up. */
   aiStatus(): Promise<boolean>;
+
+  /** Saved searches (max 10). */
+  listSearches(): Promise<SavedSearch[]>;
+  saveSearch(name: string, params: string): Promise<SavedSearch>;
+  /** Marks a search as opened now, so its "new" count resets. */
+  markSearchSeen(id: string): Promise<void>;
+  deleteSearch(id: string): Promise<void>;
 
   /** The user's saved motivation letter for an opportunity, if any. */
   getLetter(opportunityId: string): Promise<SavedLetter | null>;

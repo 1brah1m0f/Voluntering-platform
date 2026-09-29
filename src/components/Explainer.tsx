@@ -1,10 +1,13 @@
-import { Globe2, GraduationCap, HeartHandshake, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Globe2, GraduationCap, HeartHandshake, Users } from 'lucide-react';
 import { useLang } from '../i18n';
 import { tones, type ToneName } from '../lib/tones';
 import { Reveal, SectionHeader } from './Section';
 
 const icons = [Users, GraduationCap, HeartHandshake, Globe2];
 const cardTones: ToneName[] = ['coral', 'violet', 'emerald', 'sky'];
+// Where each card's "Learn more" goes: the matching guide or programme page.
+const targets = ['/guides/youth-exchange', '/programs/salto-youth', '/programs/european-solidarity-corps', '/programs/un-volunteers'];
 
 /** "What are these opportunities?": the programme types explained in plain words. */
 export default function Explainer() {
@@ -27,6 +30,10 @@ export default function Explainer() {
                     <h3 className="text-lg font-bold">{item.title}</h3>
                     <p className="mt-1.5 leading-relaxed text-slate-700">{item.text}</p>
                     <p className="mt-3 text-sm font-semibold text-slate-500">{item.meta}</p>
+                    <Link to={targets[i]} className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
+                      {t.nav.more}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Link>
                   </div>
                 </article>
               </Reveal>

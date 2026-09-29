@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users, BookOpen } from 'lucide-react';
 import { AiTools } from '../AiTools';
+import { GUIDES } from '../../content/guides';
+import { programPageByName } from '../../content/programs';
 import { ShareCard } from '../ShareTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
@@ -124,6 +126,10 @@ export default function DetailPage() {
     ...(o.organizer && o.organizer !== o.program ? [{ Icon: Building2, label: tx.detail.organizer, value: o.organizer }] : []),
   ];
 
+  const programPage = programPageByName(o.program);
+  // The kind-specific guides first, then the general ones (e.g. the motivation letter).
+  const guides = [...GUIDES].filter((g) => g.kinds.includes(o.kind)).sort((a, b) => a.kinds.length - b.kinds.length).slice(0, 2);
+
   const tabs = [
     { id: 'about' as const, label: tx.detail.about, Icon: FileText, ai: false },
     { id: 'letter' as const, label: tx.ai.tabLetter, Icon: PenLine, ai: true },
@@ -138,7 +144,13 @@ export default function DetailPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <ProgramBadge program={o.program} size="lg" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-brand-700">{o.program}</p>
+              {programPage ? (
+                <Link to={`/programs/${programPage.slug}`} className="text-sm font-bold text-brand-700 hover:underline">
+                  {o.program}
+                </Link>
+              ) : (
+                <p className="text-sm font-bold text-brand-700">{o.program}</p>
+              )}
               <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">{o.title}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <DeadlineChip deadline={o.deadline} />
@@ -198,6 +210,23 @@ export default function DetailPage() {
                 ))}
               </dl>
               {o.sending_org && <SendingOrg name={o.sending_org} contact={o.sending_org_contact ?? ''} />}
+              {guides.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tx.learn.useful}</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {guides.map((g) => (
+                      <Link
+                        key={g.slug}
+                        to={`/guides/${g.slug}`}
+                        className="group flex items-center gap-3 rounded-2xl border border-slate-200 p-3 transition hover:border-brand-200 hover:bg-brand-50/40"
+                      >
+                        <BookOpen className="h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
+                        <span className="text-sm font-semibold leading-snug text-slate-800 group-hover:text-brand-800">{g.text[lang].title}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

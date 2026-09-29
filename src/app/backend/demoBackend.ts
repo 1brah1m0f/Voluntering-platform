@@ -1,5 +1,5 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type UserRow } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 /**
@@ -23,6 +23,7 @@ const K = {
   opps: 'openly_demo_opportunities',
   saved: 'openly_demo_saved',
   letters: 'openly_demo_letters',
+  searches: 'openly_demo_searches',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -466,6 +467,34 @@ export function createDemoBackend(): Backend {
       return users()
         .filter((x) => x.id !== u.id && sharing(all[x.id]?.find((s) => s.opportunity_id === opportunityId)))
         .map((x) => ({ full_name: x.full_name, email: x.email, avatar_url: x.avatar_url ?? '', headline: x.headline ?? '', country: x.country }));
+    },
+
+    async listSearches() {
+      const u = requireUser();
+      return read<Record<string, SavedSearch[]>>(K.searches, {})[u.id] ?? [];
+    },
+
+    async saveSearch(name, params) {
+      const u = requireUser();
+      const all = read<Record<string, SavedSearch[]>>(K.searches, {});
+      const mine = all[u.id] ?? [];
+      if (mine.length >= 10) throw new BackendError('not_allowed', 'SEARCH_LIMIT');
+      const now = new Date().toISOString();
+      const s: SavedSearch = { id: uuid(), name, params, last_seen_at: now, created_at: now };
+      write(K.searches, { ...all, [u.id]: [...mine, s] });
+      return s;
+    },
+
+    async markSearchSeen(id) {
+      const u = requireUser();
+      const all = read<Record<string, SavedSearch[]>>(K.searches, {});
+      write(K.searches, { ...all, [u.id]: (all[u.id] ?? []).map((s) => (s.id === id ? { ...s, last_seen_at: new Date().toISOString() } : s)) });
+    },
+
+    async deleteSearch(id) {
+      const u = requireUser();
+      const all = read<Record<string, SavedSearch[]>>(K.searches, {});
+      write(K.searches, { ...all, [u.id]: (all[u.id] ?? []).filter((s) => s.id !== id) });
     },
 
     async getLetter(opportunityId) {

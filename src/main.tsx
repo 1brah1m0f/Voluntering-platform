@@ -15,6 +15,10 @@ const ResetPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) =>
 const OpportunitiesPage = lazy(() => import('./app/pages/OpportunitiesPage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
+const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
+const GuidesPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidesPage })));
+const GuidePage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidePage })));
+const ProgramPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.ProgramPage })));
 const ProfilePage = lazy(() => import('./app/pages/ProfilePage'));
 const AdminListPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminListPage })));
 const AdminUsersPage = lazy(() => import('./app/pages/AdminUsersPage'));
@@ -38,6 +42,10 @@ createRoot(document.getElementById('root')!).render(
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<OpportunitiesPage />} />
                 <Route path="/o/:id" element={<DetailPage />} />
+                <Route path="/app/calendar" element={<CalendarPage />} />
+                <Route path="/guides" element={<GuidesPage />} />
+                <Route path="/guides/:slug" element={<GuidePage />} />
+                <Route path="/programs/:slug" element={<ProgramPage />} />
                 <Route element={<RequireAuth />}>
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />

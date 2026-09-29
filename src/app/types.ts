@@ -109,6 +109,15 @@ export interface Peer {
   country: string;
 }
 
+export interface SavedSearch {
+  id: string;
+  name: string;
+  /** Filter URL parameters, e.g. "kind=training&country=Almaniya". */
+  params: string;
+  last_seen_at: string;
+  created_at: string;
+}
+
 export interface SavedLetter {
   content: string;
   updated_at: string;

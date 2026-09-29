@@ -24,6 +24,9 @@ const az = {
   nav: {
     how: 'Necə işləyir',
     opportunities: 'Fürsətlər',
+    guides: 'Bələdçilər',
+    calendar: 'Son tarixlər təqvimi',
+    more: 'Ətraflı',
     features: 'Xüsusiyyətlər',
     pricing: 'Qiymətlər',
     cta: 'Qeydiyyat',
@@ -231,6 +234,9 @@ const en: Dict = {
   nav: {
     how: 'How it works',
     opportunities: 'Opportunities',
+    guides: 'Guides',
+    calendar: 'Deadline calendar',
+    more: 'Learn more',
     features: 'Features',
     pricing: 'Pricing',
     cta: 'Sign up',

@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { BookmarkPlus, Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { backend } from '../backend';
+import { ONLINE, applyFilters, filterQuery, readFilters } from '../filters';
 import { Dashboard } from '../Dashboard';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
-import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity } from '../types';
+import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity, type SavedSearch } from '../types';
 import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
 import { Chip, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass } from '../ui';
 import { daysUntil } from '../util';
-
-const ONLINE = '__online__';
 
 function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
   const { tx } = useAppText();
@@ -95,19 +94,22 @@ export default function OpportunitiesPage() {
       { replace: true },
     );
   const flag = (key: string) => params.get(key) === '1';
-  const query = params.get('q') ?? '';
-  const forYou = myInterests.length > 0 && params.get('mine') !== '0'; // on by default
-  const program = params.get('program') ?? '';
-  const kind = (params.get('kind') ?? '') as Kind | '';
-  const country = params.get('country') ?? '';
-  const soon = flag('soon');
-  const funded = flag('funded');
-  const showClosed = flag('closed');
+  const filters = readFilters(params, myInterests);
+  const { q: query, forYou, program, kind, country, soon, funded, showClosed } = filters;
   const sort = params.get('sort') === 'deadline' ? 'deadline' : 'best';
   const [filtersOpen, setFiltersOpen] = useState(false);
   const isPremium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [earlyCount, setEarlyCount] = useState(0);
   const navigate = useNavigate();
+
+  // Saved searches (signed-in users): chips on the dashboard, "Save this search" in the filter bar.
+  const [searches, setSearches] = useState<SavedSearch[]>([]);
+  const [naming, setNaming] = useState<string | null>(null);
+  const [searchMsg, setSearchMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    if (!profile) return;
+    backend.listSearches().then(setSearches, (err) => console.error('[searches] load failed', err));
+  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (isPremium) return;
@@ -124,18 +126,7 @@ export default function OpportunitiesPage() {
   const openCount = published.filter((o) => daysUntil(o.deadline) >= 0).length;
 
   const q = query.trim().toLowerCase();
-  const results = published.filter((o) => {
-    const d = daysUntil(o.deadline);
-    if (!showClosed && d < 0) return false;
-    if (soon && (d < 0 || d > 7)) return false;
-    if (funded && o.costs !== 'full') return false;
-    if (program && o.program !== program) return false;
-    if (kind && o.kind !== kind) return false;
-    if (country === ONLINE ? !o.is_online : country && o.country !== country) return false;
-    if (forYou && myInterests.length && !o.interests.some((i) => myInterests.includes(i))) return false;
-    if (q && !`${o.title} ${o.program} ${o.organizer} ${o.country} ${o.city} ${o.description}`.toLowerCase().includes(q)) return false;
-    return true;
-  });
+  const results = applyFilters(published, filters, myInterests);
 
   // Premium smart matching: fit score per card, "best match" ordering, and a
   // personal "N new opportunities for you" summary.
@@ -147,6 +138,22 @@ export default function OpportunitiesPage() {
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
   const clear = () => setParams(myInterests.length ? { mine: '0' } : {}, { replace: true });
+  const currentQuery = filterQuery(params);
+  const alreadySaved = searches.some((s) => s.params === currentQuery);
+  const suggestName = () =>
+    [query.trim(), program, kind ? KINDS[kind][lang] : '', country === ONLINE ? tx.list.online : country].filter(Boolean).join(' · ').slice(0, 60) || tx.searches.fallbackName;
+  const saveSearch = async () => {
+    const name = (naming ?? '').trim() || tx.searches.fallbackName;
+    try {
+      const s = await backend.saveSearch(name.slice(0, 60), currentQuery);
+      setSearches((cur) => [...cur, s]);
+      setNaming(null);
+      setSearchMsg({ ok: true, text: tx.searches.saved });
+    } catch (err) {
+      console.error('[searches] save failed', err);
+      setSearchMsg({ ok: false, text: searches.length >= 10 ? tx.searches.limit : tx.saveError });
+    }
+  };
   // Selects and chips (not the search box) that are switched on, for the mobile "Filters (n)" button.
   const activeFilters = [program, kind, country, soon, funded, showClosed].filter(Boolean).length;
   const fits = myInterests.length ? published.filter((o) => daysUntil(o.deadline) >= 0 && o.interests.some((i) => myInterests.includes(i))).length : 0;
@@ -157,7 +164,7 @@ export default function OpportunitiesPage() {
   return (
     <div>
       {profile ? (
-        <Dashboard openCount={openCount} fits={fits} />
+        <Dashboard openCount={openCount} fits={fits} searches={searches} setSearches={setSearches} />
       ) : (
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.list.title}</h1>
@@ -301,6 +308,53 @@ export default function OpportunitiesPage() {
           )}
         </div>
       </div>
+
+      {profile && currentQuery && currentQuery !== 'mine=0' && !alreadySaved && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {naming === null ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchMsg(null);
+                setNaming(suggestName());
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-50"
+            >
+              <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
+              {tx.searches.save}
+            </button>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void saveSearch();
+              }}
+              className="flex w-full flex-wrap items-center gap-2 sm:w-auto"
+            >
+              <input
+                autoFocus
+                value={naming}
+                maxLength={60}
+                onChange={(e) => setNaming(e.target.value)}
+                placeholder={tx.searches.namePh}
+                aria-label={tx.searches.namePh}
+                className={`${inputClass} !py-1.5 sm:w-72`}
+              />
+              <button type="submit" className="btn-primary !px-4 !py-1.5 text-sm">
+                {tx.searches.saveBtn}
+              </button>
+              <button type="button" onClick={() => setNaming(null)} className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+                {tx.searches.cancel}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+      {searchMsg && (
+        <p role="status" className={`mt-2 text-sm font-medium ${searchMsg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+          {searchMsg.text}
+        </p>
+      )}
 
       {matches && results.length > 1 && (
         <div className="mt-5 flex justify-end">

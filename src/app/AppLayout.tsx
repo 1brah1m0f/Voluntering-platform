@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ListChecks, LogOut, Search, Shield, UserRound } from 'lucide-react';
+import { BookOpen, CalendarDays, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -43,15 +43,28 @@ export default function AppLayout() {
   // After signing in, come back to the page the guest was looking at.
   const back = { from: location.pathname + location.search };
 
-  const links = guest
-    ? [{ to: '/app', end: true, label: tx.nav.opportunities, Icon: Search }]
+  type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string };
+  const explore: NavItem[] = [
+    { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
+    { to: '/app/calendar', end: false, label: tx.nav.calendar, Icon: CalendarDays },
+    // Programme pages belong to the guides section.
+    { to: '/guides', end: false, label: tx.nav.guides, Icon: BookOpen, also: '/programs/' },
+  ];
+  const mine: NavItem[] = guest
+    ? []
     : [
-        { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
         { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin ? [{ to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : []),
       ];
+  const groups = [
+    { label: tx.navGroups.explore, items: explore },
+    { label: tx.navGroups.mine, items: mine },
+  ].filter((g) => g.items.length);
+  // Phones: guests get the explore tabs; members their daily pages (guides are linked from the dashboard).
+  const links = guest ? explore : [explore[0], explore[1], ...mine];
+  const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
   const isPremium = profile?.plan === 'premium';
 
   const logout = async () => {
@@ -70,21 +83,28 @@ export default function AppLayout() {
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
-          <nav className="mt-8 space-y-1" aria-label="App">
-            {links.map(({ to, end, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                    isActive ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`
-                }
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-                {label}
-              </NavLink>
+          <nav className="mt-8 space-y-6" aria-label="App">
+            {groups.map((g) => (
+              <div key={g.label}>
+                <p className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-400">{g.label}</p>
+                <div className="space-y-1">
+                  {g.items.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.end}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                          activeFor(item, isActive) ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`
+                      }
+                    >
+                      <item.Icon className="h-4 w-4" aria-hidden="true" />
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
           <div className="mt-auto space-y-3">
@@ -134,7 +154,7 @@ export default function AppLayout() {
           </div>
         </aside>
 
-        <div className={`min-w-0 flex-1 lg:pb-0 ${guest ? '' : 'pb-20'}`}>
+        <div className="min-w-0 flex-1 pb-20 lg:pb-0">
           {/* mobile top bar */}
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
             <Link to="/" className="flex items-center gap-2 font-extrabold text-slate-900">
@@ -174,25 +194,25 @@ export default function AppLayout() {
         </div>
 
         {/* mobile bottom tabs */}
-        {!guest && (
-          <nav
-            className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden"
-            style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
-            aria-label="App"
-          >
-            {links.map(({ to, end, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${isActive ? 'text-brand-700' : 'text-slate-500'}`}
-              >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-        )}
+        <nav
+          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+          style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
+          aria-label="App"
+        >
+          {links.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${activeFor(item, isActive) ? 'text-brand-700' : 'text-slate-500'}`
+              }
+            >
+              <item.Icon className="h-5 w-5" aria-hidden="true" />
+              <span className="max-w-full truncate px-1">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
       </div>
     </DataProvider>
   );

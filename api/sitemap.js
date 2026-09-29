@@ -4,6 +4,9 @@
 const SITE = 'https://www.openlyapply.com';
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+// Keep in sync with src/content/guides.ts and src/content/programs.ts.
+const GUIDES = ['youth-exchange', 'motivation-letter', 'sending-organisation', 'visa-documents'];
+const PROGRAMS = ['erasmus-plus', 'european-solidarity-corps', 'salto-youth', 'un-volunteers'];
 
 export default async function handler(req, res) {
   let rows = [];
@@ -23,6 +26,10 @@ export default async function handler(req, res) {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     url(`${SITE}/`),
     url(`${SITE}/app`),
+    url(`${SITE}/app/calendar`),
+    url(`${SITE}/guides`),
+    ...GUIDES.map((g) => url(`${SITE}/guides/${g}`)),
+    ...PROGRAMS.map((p) => url(`${SITE}/programs/${p}`)),
     ...rows.map((o) => url(`${SITE}/o/${o.id}`, o.updated_at)),
     '</urlset>',
   ].join('\n');

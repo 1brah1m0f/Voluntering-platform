@@ -22,7 +22,7 @@ export default function Navbar() {
 
   const links = [
     { href: '/app', label: t.nav.opportunities },
-    { href: '#how', label: t.nav.how },
+    { href: '/guides', label: t.nav.guides },
     { href: '#pricing', label: t.nav.pricing },
     { href: '#faq', label: t.faq.eyebrow },
   ];
