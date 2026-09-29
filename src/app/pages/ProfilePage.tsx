@@ -1,13 +1,14 @@
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bell, Crown, KeyRound, Loader2, Settings, Sparkles, UserRound } from 'lucide-react';
+import { Bell, Camera, Crown, KeyRound, Loader2, Settings, Sparkles, UserRound } from 'lucide-react';
 import { NewPasswordForm } from './AuthPages';
 import PremiumPlan from './PremiumPage';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { COUNTRIES, INTERESTS, INTEREST_IDS } from '../taxonomy';
 import { useAppText } from '../text';
-import { Chip, Field, Spinner, inputClass } from '../ui';
+import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
+import { squareImage } from '../util';
 
 type Tab = 'profile' | 'premium' | 'settings';
 
@@ -24,6 +25,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   const [country, setCountry] = useState('');
   const [interests, setInterests] = useState<string[]>([]);
   const [about, setAbout] = useState('');
+  const [headline, setHeadline] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwMsg, setPwMsg] = useState(false);
@@ -37,6 +39,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setCountry(profile.country);
     setInterests(profile.interests);
     setAbout(profile.about ?? '');
+    setHeadline(profile.headline ?? '');
   }, [profile]);
 
   if (!profile) return <Spinner label={tx.loading} />;
@@ -49,7 +52,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setBusy(true);
     setMsg(null);
     try {
-      const updated = await backend.updateProfile({ full_name: name.trim(), country, interests, about: about.trim() });
+      const updated = await backend.updateProfile({ full_name: name.trim(), headline: headline.trim(), country, interests, about: about.trim() });
       setProfile(updated);
       if (onboarding) navigate('/app', { replace: true });
       else setMsg({ ok: true, text: tx.profile.saved });
@@ -63,8 +66,14 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{onboarding ? tx.profile.onboardingTitle : tx.profile.title}</h1>
-      {onboarding && <p className="mt-1 text-slate-600">{tx.profile.onboardingSub}</p>}
+      {onboarding ? (
+        <>
+          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.profile.onboardingTitle}</h1>
+          <p className="mt-1 text-slate-600">{tx.profile.onboardingSub}</p>
+        </>
+      ) : (
+        <ProfileHeader />
+      )}
 
       {!onboarding && (
         <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
@@ -129,6 +138,19 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
             </Field>
           </div>
 
+          {!onboarding && (
+            <Field label={tx.profile.headline} htmlFor={`${uid}-headline`}>
+              <input
+                id={`${uid}-headline`}
+                value={headline}
+                maxLength={80}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder={tx.profile.headlinePh}
+                className={inputClass}
+              />
+            </Field>
+          )}
+
           <Field label={tx.profile.about} htmlFor={`${uid}-about`} hint={tx.profile.aboutHint}>
             <textarea
               id={`${uid}-about`}
@@ -140,20 +162,6 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
               className={`${inputClass} resize-y`}
             />
           </Field>
-
-          {!onboarding && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={tx.profile.email}>
-                <p className="rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm text-slate-600">{profile.email}</p>
-              </Field>
-              <Field label={tx.profile.plan}>
-                <p className="inline-flex w-full items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-800">
-                  {profile.plan === 'premium' && <Crown className="h-4 w-4 text-amber-500" aria-hidden="true" />}
-                  {profile.plan === 'premium' ? tx.profile.premium : tx.profile.basic}
-                </p>
-              </Field>
-            </div>
-          )}
 
           {msg && (
             <p role={msg.ok ? 'status' : 'alert'} className={`rounded-xl px-3 py-2 text-sm font-medium ${msg.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
@@ -186,6 +194,84 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+/** Photo, name, headline and plan at the top of the account page. The photo saves immediately. */
+function ProfileHeader() {
+  const { tx } = useAppText();
+  const { profile, setProfile } = useAuth();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  if (!profile) return null;
+  const premium = profile.plan === 'premium';
+
+  const change = async (image: Blob | null) => {
+    setBusy(true);
+    setError(false);
+    try {
+      setProfile(await backend.setAvatar(image));
+    } catch (err) {
+      console.error('[profile] photo failed', err);
+      setError(true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow picking the same file again
+    if (!file) return;
+    try {
+      await change(await squareImage(file));
+    } catch (err) {
+      console.error('[profile] could not read image', err);
+      setError(true);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-5 sm:p-6">
+      <div className="relative shrink-0">
+        <Avatar profile={profile} className="h-20 w-20 text-2xl sm:h-24 sm:w-24" />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          title={tx.profile.changePhoto}
+          aria-label={tx.profile.changePhoto}
+          className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white shadow transition hover:bg-brand-800 disabled:opacity-60"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Camera className="h-4 w-4" aria-hidden="true" />}
+        </button>
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={pick} className="hidden" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h1 className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">{profile.full_name || profile.email}</h1>
+        {profile.headline && <p className="mt-0.5 text-sm font-medium text-slate-600">{profile.headline}</p>}
+        <p className="mt-0.5 truncate text-sm text-slate-500">{profile.email}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${premium ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}
+          >
+            {premium && <Crown className="h-3.5 w-3.5" aria-hidden="true" />}
+            {premium ? tx.profile.premium : tx.profile.basic}
+          </span>
+          {profile.avatar_url && (
+            <button type="button" onClick={() => change(null)} disabled={busy} className="text-xs font-semibold text-slate-500 hover:text-rose-600">
+              {tx.profile.removePhoto}
+            </button>
+          )}
+        </div>
+        {error && (
+          <p role="alert" className="mt-2 text-xs font-medium text-rose-700">
+            {tx.profile.photoError}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

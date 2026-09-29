@@ -1,4 +1,6 @@
-import { Check, Crown, Minus, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Crown, Loader2, Minus, Sparkles } from 'lucide-react';
+import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
 
@@ -8,12 +10,62 @@ function Cell({ value, strong = false }: { value: boolean | string; strong?: boo
   return <span className={`font-semibold ${strong ? 'text-coral-700' : 'text-slate-700'}`}>{value}</span>;
 }
 
-/** Plan overview and Free vs Premium comparison (the "Plan" tab of the profile page). */
+/** Premium users see their plan and a cancel option — no sales pitch. */
+function ActivePremium() {
+  const { tx } = useAppText();
+  const p = tx.premium;
+  const { setProfile } = useAuth();
+  const [busy, setBusy] = useState(false);
+
+  const cancel = async () => {
+    if (!confirm(p.cancelConfirm)) return;
+    setBusy(true);
+    try {
+      setProfile(await backend.cancelPremium());
+      alert(p.cancelled);
+    } catch (err) {
+      console.error('[premium] cancel failed', err);
+      alert(tx.saveError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-400/25 blur-3xl" aria-hidden="true" />
+        <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">
+          <Crown className="h-4 w-4 text-amber-300" aria-hidden="true" />
+          {p.current}
+        </p>
+        <h2 className="relative mt-2 text-2xl font-extrabold !text-white">{p.active}</h2>
+        <p className="relative mt-2 max-w-lg text-brand-100">{p.activeSub}</p>
+      </div>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <h2 className="text-lg font-bold">{p.cancelTitle}</h2>
+        <p className="mt-1 text-sm text-slate-500">{p.cancelSub}</p>
+        <button
+          type="button"
+          onClick={cancel}
+          disabled={busy}
+          className="mt-4 inline-flex items-center gap-2 rounded-full border border-rose-200 px-5 py-2.5 text-sm font-bold text-rose-700 transition hover:bg-rose-50 disabled:opacity-60"
+        >
+          {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+          {p.cancelBtn}
+        </button>
+      </section>
+    </div>
+  );
+}
+
+/** The "Plan" tab of the profile page: Free users see what Premium adds; Premium users can cancel. */
 export default function PremiumPlan() {
   const { tx } = useAppText();
   const p = tx.premium;
   const { profile } = useAuth();
-  const isPremium = profile?.plan === 'premium';
+  if (profile?.plan === 'premium') return <ActivePremium />;
 
   return (
     <div>
@@ -30,7 +82,7 @@ export default function PremiumPlan() {
           </div>
           <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
             <p className="text-brand-100">{p.current}</p>
-            <p className="mt-0.5 text-lg font-bold">{isPremium ? p.active : p.free}</p>
+            <p className="mt-0.5 text-lg font-bold">{p.free}</p>
           </div>
         </div>
       </div>
@@ -65,15 +117,13 @@ export default function PremiumPlan() {
         </table>
       </div>
 
-      {!isPremium && (
-        <div className="mt-6 flex flex-col items-center gap-2 text-center">
-          <button type="button" disabled className="btn-primary w-full cursor-not-allowed opacity-70 sm:w-auto">
-            <Crown className="h-5 w-5" aria-hidden="true" />
-            {p.cta}
-          </button>
-          <p className="max-w-md text-sm text-slate-500">{p.ctaNote}</p>
-        </div>
-      )}
+      <div className="mt-6 flex flex-col items-center gap-2 text-center">
+        <button type="button" disabled className="btn-primary w-full cursor-not-allowed opacity-70 sm:w-auto">
+          <Crown className="h-5 w-5" aria-hidden="true" />
+          {p.cta}
+        </button>
+        <p className="max-w-md text-sm text-slate-500">{p.ctaNote}</p>
+      </div>
     </div>
   );
 }

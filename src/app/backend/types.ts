@@ -1,6 +1,6 @@
 import type { AiRequest, Opportunity, OpportunityInput, Plan, Profile, SavedItem, SignUpResult, Status, UserRow } from '../types';
 
-export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about'>>;
+export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline'>>;
 
 /**
  * Error codes surfaced to the UI. Implementations throw `BackendError` with one
@@ -48,6 +48,10 @@ export interface Backend {
 
   getProfile(): Promise<Profile | null>;
   updateProfile(patch: ProfilePatch): Promise<Profile>;
+  /** Uploads a (already resized) profile photo, or removes it with `null`. */
+  setAvatar(image: Blob | null): Promise<Profile>;
+  /** Premium user switches themselves back to the free plan. */
+  cancelPremium(): Promise<Profile>;
 
   /** Published opportunities (admins also get drafts). */
   listOpportunities(): Promise<Opportunity[]>;

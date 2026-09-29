@@ -2,8 +2,8 @@ import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseC
 import { FreeLimitError, type Opportunity, type Profile, type SavedItem, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about';
-// Used if supabase/app.sql hasn't been re-run yet and the notification columns are missing.
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline';
+// Used if supabase/app.sql hasn't been re-run yet and the newer columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
 
@@ -81,10 +81,10 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       if (!id) return null;
       const { data, error } = await sb.from('profiles').select(PROFILE_COLS).eq('id', id).maybeSingle();
       if (error?.code === UNDEFINED_COLUMN) {
-        console.warn('[profile] notification columns missing — re-run supabase/app.sql');
+        console.warn('[profile] profile columns missing — re-run supabase/app.sql');
         const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
         if (base.error) throw dbError(base.error);
-        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '' } as Profile) : null;
+        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '' } as Profile) : null;
       }
       if (error) throw dbError(error);
       return data as Profile | null;
@@ -95,6 +95,38 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       if (!id) throw new BackendError('not_allowed');
       const { data, error } = await sb.from('profiles').update(patch).eq('id', id).select(PROFILE_COLS).single();
       if (error) throw dbError(error);
+      return data as Profile;
+    },
+
+    async setAvatar(image) {
+      const id = await uid();
+      if (!id) throw new BackendError('not_allowed');
+      const bucket = sb.storage.from('avatars');
+      const { data: old } = await sb.from('profiles').select('avatar_url').eq('id', id).single();
+      let avatar_url = '';
+      if (image) {
+        // A new file name each time, so browsers and the CDN never show a cached old photo.
+        const path = `${id}/${Date.now()}.jpg`;
+        const { error } = await bucket.upload(path, image, { contentType: 'image/jpeg' });
+        if (error) throw new BackendError('unknown', error.message);
+        avatar_url = bucket.getPublicUrl(path).data.publicUrl;
+      }
+      const { data, error } = await sb.from('profiles').update({ avatar_url }).eq('id', id).select(PROFILE_COLS).single();
+      if (error) throw dbError(error);
+      // Clean up the previous upload (a Google picture URL isn't ours to delete).
+      const marker = '/storage/v1/object/public/avatars/';
+      const oldUrl = (old?.avatar_url as string | undefined) ?? '';
+      if (oldUrl.includes(marker)) await bucket.remove([oldUrl.split(marker)[1]]);
+      return data as Profile;
+    },
+
+    async cancelPremium() {
+      const id = await uid();
+      if (!id) throw new BackendError('not_allowed');
+      const { error } = await sb.rpc('cancel_premium');
+      if (error) throw dbError(error);
+      const { data, error: readError } = await sb.from('profiles').select(PROFILE_COLS).eq('id', id).single();
+      if (readError) throw dbError(readError);
       return data as Profile;
     },
 
@@ -175,11 +207,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     },
 
     async save(opportunityId) {
-      const { data, error } = await sb
-        .from('saved_opportunities')
-        .insert({ opportunity_id: opportunityId })
-        .select('opportunity_id, status, created_at, updated_at')
-        .single();
+      const { data, error } = await sb.from('saved_opportunities').insert({ opportunity_id: opportunityId }).select('opportunity_id, status, created_at, updated_at').single();
       if (error) throw dbError(error);
       return data as SavedItem;
     },

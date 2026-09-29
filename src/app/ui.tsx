@@ -4,7 +4,7 @@ import { programLogo } from '../lib/programs';
 import { useData } from './DataContext';
 import { useAppText } from './text';
 import { daysUntil } from './util';
-import type { Status } from './types';
+import type { Profile, Status } from './types';
 
 export const inputClass =
   'w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200';
@@ -135,5 +135,26 @@ export function SaveButton({ id, withLabel = false }: { id: string; withLabel?: 
       <Bookmark className={`h-4 w-4 ${on ? 'fill-coral-500 text-coral-500' : ''}`} aria-hidden="true" />
       {withLabel && (on ? tx.card.saved : tx.card.save)}
     </button>
+  );
+}
+
+/** Profile photo, or initials on a gradient when there's none (or it fails to load). */
+export function Avatar({ profile, className = 'h-9 w-9 text-xs' }: { profile: Pick<Profile, 'avatar_url' | 'full_name' | 'email'> | null; className?: string }) {
+  const [broken, setBroken] = useState<string | null>(null);
+  const url = profile?.avatar_url ?? '';
+  const initials = (profile?.full_name || profile?.email || '?')
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  if (url && broken !== url) {
+    // no-referrer: Google profile pictures refuse requests from other sites' referrers.
+    return <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBroken(url)} className={`shrink-0 rounded-full object-cover ${className}`} />;
+  }
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 font-bold text-white ${className}`} aria-hidden="true">
+      {initials}
+    </span>
   );
 }

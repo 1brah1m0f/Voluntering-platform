@@ -17,6 +17,10 @@ export interface Profile {
   reminders_opt_out: boolean;
   /** Education, experience, skills — context for the AI assistant. */
   about: string;
+  /** Profile photo URL ('' = show initials). */
+  avatar_url: string;
+  /** One line under the name, e.g. "Student · ADA University". */
+  headline: string;
 }
 
 export interface Opportunity {

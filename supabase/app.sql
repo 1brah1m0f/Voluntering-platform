@@ -35,6 +35,15 @@ begin
     coalesce(left(coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'), 80), '')
   )
   on conflict (id) do nothing;
+  -- Google sign-up: use the Google picture as the profile photo. Separate statement
+  -- so sign-up still works before the avatar_url column exists.
+  begin
+    update public.profiles set avatar_url = new.raw_user_meta_data ->> 'avatar_url'
+    where id = new.id
+      and char_length(new.raw_user_meta_data ->> 'avatar_url') <= 500
+      and new.raw_user_meta_data ->> 'avatar_url' ~ '^https://';
+  exception when undefined_column then null;
+  end;
   return new;
 end;
 $$;
@@ -70,6 +79,16 @@ alter table public.profiles add column if not exists reminders_opt_out boolean n
 alter table public.profiles add column if not exists last_digest_at timestamptz;
 -- Free-text background (education, experience, skills) used by the AI assistant.
 alter table public.profiles add column if not exists about text not null default '' check (char_length(about) <= 2000);
+-- Personalisation: profile photo (Storage "avatars" bucket or the Google picture) and a one-line headline.
+alter table public.profiles add column if not exists avatar_url text not null default ''
+  check (char_length(avatar_url) <= 500 and (avatar_url = '' or avatar_url ~ '^https://'));
+alter table public.profiles add column if not exists headline text not null default '' check (char_length(headline) <= 80);
+
+-- Existing Google users: start with their Google picture.
+update public.profiles p set avatar_url = u.raw_user_meta_data ->> 'avatar_url'
+from auth.users u
+where p.id = u.id and p.avatar_url = ''
+  and char_length(u.raw_user_meta_data ->> 'avatar_url') <= 500 and u.raw_user_meta_data ->> 'avatar_url' ~ '^https://';
 
 -- Admins switch a user's plan from /admin/users. Users can't change their own
 -- plan: the column isn't in the grant below and this function checks is_admin().
@@ -92,9 +111,21 @@ $$;
 revoke all on function public.set_user_plan(uuid, text) from public, anon;
 grant execute on function public.set_user_plan(uuid, text) to authenticated;
 
+-- A Premium user can cancel their own Premium (back to the free plan).
+create or replace function public.cancel_premium()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.profiles set plan = 'basic' where id = auth.uid();
+$$;
+revoke all on function public.cancel_premium() from public, anon;
+grant execute on function public.cancel_premium() to authenticated;
+
 -- Users may only edit these columns; plan and is_admin are set by an admin.
 revoke update on public.profiles from authenticated, anon;
-grant update (full_name, interests, country, digest_opt_out, reminders_opt_out, about) on public.profiles to authenticated;
+grant update (full_name, interests, country, digest_opt_out, reminders_opt_out, about, avatar_url, headline) on public.profiles to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Opportunities (managed from /admin)
@@ -263,3 +294,24 @@ as $$
   returning count;
 $$;
 revoke all on function public.bump_ai_usage(uuid) from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Profile photos: public "avatars" bucket, each user writes only <their id>/...
+-- (the app uploads a 256px JPEG and stores its public URL in profiles.avatar_url).
+-- ---------------------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 1048576, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+  set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "avatars: read own" on storage.objects;
+create policy "avatars: read own" on storage.objects for select to authenticated
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "avatars: upload own" on storage.objects;
+create policy "avatars: upload own" on storage.objects for insert to authenticated
+  with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "avatars: delete own" on storage.objects;
+create policy "avatars: delete own" on storage.objects for delete to authenticated
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);

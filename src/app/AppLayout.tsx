@@ -7,7 +7,7 @@ import { backend } from './backend';
 import { useAuth } from './AuthContext';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
-import { Spinner } from './ui';
+import { Avatar, Spinner } from './ui';
 
 /** Renders children only for signed-in users; otherwise redirects to /login. */
 export function RequireAuth() {
@@ -45,13 +45,6 @@ export default function AppLayout() {
     await backend.signOut();
     navigate('/login', { replace: true });
   };
-
-  const initials = (profile?.full_name || profile?.email || '?')
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <DataProvider>
@@ -94,9 +87,7 @@ export default function AppLayout() {
               ))}
             </div>
             <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 text-xs font-bold text-white">
-                {initials}
-              </span>
+              <Avatar profile={profile} />
               <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
                 <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
                 <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500 hover:text-brand-700'}`}>

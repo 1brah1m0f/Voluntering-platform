@@ -170,7 +170,16 @@ export function createDemoBackend(): Backend {
   const emit = (id: string | null) => listeners.forEach((l) => l(id));
 
   const seedAccounts = (): DemoUser[] => {
-    const base = { country: 'Azərbaycan', plan: 'basic' as const, digest_opt_out: false, reminders_opt_out: false, about: '', created_at: new Date().toISOString() };
+    const base = {
+      country: 'Azərbaycan',
+      plan: 'basic' as const,
+      digest_opt_out: false,
+      reminders_opt_out: false,
+      about: '',
+      avatar_url: '',
+      headline: '',
+      created_at: new Date().toISOString(),
+    };
     return [
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.admin, full_name: 'Openly Admin', interests: [], is_admin: true },
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.user, full_name: 'Aysel Məmmədova', interests: ['environment', 'education'], is_admin: false },
@@ -220,7 +229,8 @@ export function createDemoBackend(): Backend {
     const u = requireUser();
     if (!u.is_admin) throw new BackendError('not_allowed');
   };
-  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => p;
+  // Older demo data predates the personalisation fields.
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '' });
 
   return {
     mode: 'demo',
@@ -253,6 +263,8 @@ export function createDemoBackend(): Backend {
         digest_opt_out: false,
         reminders_opt_out: false,
         about: '',
+        avatar_url: '',
+        headline: '',
         created_at: new Date().toISOString(),
       };
       write(K.users, [...list, user]);
@@ -299,6 +311,35 @@ export function createDemoBackend(): Backend {
     async updateProfile(patch) {
       const u = requireUser();
       const next = { ...u, ...patch };
+      write(
+        K.users,
+        users().map((x) => (x.id === u.id ? next : x)),
+      );
+      return toProfile(next);
+    },
+
+    async setAvatar(image) {
+      // Demo mode keeps the (small, resized) photo inline as a data URL.
+      const avatar_url = image
+        ? await new Promise<string>((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result as string);
+            r.onerror = () => reject(r.error);
+            r.readAsDataURL(image);
+          })
+        : '';
+      const u = requireUser();
+      const next = { ...u, avatar_url };
+      write(
+        K.users,
+        users().map((x) => (x.id === u.id ? next : x)),
+      );
+      return toProfile(next);
+    },
+
+    async cancelPremium() {
+      const u = requireUser();
+      const next = { ...u, plan: 'basic' as const };
       write(
         K.users,
         users().map((x) => (x.id === u.id ? next : x)),
