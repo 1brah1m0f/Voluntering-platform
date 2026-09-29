@@ -24,7 +24,9 @@ function useAi() {
       return result as T;
     } catch (err) {
       const code = err instanceof BackendError ? err.code : 'unknown';
-      setError((tx.ai.errors as Record<string, string>)[code] ?? tx.ai.errors.unknown);
+      const text = (tx.ai.errors as Record<string, string>)[code] ?? tx.ai.errors.unknown;
+      // Admins get the server's technical reason appended (see supabase/functions/ai).
+      setError(err instanceof BackendError && err.message !== code ? `${text} — ${err.message}` : text);
       return null;
     } finally {
       setBusy(false);

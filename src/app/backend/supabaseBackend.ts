@@ -148,15 +148,16 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       const { data, error } = await sb.functions.invoke('ai', { body: request });
       if (error) {
         let code = '';
+        let detail: string | undefined; // only sent to admins, for debugging setup problems
         if (error instanceof FunctionsHttpError) {
           try {
-            code = ((await error.context.json()) as { error?: string }).error ?? '';
+            ({ error: code = '', detail } = (await error.context.json()) as { error?: string; detail?: string });
           } catch {
             /* non-JSON error body */
           }
         }
-        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code);
-        throw new BackendError('ai_unavailable', error.message);
+        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
+        throw new BackendError('ai_unavailable', detail);
       }
       return data as { result: unknown; remaining: number };
     },

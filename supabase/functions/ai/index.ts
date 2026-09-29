@@ -13,13 +13,14 @@
 //
 // Deploy: supabase functions deploy ai   (or paste into Dashboard → Edge Functions)
 // Secret: supabase secrets set GEMINI_API_KEY=...   (Google AI Studio → Get API key)
-// Model:  optional GEMINI_MODEL secret; default gemini-2.5-flash-lite
-//         ($0.10 / $0.40 per 1M tokens → roughly $0.5–1 per 1000 requests).
+// Model:  optional GEMINI_MODEL secret; default gemini-3.1-flash-lite ($0.25 / $1.50 per
+//         1M tokens → roughly $1–2 per 1000 requests; gemini-2.5-flash-lite is closed to
+//         new API users). Gemini 3 thinking is set to "minimal" so it adds no billed tokens.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-3.1-flash-lite";
 const DAILY_LIMIT = 30;
 const MAX_TEXT = 12_000;
 const MAX_ANSWERS = 8;
@@ -192,26 +193,35 @@ async function gemini(action: Action, prompt: string): Promise<unknown> {
         responseMimeType: "application/json",
         responseSchema: SCHEMAS[action],
         maxOutputTokens: 4096,
-        temperature: action === "review" ? 0.3 : 0.7,
+        // Gemini 3 only; older models use thinkingBudget and reject thinkingLevel.
+        ...(MODEL.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: "minimal" } } : {}),
       },
     }),
   });
   if (res.status === 429 || res.status === 503) throw new GeminiError("busy");
   if (!res.ok) {
     // 400 API_KEY_INVALID, 403 permission, 404 unknown model… — all a setup problem.
-    throw new GeminiError("server_error", `Gemini ${res.status}: ${(await res.text()).slice(0, 500)}`);
+    // Google's error message never contains the key, so admins get it back to debug.
+    const raw = await res.text();
+    let reason = raw.slice(0, 300);
+    try {
+      reason = JSON.parse(raw).error?.message ?? reason;
+    } catch {
+      /* not JSON */
+    }
+    throw new GeminiError("server_error", `Gemini ${res.status} (${MODEL}): ${reason}`);
   }
   const data = await res.json();
   if (data.promptFeedback?.blockReason) throw new GeminiError("refused");
   const candidate = data.candidates?.[0];
-  if (!candidate) throw new GeminiError("empty");
+  if (!candidate) throw new GeminiError("empty", `Gemini returned no candidates: ${JSON.stringify(data).slice(0, 300)}`);
   if (candidate.finishReason === "MAX_TOKENS") throw new GeminiError("too_long");
   if (candidate.finishReason && candidate.finishReason !== "STOP") throw new GeminiError("refused");
   const text = (candidate.content?.parts ?? [])
     .filter((p: { text?: string; thought?: boolean }) => p.text && !p.thought)
     .map((p: { text: string }) => p.text)
     .join("");
-  if (!text) throw new GeminiError("empty");
+  if (!text) throw new GeminiError("empty", `Gemini returned no text (finishReason ${candidate.finishReason})`);
   return JSON.parse(text);
 }
 
@@ -275,11 +285,11 @@ Deno.serve(async (req) => {
     return json({ result, remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
   } catch (err) {
     if (err instanceof GeminiError) {
-      if (err.code === "server_error") console.error(err.message);
+      console.error(err.message);
       const status = { busy: 503, refused: 422, too_long: 422, empty: 502, server_error: 502 }[err.code];
-      return json({ error: err.code }, status);
+      return json({ error: err.code, ...(profile.is_admin ? { detail: err.message } : {}) }, status);
     }
     console.error(err);
-    return json({ error: "server_error" }, 500);
+    return json({ error: "server_error", ...(profile.is_admin ? { detail: String(err) } : {}) }, 500);
   }
 });
