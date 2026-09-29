@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Crown, ExternalLink, Globe2, MapPin, Wallet, Shapes, Building2, Sparkles } from 'lucide-react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2 } from 'lucide-react';
+import { AiTools } from '../AiTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
@@ -16,6 +17,14 @@ export default function DetailPage() {
   const { profile } = useAuth();
   const premium = profile?.plan === 'premium' || profile?.is_admin === true;
   const [busy, setBusy] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'letter' || params.get('tab') === 'review' ? (params.get('tab') as 'letter' | 'review') : 'about';
+  // Mount the AI tools on first visit and keep them, so drafts survive tab switches.
+  const [aiOpened, setAiOpened] = useState(tab !== 'about');
+  const openTab = (t: typeof tab) => {
+    if (t !== 'about') setAiOpened(true);
+    setParams(t === 'about' ? {} : { tab: t }, { replace: true });
+  };
 
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities) return <Spinner label={tx.loading} />;
@@ -59,6 +68,12 @@ export default function DetailPage() {
     ...(o.organizer && o.organizer !== o.program ? [{ Icon: Building2, label: tx.detail.organizer, value: o.organizer }] : []),
   ];
 
+  const tabs = [
+    { id: 'about' as const, label: tx.detail.about, Icon: FileText, ai: false },
+    { id: 'letter' as const, label: tx.ai.tabLetter, Icon: PenLine, ai: true },
+    { id: 'review' as const, label: tx.ai.tabReview, Icon: ClipboardCheck, ai: true },
+  ];
+
   return (
     <div>
       {back}
@@ -81,21 +96,52 @@ export default function DetailPage() {
           </div>
         </header>
 
+        <div role="tablist" aria-label={o.title} className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 sm:px-6">
+          {tabs.map(({ id: t, label, Icon, ai }) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => openTab(t)}
+              className={`-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition ${
+                tab === t ? (ai ? 'border-violet-600 text-violet-700' : 'border-brand-600 text-brand-800') : 'border-transparent text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {label}
+              {ai &&
+                (premium ? (
+                  <span className="rounded-full bg-violet-100 px-1.5 text-[10px] font-bold uppercase text-violet-700">AI</span>
+                ) : (
+                  <Crown className="h-3.5 w-3.5 text-amber-500" aria-label="Premium" />
+                ))}
+            </button>
+          ))}
+        </div>
+
         <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold">{tx.detail.about}</h2>
-            <p className="mt-2 whitespace-pre-line leading-7 text-slate-700">{o.description || '—'}</p>
-            <dl className="mt-6 grid gap-3 sm:grid-cols-2">
-              {facts.map(({ Icon, label, value }) => (
-                <div key={label} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
-                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-                  <div>
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
-                    <dd className="font-semibold text-slate-900">{value}</dd>
+          <div className="min-w-0 lg:col-span-2">
+            {aiOpened && (
+              <div hidden={tab === 'about'}>
+                <AiTools opportunityId={o.id} tool={tab === 'review' ? 'review' : 'letter'} />
+              </div>
+            )}
+            <div hidden={tab !== 'about'}>
+              <h2 className="text-lg font-bold">{tx.detail.about}</h2>
+              <p className="mt-2 whitespace-pre-line leading-7 text-slate-700">{o.description || '—'}</p>
+              <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+                {facts.map(({ Icon, label, value }) => (
+                  <div key={label} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
+                      <dd className="font-semibold text-slate-900">{value}</dd>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </dl>
+                ))}
+              </dl>
+            </div>
           </div>
 
           <aside className="space-y-4">
@@ -130,20 +176,6 @@ export default function DetailPage() {
                 </fieldset>
               )}
             </div>
-            <Link
-              to={premium ? `/app/o/${o.id}/ai` : '/app/premium'}
-              className="group block overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-700 to-brand-900 p-4 text-white shadow-soft transition hover:-translate-y-0.5"
-            >
-              <p className="flex items-center gap-2 font-bold">
-                <Sparkles className="h-4 w-4 text-violet-200" aria-hidden="true" />
-                {tx.ai.title}
-                {!premium && <Crown className="ml-auto h-4 w-4 text-amber-300" aria-hidden="true" />}
-              </p>
-              <p className="mt-1 text-sm text-violet-100">{premium ? tx.ai.sub : tx.ai.locked}</p>
-              <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold transition group-hover:bg-white/25">
-                {premium ? tx.ai.open : tx.list.seePremium} →
-              </span>
-            </Link>
           </aside>
         </div>
       </article>

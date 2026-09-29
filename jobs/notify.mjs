@@ -95,7 +95,7 @@ async function main() {
     auth: { user: env('SMTP_USER'), pass: env('SMTP_PASS') },
   });
   const from = env('MAIL_FROM', 'Openly <noreply@openlyapply.com>');
-  const headers = { 'List-Unsubscribe': `<${SITE}/app/profile>` };
+  const headers = { 'List-Unsubscribe': `<${SITE}/app/profile?tab=settings>` };
   let ok = 0;
   let failed = 0;
 

@@ -155,10 +155,16 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
             /* non-JSON error body */
           }
         }
-        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused') throw new BackendError(code);
+        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code);
         throw new BackendError('ai_unavailable', error.message);
       }
       return data as { result: unknown; remaining: number };
+    },
+
+    async aiStatus() {
+      // Fails (and so reports "not ready") while the function isn't deployed yet.
+      const { data, error } = await sb.functions.invoke('ai', { body: { action: 'status' } });
+      return !error && (data as { configured?: boolean } | null)?.configured === true;
     },
 
     async listSaved() {

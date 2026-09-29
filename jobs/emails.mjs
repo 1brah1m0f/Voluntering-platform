@@ -47,7 +47,7 @@ function layout({ preheader, eyebrow, title, body, site }) {
   </td></tr>
   <tr><td align="center" style="padding:24px 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#94a3b8;">
     Bu məktubu Openly hesabındakı bildiriş ayarlarına görə alırsan.<br />
-    <a href="${site}/app/profile" style="color:#64748b;">Bildiriş ayarlarını dəyiş</a> · <a href="${site}" style="color:#64748b;">openlyapply.com</a>
+    <a href="${site}/app/profile?tab=settings" style="color:#64748b;">Bildiriş ayarlarını dəyiş</a> · <a href="${site}" style="color:#64748b;">openlyapply.com</a>
   </td></tr>
 </table>
 </td></tr></table>
@@ -104,7 +104,7 @@ export function digestEmail({ name, premium, items, total, today, site }) {
     ...items.map((o) => `• ${o.title} (${o.program}) — son tarix ${date(o.deadline)}\n  ${site}/app/o/${o.id}`),
     total > items.length ? `\n…və daha ${total - items.length}: ${site}/app` : '',
     '',
-    `Bildiriş ayarları: ${site}/app/profile`,
+    `Bildiriş ayarları: ${site}/app/profile?tab=settings`,
   ].join('\n');
   return {
     subject,
@@ -136,7 +136,7 @@ export function reminderEmail({ name, items, site }) {
     ...items.map(({ opportunity: o, days }) => `• ${o.title} — ${daysLeft(days)} (${date(o.deadline)})\n  ${site}/app/o/${o.id}`),
     '',
     `Müraciət etmisənsə, statusu yenilə: ${site}/app/tracker`,
-    `Bildiriş ayarları: ${site}/app/profile`,
+    `Bildiriş ayarları: ${site}/app/profile?tab=settings`,
   ].join('\n');
   return { subject, html: layout({ preheader: 'Son tarix yaxınlaşır — müraciət etməyi unutma.', eyebrow: 'SON TARİX XATIRLATMASI', title: subject, body, site }), text };
 }

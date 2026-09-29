@@ -17,6 +17,7 @@ export type ErrorCode =
   | 'premium_required'
   | 'daily_limit'
   | 'ai_unavailable'
+  | 'not_configured'
   | 'refused';
 
 export class BackendError extends Error {
@@ -64,6 +65,8 @@ export interface Backend {
 
   /** Premium AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
+  /** Whether the AI assistant is deployed and has an API key; false until it's set up. */
+  aiStatus(): Promise<boolean>;
 
   listSaved(): Promise<SavedItem[]>;
   /** Throws FreeLimitError when a free-plan user is at the limit. */

@@ -8,14 +8,15 @@ function Cell({ value, strong = false }: { value: boolean | string; strong?: boo
   return <span className={`font-semibold ${strong ? 'text-coral-700' : 'text-slate-700'}`}>{value}</span>;
 }
 
-export default function PremiumPage() {
+/** Plan overview and Free vs Premium comparison (the "Plan" tab of the profile page). */
+export default function PremiumPlan() {
   const { tx } = useAppText();
   const p = tx.premium;
   const { profile } = useAuth();
   const isPremium = profile?.plan === 'premium';
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-coral-500/30 blur-3xl" aria-hidden="true" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

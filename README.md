@@ -41,9 +41,9 @@ demo mode is on.
 
 ## Premium AI assistant
 
-Premium users get, on every opportunity page (`/app/o/<id>/ai`):
+Premium users get two extra tabs on every opportunity page (`/app/o/<id>?tab=letter|review`):
 
-- **Motivation letter assistant** — Claude first asks 4–6 questions tailored to the opportunity
+- **Motivation letter assistant** — the AI first asks 4–6 questions tailored to the opportunity
   and the user's profile, then builds a draft *only* from the answers (placeholders in
   `[brackets]` instead of invented facts); the user rewrites it in their own voice.
 - **Application review** — paste a letter or CV and get a 1–10 fit score, strengths, concrete
@@ -52,14 +52,18 @@ Premium users get, on every opportunity page (`/app/o/<id>/ai`):
 Plus rule-based **smart matching** in the list (fit %, "best match" sort, "N new opportunities
 for you"), see `src/app/match.ts`.
 
-The AI runs in the Supabase Edge Function `supabase/functions/ai` (Claude Opus 5 with server-side
-refusal fallbacks). It checks that the caller is signed in and Premium, and allows 30 requests
-per user per day (`ai_usage` table). The Anthropic key never reaches the browser.
+The AI runs in the Supabase Edge Function `supabase/functions/ai` and calls Google Gemini
+(`gemini-2.5-flash-lite` by default: $0.10 / $0.40 per 1M tokens, roughly $0.5–1 per 1000
+requests). It checks that the caller is signed in and Premium, and allows 30 requests per user
+per day (`ai_usage` table). The API key never reaches the browser. **Until the key is set, the
+tabs are visible but disabled with a "coming soon" note.**
 
 Setup:
 1. Re-run `supabase/app.sql` (adds `profiles.about`, `ai_usage`, `bump_ai_usage`).
-2. Create an API key at console.anthropic.com and set it as a function secret:
-   `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...` (or Dashboard → Edge Functions → Secrets).
+2. Create an API key in Google AI Studio (aistudio.google.com → Get API key; enable billing for
+   the paid tier) and set it as a function secret:
+   `supabase secrets set GEMINI_API_KEY=...` (or Dashboard → Edge Functions → Secrets).
+   Optional: `GEMINI_MODEL` to use another model.
 3. Deploy: `supabase functions deploy ai` (or Dashboard → Edge Functions → Deploy a new function
    → name `ai` → paste `supabase/functions/ai/index.ts`).
 

@@ -17,8 +17,6 @@ const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const ProfilePage = lazy(() => import('./app/pages/ProfilePage'));
 const AdminListPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminListPage })));
-const AiAssistantPage = lazy(() => import('./app/pages/AiAssistantPage'));
-const PremiumPage = lazy(() => import('./app/pages/PremiumPage'));
 const AdminUsersPage = lazy(() => import('./app/pages/AdminUsersPage'));
 const AdminEditPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminEditPage })));
 import './index.css';
@@ -39,11 +37,10 @@ createRoot(document.getElementById('root')!).render(
                 <Route element={<AppLayout />}>
                   <Route path="/app" element={<OpportunitiesPage />} />
                   <Route path="/app/o/:id" element={<DetailPage />} />
-                  <Route path="/app/o/:id/ai" element={<AiAssistantPage />} />
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
-                  <Route path="/app/premium" element={<PremiumPage />} />
+                  <Route path="/app/premium" element={<Navigate to="/app/profile?tab=premium" replace />} />
                   <Route element={<RequireAdmin />}>
                     <Route path="/admin" element={<AdminListPage />} />
                     <Route path="/admin/users" element={<AdminUsersPage />} />

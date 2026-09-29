@@ -97,7 +97,7 @@ export default function OpportunitiesPage() {
   }, [isPremium]);
 
   /** Premium-only filters: free users are sent to the Premium page instead. */
-  const premiumToggle = (set: (fn: (v: boolean) => boolean) => void) => () => (isPremium ? set((v) => !v) : navigate('/app/premium'));
+  const premiumToggle = (set: (fn: (v: boolean) => boolean) => void) => () => (isPremium ? set((v) => !v) : navigate('/app/profile?tab=premium'));
 
   const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
   const programs = useMemo(() => [...new Set(published.map((o) => o.program))].sort(), [published]);
@@ -183,7 +183,7 @@ export default function OpportunitiesPage() {
             <Lock className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
             {tx.list.earlyTeaser(earlyCount)}
           </p>
-          <Link to="/app/premium" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600">
+          <Link to="/app/profile?tab=premium" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600">
             <Crown className="h-4 w-4" aria-hidden="true" />
             {tx.list.seePremium}
           </Link>

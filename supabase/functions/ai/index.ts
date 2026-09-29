@@ -4,18 +4,22 @@
 //   { action: "questions", opportunityId, lang }                → interview questions for a motivation letter
 //   { action: "draft", opportunityId, lang, letterLang, answers } → letter draft built only from the user's answers
 //   { action: "review", opportunityId, lang, docType, text }     → score + concrete feedback on a letter / CV
+//   { action: "status" }                                          → { configured } (is an API key set?)
 //
 // Security: the caller must be signed in and on the Premium plan (or admin);
-// requests are counted per user per day (DAILY_LIMIT). The Anthropic key lives
-// only here, as the ANTHROPIC_API_KEY function secret.
+// requests are counted per user per day (DAILY_LIMIT). The Gemini key lives
+// only here, as the GEMINI_API_KEY function secret. Until it is set, the app
+// shows the AI tools as "coming soon".
 //
 // Deploy: supabase functions deploy ai   (or paste into Dashboard → Edge Functions)
-// Secret: supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+// Secret: supabase secrets set GEMINI_API_KEY=...   (Google AI Studio → Get API key)
+// Model:  optional GEMINI_MODEL secret; default gemini-2.5-flash-lite
+//         ($0.10 / $0.40 per 1M tokens → roughly $0.5–1 per 1000 requests).
 
-import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const MODEL = "claude-opus-5";
+const API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
+const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const DAILY_LIMIT = 30;
 const MAX_TEXT = 12_000;
 const MAX_ANSWERS = 8;
@@ -32,8 +36,6 @@ const json = (body: unknown, status = 200) =>
 
 type Lang = "az" | "en";
 type Answer = { question: string; answer: string };
-
-const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") });
 
 // ---------------------------------------------------------------------------
 // Prompts
@@ -77,62 +79,49 @@ ${p.about || "(empty)"}
 }
 
 // ---------------------------------------------------------------------------
-// Output schemas (structured outputs)
+// Output schemas (Gemini structured output, OpenAPI-style types)
 // ---------------------------------------------------------------------------
+
+const str = { type: "STRING" };
+const strList = { type: "ARRAY", items: str };
 
 const SCHEMAS = {
   questions: {
-    type: "object",
+    type: "OBJECT",
     properties: {
       questions: {
-        type: "array",
+        type: "ARRAY",
         items: {
-          type: "object",
-          properties: {
-            question: { type: "string" },
-            why: { type: "string" },
-          },
+          type: "OBJECT",
+          properties: { question: str, why: str },
           required: ["question", "why"],
-          additionalProperties: false,
         },
       },
     },
     required: ["questions"],
-    additionalProperties: false,
   },
   draft: {
-    type: "object",
-    properties: {
-      draft: { type: "string" },
-      tips: { type: "array", items: { type: "string" } },
-      missing_info: { type: "array", items: { type: "string" } },
-    },
+    type: "OBJECT",
+    properties: { draft: str, tips: strList, missing_info: strList },
     required: ["draft", "tips", "missing_info"],
-    additionalProperties: false,
   },
   review: {
-    type: "object",
+    type: "OBJECT",
     properties: {
-      score: { type: "integer" },
-      verdict: { type: "string" },
-      strengths: { type: "array", items: { type: "string" } },
+      score: { type: "INTEGER" },
+      verdict: str,
+      strengths: strList,
       issues: {
-        type: "array",
+        type: "ARRAY",
         items: {
-          type: "object",
-          properties: {
-            quote: { type: "string" },
-            problem: { type: "string" },
-            suggestion: { type: "string" },
-          },
+          type: "OBJECT",
+          properties: { quote: str, problem: str, suggestion: str },
           required: ["quote", "problem", "suggestion"],
-          additionalProperties: false,
         },
       },
-      missing: { type: "array", items: { type: "string" } },
+      missing: strList,
     },
     required: ["score", "verdict", "strengths", "issues", "missing"],
-    additionalProperties: false,
   },
 } as const;
 
@@ -185,6 +174,47 @@ Write verdict, strengths, problems, suggestions and missing items in ${lang}. Qu
 // Handler
 // ---------------------------------------------------------------------------
 
+class GeminiError extends Error {
+  constructor(public code: "busy" | "refused" | "too_long" | "empty" | "server_error", message: string = code) {
+    super(message);
+  }
+}
+
+/** One generateContent call with JSON output; returns the parsed object. */
+async function gemini(action: Action, prompt: string): Promise<unknown> {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": API_KEY },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: SYSTEM }] },
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: SCHEMAS[action],
+        maxOutputTokens: 4096,
+        temperature: action === "review" ? 0.3 : 0.7,
+      },
+    }),
+  });
+  if (res.status === 429 || res.status === 503) throw new GeminiError("busy");
+  if (!res.ok) {
+    // 400 API_KEY_INVALID, 403 permission, 404 unknown model… — all a setup problem.
+    throw new GeminiError("server_error", `Gemini ${res.status}: ${(await res.text()).slice(0, 500)}`);
+  }
+  const data = await res.json();
+  if (data.promptFeedback?.blockReason) throw new GeminiError("refused");
+  const candidate = data.candidates?.[0];
+  if (!candidate) throw new GeminiError("empty");
+  if (candidate.finishReason === "MAX_TOKENS") throw new GeminiError("too_long");
+  if (candidate.finishReason && candidate.finishReason !== "STOP") throw new GeminiError("refused");
+  const text = (candidate.content?.parts ?? [])
+    .filter((p: { text?: string; thought?: boolean }) => p.text && !p.thought)
+    .map((p: { text: string }) => p.text)
+    .join("");
+  if (!text) throw new GeminiError("empty");
+  return JSON.parse(text);
+}
+
 function validate(body: Record<string, unknown>): string | null {
   if (!["questions", "draft", "review"].includes(body.action as string)) return "bad action";
   if (typeof body.opportunityId !== "string") return "opportunityId required";
@@ -218,6 +248,9 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: "bad_request" }, 400);
   }
+  if (body.action === "status") return json({ configured: API_KEY !== "" });
+  if (!API_KEY) return json({ error: "not_configured" }, 503);
+
   const invalid = validate(body);
   if (invalid) return json({ error: "bad_request", detail: invalid }, 400);
 
@@ -238,35 +271,13 @@ Deno.serve(async (req) => {
 
   const action = body.action as Action;
   try {
-    const params = {
-      model: MODEL,
-      max_tokens: 16000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: {
-        effort: action === "questions" ? "medium" : "high",
-        format: { type: "json_schema", schema: SCHEMAS[action] },
-      },
-      system: SYSTEM,
-      messages: [{ role: "user", content: buildPrompt(action, opportunity, profile, body) }],
-    };
-    // deno-lint-ignore no-explicit-any
-    const response = await anthropic.beta.messages.create(params as any);
-
-    if (response.stop_reason === "refusal") return json({ error: "refused" }, 422);
-    if (response.stop_reason === "max_tokens") return json({ error: "too_long" }, 422);
-    const text = response.content.find((b) => b.type === "text");
-    if (!text || text.type !== "text") return json({ error: "empty" }, 502);
-    return json({ result: JSON.parse(text.text), remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
+    const result = await gemini(action, buildPrompt(action, opportunity, profile, body));
+    return json({ result, remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
   } catch (err) {
-    if (err instanceof Anthropic.RateLimitError) return json({ error: "busy" }, 503);
-    if (err instanceof Anthropic.AuthenticationError) {
-      console.error("ANTHROPIC_API_KEY missing or invalid");
-      return json({ error: "server_error" }, 500);
-    }
-    if (err instanceof Anthropic.APIError) {
-      console.error(`Anthropic API error ${err.status}:`, err.message);
-      return json({ error: "server_error" }, 502);
+    if (err instanceof GeminiError) {
+      if (err.code === "server_error") console.error(err.message);
+      const status = { busy: 503, refused: 422, too_long: 422, empty: 502, server_error: 502 }[err.code];
+      return json({ error: err.code }, status);
     }
     console.error(err);
     return json({ error: "server_error" }, 500);

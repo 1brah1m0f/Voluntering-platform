@@ -371,7 +371,11 @@ export function createDemoBackend(): Backend {
 
     async ai() {
       // The AI assistant runs in a Supabase Edge Function; there's no demo version.
-      throw new BackendError('ai_unavailable');
+      throw new BackendError('not_configured');
+    },
+
+    async aiStatus() {
+      return false;
     },
 
     async listSaved() {
