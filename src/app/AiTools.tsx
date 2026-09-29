@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, ClipboardCheck, Clock, Copy, Crown, FileText, Info, Loader2, PenLine, RotateCcw, Sparkles, Upload, UserRound, X } from 'lucide-react';
+import { Check, ClipboardCheck, Clock, Copy, Crown, FileText, Info, Loader2, PenLine, RotateCcw, Save, Sparkles, Upload, UserRound, X } from 'lucide-react';
 import { backend, BackendError } from './backend';
 import { MAX_DOC_BYTES, docKind, docxText, fileToBase64 } from './docText';
 import { useAuth } from './AuthContext';
 import { useAppText } from './text';
-import type { AiDraft, AiQuestions, AiRequest, AiReview } from './types';
+import type { AiDraft, AiQuestions, AiRequest, AiReview, SavedLetter } from './types';
 import { inputClass } from './ui';
+import { formatDateTime } from './util';
 
 type Lang = 'az' | 'en';
 
@@ -62,9 +63,30 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
   const [answers, setAnswers] = useState<string[]>([]);
   const [letterLang, setLetterLang] = useState<Lang>('en');
   const [draft, setDraft] = useState<AiDraft | null>(null);
+  // The letter editor: open after an AI draft, for a saved letter, or when writing by hand.
+  const [editing, setEditing] = useState(false);
   const [text, setText] = useState('');
+  const [saved, setSaved] = useState<SavedLetter | null>(null);
+  const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Reopen the letter saved earlier for this opportunity.
+  useEffect(() => {
+    let live = true;
+    backend
+      .getLetter(opportunityId)
+      .then((l) => {
+        if (!live || !l) return;
+        setSaved(l);
+        setText(l.content);
+        setEditing(true);
+      })
+      .catch((err) => console.error('[letter] load failed', err));
+    return () => {
+      live = false;
+    };
+  }, [opportunityId]);
 
   const ask = async () => {
     const r = await ai.run<AiQuestions>({ action: 'questions', opportunityId, lang });
@@ -88,14 +110,31 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
     if (r) {
       setDraft(r);
       setText(r.draft);
+      setEditing(true);
     }
   };
 
-  const reset = () => {
+  // Back to the AI questions; the saved letter stays saved until the new one is saved.
+  const restart = () => {
     setQuestions(null);
     setAnswers([]);
     setDraft(null);
+    setEditing(false);
     setText('');
+  };
+
+  const save = async () => {
+    if (!text.trim()) return;
+    setSaving(true);
+    setLocalError(null);
+    try {
+      setSaved(await backend.saveLetter(opportunityId, text));
+    } catch (err) {
+      console.error('[letter] save failed', err);
+      setLocalError(tx.saveError);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const copy = async () => {
@@ -108,21 +147,31 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
     }
   };
 
+  const dirty = text.trim() !== '' && text !== saved?.content;
+
   return (
     <div className="space-y-5">
-      <p className="flex gap-2 rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" />
-        {tx.ai.letterIntro}
-      </p>
-
-      {!questions && !ai.busy && (
-        <button type="button" onClick={ask} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
-          <Sparkles className="h-5 w-5" aria-hidden="true" />
-          {tx.ai.start}
-        </button>
+      {!editing && (
+        <p className="flex gap-2 rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" aria-hidden="true" />
+          {tx.ai.letterIntro}
+        </p>
       )}
 
-      {questions && !draft && (
+      {!editing && !questions && !ai.busy && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button type="button" onClick={ask} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+            <Sparkles className="h-5 w-5" aria-hidden="true" />
+            {tx.ai.start}
+          </button>
+          <button type="button" onClick={() => setEditing(true)} className="btn-secondary">
+            <PenLine className="h-5 w-5" aria-hidden="true" />
+            {tx.ai.writeMyself}
+          </button>
+        </div>
+      )}
+
+      {!editing && questions && (
         <ol className="space-y-4">
           {questions.map((q, i) => (
             <li key={i} className="rounded-2xl border border-slate-200 p-4">
@@ -144,7 +193,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         </ol>
       )}
 
-      {questions && !draft && !ai.busy && (
+      {!editing && questions && !ai.busy && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             {tx.ai.letterLang}
@@ -160,18 +209,41 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         </div>
       )}
 
-      {draft && (
+      {editing && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-lg font-bold">{tx.ai.draftTitle}</h3>
-            <button type="button" onClick={copy} className="btn-secondary !px-3 !py-1.5 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="text-lg font-bold">{draft ? tx.ai.draftTitle : tx.ai.myLetter}</h3>
+              <p className={`text-xs font-medium ${dirty ? 'text-amber-700' : 'text-emerald-700'}`}>
+                {dirty ? tx.ai.unsaved : saved ? tx.ai.savedAt(formatDateTime(saved.updated_at, lang)) : ''}
+              </p>
+            </div>
+            <button type="button" onClick={copy} disabled={!text} className="btn-secondary !px-3 !py-1.5 text-sm">
               {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
               {copied ? tx.ai.copied : tx.ai.copy}
             </button>
           </div>
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">{tx.ai.draftNote}</p>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={16} className={`${inputClass} resize-y font-[inherit] leading-relaxed`} />
-          {draft.tips.length > 0 && (
+          {draft && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">{tx.ai.draftNote}</p>}
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={16}
+            maxLength={12000}
+            placeholder={tx.ai.letterPh}
+            aria-label={tx.ai.myLetter}
+            className={`${inputClass} resize-y font-[inherit] leading-relaxed`}
+          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button type="button" onClick={save} disabled={saving || !dirty} className="btn-primary">
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <Save className="h-5 w-5" aria-hidden="true" />}
+              {tx.ai.saveLetter}
+            </button>
+            <button type="button" onClick={restart} disabled={!ready} className="btn-secondary disabled:cursor-not-allowed disabled:opacity-50">
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              {tx.ai.again}
+            </button>
+          </div>
+          {draft && draft.tips.length > 0 && (
             <div className="rounded-2xl border border-slate-200 p-4">
               <p className="font-bold text-slate-900">{tx.ai.tips}</p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
@@ -181,7 +253,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
               </ul>
             </div>
           )}
-          {draft.missing_info.length > 0 && (
+          {draft && draft.missing_info.length > 0 && (
             <div className="rounded-2xl border border-coral-200 bg-coral-50/50 p-4">
               <p className="font-bold text-coral-800">{tx.ai.missing}</p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
@@ -191,16 +263,12 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
               </ul>
             </div>
           )}
-          <button type="button" onClick={reset} className="btn-secondary">
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            {tx.ai.again}
-          </button>
         </div>
       )}
 
       {ai.busy && <Thinking />}
       <ErrorNote text={localError ?? ai.error} />
-      {ai.remaining !== null && <p className="text-xs text-slate-400">{tx.ai.remaining(ai.remaining)}</p>}
+      {ai.remaining !== null && <p className="text-xs text-slate-500">{tx.ai.remaining(ai.remaining)}</p>}
     </div>
   );
 }

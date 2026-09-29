@@ -21,6 +21,13 @@ export function formatDate(isoDate: string | null, lang: Lang): string {
   return lang === 'az' ? `${d} ${MONTHS.az[m - 1]} ${y}` : `${d} ${MONTHS.en[m - 1]} ${y}`;
 }
 
+/** "29 sentyabr, 14:05" — a timestamp in local time, for "saved at" notes. */
+export function formatDateTime(iso: string, lang: Lang): string {
+  const t = new Date(iso);
+  const hm = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+  return `${t.getDate()} ${MONTHS[lang][t.getMonth()]}, ${hm}`;
+}
+
 export function formatRange(start: string | null, end: string | null, lang: Lang): string {
   if (start && end) return `${formatDate(start, lang)} – ${formatDate(end, lang)}`;
   return formatDate(start ?? end, lang);

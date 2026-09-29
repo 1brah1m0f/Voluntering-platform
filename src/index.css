@@ -9,7 +9,8 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white font-sans text-[15px] leading-relaxed text-slate-700 antialiased sm:text-base;
+    @apply bg-white font-sans text-base leading-relaxed text-slate-700 antialiased;
+    font-feature-settings: 'cv11', 'ss03'; /* Inter: open digits and a clearer "l" */
   }
   h1, h2, h3, h4 {
     @apply text-slate-900;

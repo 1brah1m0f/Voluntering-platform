@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users } from 'lucide-react';
 import { AiTools } from '../AiTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
-import type { Status } from '../types';
-import { DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, statusClass } from '../ui';
+import type { Peer, Status } from '../types';
+import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, statusClass } from '../ui';
+import { backend } from '../backend';
 import { formatDate, formatRange } from '../util';
 
 export default function DetailPage() {
@@ -145,7 +146,7 @@ export default function DetailPage() {
           </div>
 
           <aside className="space-y-4">
-            <a href={o.url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full">
+            <a href={o.url} target="_blank" rel="noopener noreferrer" className="btn-primary w-full !px-4 text-[15px]">
               {tx.detail.apply}
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </a>
@@ -176,9 +177,86 @@ export default function DetailPage() {
                 </fieldset>
               )}
             </div>
+            {item?.status === 'accepted' && <AcceptedPeers opportunityId={o.id} sharing={item.share_contact === true} />}
           </aside>
         </div>
       </article>
     </div>
+  );
+}
+
+/**
+ * For users accepted to this opportunity: opt in to share your contact with the
+ * others who were accepted, and see theirs (only people who opted in too).
+ */
+function AcceptedPeers({ opportunityId, sharing }: { opportunityId: string; sharing: boolean }) {
+  const { tx } = useAppText();
+  const { setShareContact } = useData();
+  const [peers, setPeers] = useState<Peer[] | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!sharing) return setPeers(null);
+    let live = true;
+    backend
+      .acceptedPeers(opportunityId)
+      .then((p) => live && setPeers(p))
+      .catch((err) => {
+        console.error('[peers] load failed', err);
+        if (live) setPeers([]);
+      });
+    return () => {
+      live = false;
+    };
+  }, [opportunityId, sharing]);
+
+  const toggle = async () => {
+    setBusy(true);
+    try {
+      await setShareContact(opportunityId, !sharing);
+    } catch (err) {
+      console.error('[peers] share toggle failed', err);
+      alert(tx.saveError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+      <h2 className="flex items-center gap-2 font-bold text-emerald-900">
+        <Users className="h-4 w-4" aria-hidden="true" />
+        {tx.peers.title}
+      </h2>
+      <p className="mt-1 text-sm text-slate-600">{tx.peers.sub}</p>
+      <label className="mt-3 flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={sharing}
+          disabled={busy}
+          onChange={toggle}
+          className="mt-0.5 h-5 w-5 shrink-0 accent-emerald-600"
+        />
+        <span className="text-sm font-semibold text-slate-800">{tx.peers.share}</span>
+      </label>
+      {sharing && peers === null && <p className="mt-3 text-sm text-slate-500">{tx.loading}</p>}
+      {sharing && peers?.length === 0 && <p className="mt-3 text-sm text-slate-600">{tx.peers.none}</p>}
+      {sharing && peers && peers.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {peers.map((p) => (
+            <li key={p.email} className="flex items-center gap-3 rounded-xl bg-white p-2.5 ring-1 ring-emerald-100">
+              <Avatar profile={p} className="h-9 w-9 text-xs" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-slate-900">{p.full_name || p.email}</p>
+                {(p.headline || p.country) && <p className="truncate text-xs text-slate-500">{p.headline || p.country}</p>}
+                <a href={`mailto:${p.email}`} className="block truncate text-xs font-semibold text-brand-700 hover:underline">
+                  {p.email}
+                </a>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

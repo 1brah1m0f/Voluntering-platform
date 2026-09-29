@@ -1,5 +1,5 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type UserRow } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 /**
@@ -22,6 +22,7 @@ const K = {
   session: 'openly_demo_session',
   opps: 'openly_demo_opportunities',
   saved: 'openly_demo_saved',
+  letters: 'openly_demo_letters',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -445,6 +446,33 @@ export function createDemoBackend(): Backend {
     async unsave(opportunityId) {
       requireUser();
       writeMySaved(mySaved().filter((s) => s.opportunity_id !== opportunityId));
+    },
+
+    async setShareContact(opportunityId, share) {
+      requireUser();
+      writeMySaved(mySaved().map((s) => (s.opportunity_id === opportunityId ? { ...s, share_contact: share } : s)));
+    },
+
+    async acceptedPeers(opportunityId) {
+      const u = requireUser();
+      const sharing = (s: SavedItem | undefined) => s?.status === 'accepted' && s.share_contact === true;
+      const all = allSaved();
+      if (!sharing(all[u.id]?.find((s) => s.opportunity_id === opportunityId))) return [];
+      return users()
+        .filter((x) => x.id !== u.id && sharing(all[x.id]?.find((s) => s.opportunity_id === opportunityId)))
+        .map((x) => ({ full_name: x.full_name, email: x.email, avatar_url: x.avatar_url ?? '', headline: x.headline ?? '', country: x.country }));
+    },
+
+    async getLetter(opportunityId) {
+      const u = requireUser();
+      return read<Record<string, SavedLetter>>(K.letters, {})[`${u.id}:${opportunityId}`] ?? null;
+    },
+
+    async saveLetter(opportunityId, content) {
+      const u = requireUser();
+      const letter = { content, updated_at: new Date().toISOString() };
+      write(K.letters, { ...read<Record<string, SavedLetter>>(K.letters, {}), [`${u.id}:${opportunityId}`]: letter });
+      return letter;
     },
   };
 }

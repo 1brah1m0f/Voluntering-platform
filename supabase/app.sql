@@ -315,3 +315,54 @@ create policy "avatars: upload own" on storage.objects for insert to authenticat
 drop policy if exists "avatars: delete own" on storage.objects;
 create policy "avatars: delete own" on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------------
+-- Saved motivation letters: one per user per opportunity (AI assistant tab).
+-- ---------------------------------------------------------------------------
+create table if not exists public.letters (
+  user_id         uuid not null references auth.users (id) on delete cascade default auth.uid(),
+  opportunity_id  uuid not null references public.opportunities (id) on delete cascade,
+  content         text not null check (char_length(content) <= 12000),
+  updated_at      timestamptz not null default now(),
+  primary key (user_id, opportunity_id)
+);
+
+drop trigger if exists letters_touch on public.letters;
+create trigger letters_touch before update on public.letters
+  for each row execute function public.touch_updated_at();
+
+alter table public.letters enable row level security;
+
+drop policy if exists "own letters" on public.letters;
+create policy "own letters" on public.letters
+  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---------------------------------------------------------------------------
+-- Accepted participants: people accepted to the same opportunity can see each
+-- other's contact details — only if both have chosen to share (opt-in, per
+-- opportunity). Status is self-reported, so sharing is never on by default.
+-- ---------------------------------------------------------------------------
+alter table public.saved_opportunities add column if not exists share_contact boolean not null default false;
+
+create or replace function public.accepted_peers(opp uuid)
+returns table (full_name text, email text, avatar_url text, headline text, country text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.full_name, p.email, p.avatar_url, p.headline, p.country
+  from public.saved_opportunities s
+  join public.profiles p on p.id = s.user_id
+  where s.opportunity_id = opp
+    and s.status = 'accepted' and s.share_contact
+    and s.user_id <> auth.uid()
+    -- the caller must be accepted and sharing too
+    and exists (
+      select 1 from public.saved_opportunities me
+      where me.user_id = auth.uid() and me.opportunity_id = opp and me.status = 'accepted' and me.share_contact
+    )
+  order by s.updated_at;
+$$;
+revoke all on function public.accepted_peers(uuid) from public, anon;
+grant execute on function public.accepted_peers(uuid) to authenticated;

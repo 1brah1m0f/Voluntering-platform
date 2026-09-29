@@ -1,4 +1,4 @@
-import type { AiRequest, Opportunity, OpportunityInput, Plan, Profile, SavedItem, SignUpResult, Status, UserRow } from '../types';
+import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SignUpResult, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline'>>;
 
@@ -71,6 +71,15 @@ export interface Backend {
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
   /** Whether the AI assistant is deployed and has an API key; false until it's set up. */
   aiStatus(): Promise<boolean>;
+
+  /** The user's saved motivation letter for an opportunity, if any. */
+  getLetter(opportunityId: string): Promise<SavedLetter | null>;
+  saveLetter(opportunityId: string, content: string): Promise<SavedLetter>;
+
+  /** Opt in/out of sharing contact details with others accepted to the same opportunity. */
+  setShareContact(opportunityId: string, share: boolean): Promise<void>;
+  /** Others accepted to the opportunity who share (empty unless the caller is accepted and sharing). */
+  acceptedPeers(opportunityId: string): Promise<Peer[]>;
 
   listSaved(): Promise<SavedItem[]>;
   /** Throws FreeLimitError when a free-plan user is at the limit. */

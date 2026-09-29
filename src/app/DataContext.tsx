@@ -14,6 +14,7 @@ interface DataState {
   save: (id: string) => Promise<boolean>;
   unsave: (id: string) => Promise<void>;
   setStatus: (id: string, status: Status) => Promise<void>;
+  setShareContact: (id: string, share: boolean) => Promise<void>;
   /** Keep the cache in sync after admin edits. */
   upsertOpportunity: (o: Opportunity) => void;
   removeOpportunity: (id: string) => void;
@@ -75,6 +76,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setShareContact = useCallback(async (id: string, share: boolean) => {
+    await backend.setShareContact(id, share);
+    setSaved((m) => {
+      const cur = m.get(id);
+      return cur ? new Map(m).set(id, { ...cur, share_contact: share }) : m;
+    });
+  }, []);
+
   const upsertOpportunity = useCallback((o: Opportunity) => {
     setOpportunities((list) => {
       const rest = (list ?? []).filter((x) => x.id !== o.id);
@@ -92,8 +101,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ opportunities, saved, error, reload, save, unsave, setStatus, upsertOpportunity, removeOpportunity }),
-    [opportunities, saved, error, reload, save, unsave, setStatus, upsertOpportunity, removeOpportunity],
+    () => ({ opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, upsertOpportunity, removeOpportunity }),
+    [opportunities, saved, error, reload, save, unsave, setStatus, setShareContact, upsertOpportunity, removeOpportunity],
   );
 
   return (

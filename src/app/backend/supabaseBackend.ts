@@ -1,5 +1,5 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Opportunity, type Profile, type SavedItem, type UserRow } from '../types';
+import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline';
@@ -201,7 +201,13 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     },
 
     async listSaved() {
-      const { data, error } = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at');
+      const { data, error } = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at, share_contact');
+      if (error?.code === UNDEFINED_COLUMN) {
+        // supabase/app.sql not re-run yet: no contact sharing column.
+        const base = await sb.from('saved_opportunities').select('opportunity_id, status, created_at, updated_at');
+        if (base.error) throw dbError(base.error);
+        return base.data as SavedItem[];
+      }
       if (error) throw dbError(error);
       return data as SavedItem[];
     },
@@ -220,6 +226,35 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     async unsave(opportunityId) {
       const { error } = await sb.from('saved_opportunities').delete().eq('opportunity_id', opportunityId);
       if (error) throw dbError(error);
+    },
+
+    async setShareContact(opportunityId, share) {
+      const { error } = await sb.from('saved_opportunities').update({ share_contact: share }).eq('opportunity_id', opportunityId);
+      if (error) throw dbError(error);
+    },
+
+    async acceptedPeers(opportunityId) {
+      const { data, error } = await sb.rpc('accepted_peers', { opp: opportunityId });
+      if (error) throw dbError(error);
+      return (data ?? []) as Peer[];
+    },
+
+    async getLetter(opportunityId) {
+      const { data, error } = await sb.from('letters').select('content, updated_at').eq('opportunity_id', opportunityId).maybeSingle();
+      if (error) throw dbError(error);
+      return data as SavedLetter | null;
+    },
+
+    async saveLetter(opportunityId, content) {
+      const id = await uid();
+      if (!id) throw new BackendError('not_allowed');
+      const { data, error } = await sb
+        .from('letters')
+        .upsert({ user_id: id, opportunity_id: opportunityId, content, updated_at: new Date().toISOString() })
+        .select('content, updated_at')
+        .single();
+      if (error) throw dbError(error);
+      return data as SavedLetter;
     },
   };
 }

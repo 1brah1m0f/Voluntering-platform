@@ -4,9 +4,20 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
+      // Readability: the smallest sizes are a notch larger than Tailwind's defaults
+      // (labels, chips and meta text were hard to read at 12px).
+      fontSize: {
+        xs: ['0.8125rem', { lineHeight: '1.25rem' }],
+        sm: ['0.9375rem', { lineHeight: '1.4rem' }],
       },
       colors: {
+        // Secondary text in slate-400/500 was too faint; these are darker, still clearly "secondary".
+        slate: {
+          400: '#7d8a9e',
+          500: '#566478',
+        },
         brand: {
           50: '#effbfb',
           100: '#d5f3f3',

@@ -88,6 +88,22 @@ export interface SavedItem {
   status: Status;
   created_at: string;
   updated_at: string;
+  /** When accepted: shares name and email with others accepted to the same opportunity. */
+  share_contact?: boolean;
+}
+
+/** Another participant accepted to the same opportunity who shares their contact. */
+export interface Peer {
+  full_name: string;
+  email: string;
+  avatar_url: string;
+  headline: string;
+  country: string;
+}
+
+export interface SavedLetter {
+  content: string;
+  updated_at: string;
 }
 
 /** Thrown when a free-plan user tries to track more than FREE_EVENT_LIMIT items. */

@@ -146,7 +146,7 @@ export default function AppLayout() {
               key={to}
               to={to}
               end={end}
-              className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold ${isActive ? 'text-brand-700' : 'text-slate-500'}`}
+              className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${isActive ? 'text-brand-700' : 'text-slate-500'}`}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
               {label}
