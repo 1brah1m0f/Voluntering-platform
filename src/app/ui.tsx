@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Bookmark, CalendarClock, Check, Loader2, RefreshCw } from 'lucide-react';
+import { Bookmark, CalendarClock, Check, Loader2, RefreshCw, X } from 'lucide-react';
 import { programLogo } from '../lib/programs';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -163,5 +163,83 @@ export function Avatar({ profile, className = 'h-9 w-9 text-xs' }: { profile: Pi
     <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 font-bold text-white ${className}`} aria-hidden="true">
       {initials}
     </span>
+  );
+}
+
+// Closed this visit even when storage is blocked.
+const closedThisVisit = new Set<string>();
+
+/**
+ * Notices the user closed stay closed: remembered per user in this browser.
+ * Losing them (private window, cleared storage) only means a notice shows again.
+ * Read on every render, so a changing key (e.g. "newest item" ids) works.
+ */
+export function useDismissed(key: string): [boolean, () => void] {
+  const { userId } = useAuth();
+  const [, rerender] = useState(0);
+  const storageKey = `openly_dismissed:${userId ?? 'guest'}`;
+  const read = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) ?? '[]') as string[];
+    } catch {
+      return [];
+    }
+  };
+  const id = `${storageKey}|${key}`;
+  const dismissed = closedThisVisit.has(id) || read().includes(key);
+  const dismiss = () => {
+    closedThisVisit.add(id);
+    try {
+      const list = read();
+      if (!list.includes(key)) localStorage.setItem(storageKey, JSON.stringify([...list.slice(-50), key]));
+    } catch {
+      /* storage blocked: stays hidden for this visit */
+    }
+    rerender((n) => n + 1);
+  };
+  return [dismissed, dismiss];
+}
+
+const noticeTones = {
+  brand: { box: 'border-brand-100 bg-brand-50/70', icon: 'bg-white text-brand-700', text: 'text-brand-950' },
+  violet: { box: 'border-violet-200 bg-violet-50/70', icon: 'bg-white text-violet-700', text: 'text-violet-950' },
+  amber: { box: 'border-amber-200 bg-amber-50/70', icon: 'bg-white text-amber-600', text: 'text-amber-950' },
+};
+
+/** One-line information strip with an optional action and a close button. */
+export function Notice({
+  tone = 'brand',
+  icon,
+  children,
+  action,
+  onClose,
+}: {
+  tone?: keyof typeof noticeTones;
+  icon: ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
+  onClose?: () => void;
+}) {
+  const { tx } = useAppText();
+  const t = noticeTones[tone];
+  return (
+    <div className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 sm:px-4 ${t.box}`}>
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm ${t.icon}`}>{icon}</span>
+      <div className={`min-w-0 flex-1 text-sm font-medium sm:flex sm:items-center sm:gap-3 ${t.text}`}>
+        <p className="flex-1">{children}</p>
+        {action && <div className="mt-2 shrink-0 sm:mt-0">{action}</div>}
+      </div>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={tx.close}
+          title={tx.close}
+          className="shrink-0 self-start rounded-full p-1 text-slate-400 hover:bg-white hover:text-slate-700 sm:self-center"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+    </div>
   );
 }

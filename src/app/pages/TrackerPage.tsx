@@ -103,7 +103,7 @@ export default function TrackerPage() {
                     <p className="mt-0.5 text-sm text-slate-500">
                       {o.program} · {formatDate(o.deadline, lang)}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                       <DeadlineChip deadline={o.deadline} />
                       {d >= 0 && (
                         <span className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
@@ -114,7 +114,7 @@ export default function TrackerPage() {
                         </span>
                       )}
                       {item.status === 'saved' && (
-                        <Link to={`/o/${o.id}`} className="text-xs font-semibold text-slate-500 hover:text-brand-700">
+                        <Link to={`/o/${o.id}`} className="whitespace-nowrap text-xs font-semibold text-slate-500 hover:text-brand-700">
                           {tx.dash.prep(prep.done, prep.total)}
                         </Link>
                       )}

@@ -10,7 +10,7 @@ import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
 import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity, type SavedSearch } from '../types';
 import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
-import { Chip, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass } from '../ui';
+import { Chip, DeadlineChip, ErrorState, Notice, ProgramBadge, SaveButton, Spinner, inputClass, useDismissed } from '../ui';
 import { daysUntil } from '../util';
 
 function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
@@ -136,6 +136,70 @@ export default function OpportunitiesPage() {
   const freshForYou = matches ? published.filter((o) => daysUntil(o.deadline) >= 0 && new Date(o.created_at).getTime() > weekAgo && matches.get(o.id)!.score >= GOOD_MATCH) : [];
   const soonestDays = freshForYou.length ? Math.min(...freshForYou.map((o) => daysUntil(o.deadline))) : null;
 
+  // Info strips above the list. Each can be closed and stays closed; the
+  // "new for you" one comes back only when a newer matching opportunity appears.
+  const newestFresh = freshForYou.reduce((m, o) => (o.created_at > m ? o.created_at : m), '');
+  const [guestClosed, closeGuest] = useDismissed('guest-signup');
+  const [interestsClosed, closeInterests] = useDismissed('pick-interests');
+  const [freshClosed, closeFresh] = useDismissed(`fresh:${newestFresh}`);
+  const [earlyClosed, closeEarly] = useDismissed('early-teaser');
+  const smallBtn = 'btn-primary !px-4 !py-1.5 text-sm';
+  const notices = [
+    !profile && !guestClosed && (
+      <Notice
+        key="guest"
+        icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
+        onClose={closeGuest}
+        action={
+          <Link to="/register" className={smallBtn}>
+            {tx.guest.signUp}
+          </Link>
+        }
+      >
+        {tx.guest.listBanner}
+      </Notice>
+    ),
+    profile && myInterests.length === 0 && !interestsClosed && (
+      <Notice
+        key="interests"
+        icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
+        onClose={closeInterests}
+        action={
+          <Link to="/app/profile" className={smallBtn}>
+            {tx.list.pickInterests}
+          </Link>
+        }
+      >
+        {tx.list.noInterests}
+      </Notice>
+    ),
+    freshForYou.length > 0 && !freshClosed && (
+      <Notice key="fresh" tone="violet" icon={<Sparkles className="h-4 w-4" aria-hidden="true" />} onClose={closeFresh}>
+        <span className="font-bold">{tx.list.forYouTitle(freshForYou.length)}</span>
+        {soonestDays !== null && soonestDays <= 14 && <span> — {tx.list.forYouSoon(soonestDays)}</span>}
+      </Notice>
+    ),
+    !isPremium && earlyCount > 0 && !earlyClosed && (
+      <Notice
+        key="early"
+        tone="amber"
+        icon={<Lock className="h-4 w-4" aria-hidden="true" />}
+        onClose={closeEarly}
+        action={
+          <Link
+            to="/app/profile?tab=premium"
+            className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-amber-600"
+          >
+            <Crown className="h-4 w-4" aria-hidden="true" />
+            {tx.list.seePremium}
+          </Link>
+        }
+      >
+        {tx.list.earlyTeaser(earlyCount)}
+      </Notice>
+    ),
+  ].filter(Boolean);
+
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
   const clear = () => setParams(myInterests.length ? { mine: '0' } : {}, { replace: true });
   const currentQuery = filterQuery(params);
@@ -149,6 +213,7 @@ export default function OpportunitiesPage() {
       setSearches((cur) => [...cur, s]);
       setNaming(null);
       setSearchMsg({ ok: true, text: tx.searches.saved });
+      setTimeout(() => setSearchMsg(null), 4000);
     } catch (err) {
       console.error('[searches] save failed', err);
       setSearchMsg({ ok: false, text: searches.length >= 10 ? tx.searches.limit : tx.saveError });
@@ -172,57 +237,7 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      {!profile && (
-        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-2 text-sm font-medium text-brand-900">
-            <Sparkles className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-            {tx.guest.listBanner}
-          </p>
-          <Link to="/register" className="btn-primary shrink-0 !px-4 !py-2 text-sm">
-            {tx.guest.signUp}
-          </Link>
-        </div>
-      )}
-
-      {profile && myInterests.length === 0 && (
-        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-2 text-sm font-medium text-brand-900">
-            <Sparkles className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-            {tx.list.noInterests}
-          </p>
-          <Link to="/app/profile" className="btn-primary !px-4 !py-2 text-sm">
-            {tx.list.pickInterests}
-          </Link>
-        </div>
-      )}
-
-      {freshForYou.length > 0 && (
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 to-brand-50 p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-brand-700 text-white">
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <p className="text-sm text-violet-950">
-            <span className="font-bold">{tx.list.forYouTitle(freshForYou.length)}</span>
-            {soonestDays !== null && soonestDays <= 14 && <span> — {tx.list.forYouSoon(soonestDays)}</span>}
-          </p>
-        </div>
-      )}
-
-      {!isPremium && earlyCount > 0 && (
-        <div className="mt-5 flex flex-col items-start gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-coral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-2 text-sm font-medium text-amber-900">
-            <Lock className="h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
-            {tx.list.earlyTeaser(earlyCount)}
-          </p>
-          <Link
-            to="/app/profile?tab=premium"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600"
-          >
-            <Crown className="h-4 w-4" aria-hidden="true" />
-            {tx.list.seePremium}
-          </Link>
-        </div>
-      )}
+      {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
 
       {profile && (
         <div className="mt-8 flex items-baseline justify-between gap-2">

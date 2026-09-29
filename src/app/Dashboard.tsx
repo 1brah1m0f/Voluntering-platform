@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlarmClock, ArrowRight, BookOpen, Bookmark, PartyPopper, Search, Send, UserRoundCheck, X, type LucideIcon } from 'lucide-react';
 import { backend } from './backend';
@@ -7,18 +8,21 @@ import type { Profile, SavedSearch } from './types';
 import { prepProgress } from './checklist';
 import { useData } from './DataContext';
 import { useAppText } from './text';
-import { DeadlineChip, ProgramBadge } from './ui';
+import { DeadlineChip, Notice, ProgramBadge, useDismissed } from './ui';
 import { daysUntil } from './util';
 
 function Stat({ to, Icon, value, label, tone }: { to: string; Icon: LucideIcon; value: number; label: string; tone: string }) {
   return (
-    <Link to={to} className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+    <Link
+      to={to}
+      className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:flex-row sm:items-center sm:gap-3 sm:p-4"
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${tone}`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="min-w-0">
         <span className="block text-2xl font-extrabold leading-none text-slate-900">{value}</span>
-        <span className="mt-1 block truncate text-sm font-medium text-slate-600">{label}</span>
+        <span className="mt-1 block text-sm font-medium leading-snug text-slate-600">{label}</span>
       </span>
     </Link>
   );
@@ -45,6 +49,15 @@ export function Dashboard({
   const navigate = useNavigate();
   const published = (opportunities ?? []).filter((o) => o.published);
   const interests = profile?.interests ?? [];
+
+  // The profile card leaves for good once the profile is complete or the user closes it.
+  const [completenessClosed, closeCompleteness] = useDismissed('profile-completeness');
+  const [newHereClosed, closeNewHere] = useDismissed('new-here');
+  const profileDone = !!profile && completeness(profile).percent >= 100;
+  useEffect(() => {
+    if (profileDone && !completenessClosed) closeCompleteness();
+  }, [profileDone, completenessClosed]); // eslint-disable-line react-hooks/exhaustive-deps
+  const showCompleteness = !!profile && !profileDone && !completenessClosed;
 
   const openSearch = (s: SavedSearch) => {
     const seen = new Date().toISOString();
@@ -119,7 +132,7 @@ export function Dashboard({
       )}
 
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
-        <div className={`rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${profile && completeness(profile).percent < 100 ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+        <div className={`min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${showCompleteness ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="font-bold text-slate-900">{tx.dash.upcoming}</h2>
@@ -140,7 +153,9 @@ export function Dashboard({
                 const prep = prepProgress(o, item.checklist);
                 return (
                   <li key={o.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <ProgramBadge program={o.program} />
+                    <span className="hidden sm:block">
+                      <ProgramBadge program={o.program} />
+                    </span>
                     <div className="min-w-0 flex-1">
                       <Link to={`/o/${o.id}`} className="block truncate font-semibold text-slate-900 hover:text-brand-700">
                         {o.title}
@@ -159,15 +174,24 @@ export function Dashboard({
             </ul>
           )}
         </div>
-        {profile && <ProfileCompleteness profile={profile} />}
+        {showCompleteness && profile && <ProfileCompleteness profile={profile} onClose={closeCompleteness} />}
       </div>
 
-      {tracked.length === 0 && (
-        <Link to="/guides" className="mt-4 flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm font-medium text-brand-900 hover:bg-brand-100">
-          <BookOpen className="h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
-          <span className="flex-1">{tx.newHere}</span>
-          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-        </Link>
+      {tracked.length === 0 && !newHereClosed && (
+        <div className="mt-4">
+          <Notice
+            icon={<BookOpen className="h-4 w-4" aria-hidden="true" />}
+            onClose={closeNewHere}
+            action={
+              <Link to="/guides" className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
+                {tx.nav.guides}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            }
+          >
+            {tx.newHere}
+          </Notice>
+        </div>
       )}
     </section>
   );
@@ -187,14 +211,22 @@ function completeness(p: Profile) {
   return { percent: Math.round(((checks.length - missing.length) / checks.length) * 100), missing };
 }
 
-/** "Your profile is 60% complete" with what's missing; hidden once the profile is complete. */
-function ProfileCompleteness({ profile }: { profile: Profile }) {
+/** "Your profile is 60% complete" with what's missing. */
+function ProfileCompleteness({ profile, onClose }: { profile: Profile; onClose: () => void }) {
   const { tx } = useAppText();
   const { percent, missing } = completeness(profile);
-  if (percent >= 100) return null;
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-3">
+    <div className="relative min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={tx.close}
+        title={tx.close}
+        className="absolute right-3 top-3 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+      >
+        <X className="h-4 w-4" aria-hidden="true" />
+      </button>
+      <div className="flex items-center gap-3 pr-6">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
           <UserRoundCheck className="h-5 w-5" aria-hidden="true" />
         </span>
