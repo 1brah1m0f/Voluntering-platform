@@ -1,5 +1,5 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
@@ -30,6 +30,7 @@ const K = {
   letters: 'openly_demo_letters',
   searches: 'openly_demo_searches',
   shortlist: 'openly_demo_shortlist',
+  savedScholarships: 'openly_demo_saved_scholarships',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -244,7 +245,7 @@ export function createDemoBackend(): Backend {
     if (u.plan !== 'student' && !u.is_admin) throw new BackendError('not_allowed');
     return u;
   };
-  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [] });
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {} });
 
   return {
     mode: 'demo',
@@ -517,6 +518,30 @@ export function createDemoBackend(): Backend {
       const u = requireStudent();
       const all = read<Record<string, ShortlistItem[]>>(K.shortlist, {});
       write(K.shortlist, { ...all, [u.id]: (all[u.id] ?? []).filter((x) => x.university_id !== universityId) });
+    },
+
+    async listSavedScholarships() {
+      const u = requireStudent();
+      return read<Record<string, SavedScholarship[]>>(K.savedScholarships, {})[u.id] ?? [];
+    },
+
+    async saveScholarship(scholarshipId) {
+      const u = requireStudent();
+      const all = read<Record<string, SavedScholarship[]>>(K.savedScholarships, {});
+      const mine = all[u.id] ?? [];
+      if (!mine.some((x) => x.scholarship_id === scholarshipId)) write(K.savedScholarships, { ...all, [u.id]: [...mine, { scholarship_id: scholarshipId, status: 'planning' }] });
+    },
+
+    async setScholarshipStatus(scholarshipId, status) {
+      const u = requireStudent();
+      const all = read<Record<string, SavedScholarship[]>>(K.savedScholarships, {});
+      write(K.savedScholarships, { ...all, [u.id]: (all[u.id] ?? []).map((x) => (x.scholarship_id === scholarshipId ? { ...x, status } : x)) });
+    },
+
+    async unsaveScholarship(scholarshipId) {
+      const u = requireStudent();
+      const all = read<Record<string, SavedScholarship[]>>(K.savedScholarships, {});
+      write(K.savedScholarships, { ...all, [u.id]: (all[u.id] ?? []).filter((x) => x.scholarship_id !== scholarshipId) });
     },
 
     async listSearches() {

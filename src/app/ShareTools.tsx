@@ -17,20 +17,20 @@ function nextDay(iso: string) {
 /** Escaping for iCalendar text values (RFC 5545 §3.3.11). */
 const icsText = (s: string) => s.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\r?\n/g, '\\n');
 
-/** An all-day event on the deadline, with a reminder three days before. */
-function downloadIcs(o: Opportunity, title: string, details: string) {
+/** An all-day event on a deadline (ISO date), with a reminder three days before. */
+export function downloadIcs({ uid, date, title, details, link }: { uid: string; date: string; title: string; details: string; link: string }) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Openly//Deadlines//AZ',
     'BEGIN:VEVENT',
-    `UID:${o.id}-deadline@openlyapply.com`,
+    `UID:${uid}-deadline@openlyapply.com`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
-    `DTSTART;VALUE=DATE:${ymd(o.deadline)}`,
-    `DTEND;VALUE=DATE:${ymd(nextDay(o.deadline))}`,
+    `DTSTART;VALUE=DATE:${ymd(date)}`,
+    `DTEND;VALUE=DATE:${ymd(nextDay(date))}`,
     `SUMMARY:${icsText(title)}`,
     `DESCRIPTION:${icsText(details)}`,
-    `URL:${opportunityUrl(o.id)}`,
+    `URL:${link}`,
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
     `DESCRIPTION:${icsText(title)}`,
@@ -120,7 +120,7 @@ export function ShareCard({ o }: { o: Opportunity }) {
           <a href={google} target="_blank" rel="noopener noreferrer" className="text-brand-700 hover:underline">
             {tx.share.google}
           </a>
-          <button type="button" onClick={() => downloadIcs(o, eventTitle, details)} className="text-brand-700 hover:underline">
+          <button type="button" onClick={() => downloadIcs({ uid: o.id, date: o.deadline, title: eventTitle, details, link: opportunityUrl(o.id) })} className="text-brand-700 hover:underline">
             {tx.share.ics}
           </button>
         </div>

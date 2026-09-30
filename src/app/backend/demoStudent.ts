@@ -5,6 +5,22 @@ import type { Scholarship, University } from '../types';
 export const DEMO_SCHOLARSHIPS: Omit<Scholarship, 'id'>[] = [
   {
     "sort": 10,
+    "en": {
+      "provider": "UK Government (FCDO)",
+      "country": "United Kingdom",
+      "coverage": "Full scholarship: tuition, a monthly living allowance, return flights and visa costs.",
+      "deadline_note": "For the 2027/28 academic year: 6 October 2026, 11:00 UTC. Applications usually open in August.",
+      "eligibility": "Azerbaijani citizen; bachelor’s degree; at least 2 years of work experience; commitment to return to Azerbaijan for at least 2 years after your studies. You must apply to 3 master’s programmes in the UK.",
+      "how_to_apply": "Online form at chevening.org: essays on leadership, networking, “why the UK” and your career plan, plus 2 references. Shortlisted candidates are interviewed in Baku."
+    },
+    "covers": [
+      "tuition",
+      "stipend",
+      "flights"
+    ],
+    "funding": "full",
+    "opens_month": 8,
+    "closes_month": 10,
     "name": "Chevening",
     "provider": "Böyük Britaniya hökuməti (FCDO)",
     "country": "Böyük Britaniya",
@@ -21,6 +37,23 @@ export const DEMO_SCHOLARSHIPS: Omit<Scholarship, 'id'>[] = [
   },
   {
     "sort": 30,
+    "en": {
+      "provider": "Government of Hungary",
+      "country": "Hungary",
+      "coverage": "Free tuition, a monthly stipend, a dorm place or housing support, and medical insurance.",
+      "deadline_note": "Usually opens in November and closes in mid-January (2026/27 round: 15 January 2026).",
+      "eligibility": "Azerbaijan is a partner country. The levels and fields open to each country are set by a bilateral agreement; you need approval from the sending partner in Azerbaijan.",
+      "how_to_apply": "Apply on the stipendiumhungaricum.hu portal and choose up to 2 programmes; then the university’s entrance exam or interview."
+    },
+    "covers": [
+      "tuition",
+      "stipend",
+      "housing",
+      "insurance"
+    ],
+    "funding": "full",
+    "opens_month": 11,
+    "closes_month": 1,
     "name": "Stipendium Hungaricum",
     "provider": "Macarıstan hökuməti",
     "country": "Macarıstan",
@@ -39,6 +72,25 @@ export const DEMO_SCHOLARSHIPS: Omit<Scholarship, 'id'>[] = [
   },
   {
     "sort": 40,
+    "en": {
+      "provider": "Government of Türkiye",
+      "country": "Türkiye",
+      "coverage": "Tuition, a monthly stipend, a dorm place, medical insurance, one return flight and a 1-year Turkish language course.",
+      "deadline_note": "Usually January–February (2026 round: 10 January – 25 February, extended).",
+      "eligibility": "Age limits: under 21 for bachelor’s, under 30 for master’s, under 35 for PhD; minimum grade requirements apply.",
+      "how_to_apply": "Free online application at turkiyeburslari.gov.tr; choose several universities and programmes, then an interview."
+    },
+    "covers": [
+      "tuition",
+      "stipend",
+      "housing",
+      "insurance",
+      "flights",
+      "language"
+    ],
+    "funding": "full",
+    "opens_month": 1,
+    "closes_month": 2,
     "name": "Türkiye Bursları",
     "provider": "Türkiyə hökuməti",
     "country": "Türkiyə",
@@ -60,6 +112,18 @@ export const DEMO_SCHOLARSHIPS: Omit<Scholarship, 'id'>[] = [
 export const DEMO_UNIVERSITIES: Omit<University, 'id'>[] = [
   {
     "sort": 10,
+    "en": {
+      "country": "Germany",
+      "city": "Munich",
+      "language": "English / German",
+      "tuition_note": "Non-EU students (since 2024/25): bachelor’s 2,000–3,000 € per semester, master’s 4,000–6,000 €. Plus a ~150 € semester fee.",
+      "app_fee_note": "For most programmes you apply directly on TUMonline, free of charge.",
+      "exams": "Bachelor’s: an aptitude test/SAT for some programmes; master’s: GRE for some programmes.",
+      "requirements": "Direct bachelor’s admission with an Azerbaijani school certificate is usually not possible: you first need 1–2 years of university in Azerbaijan, or a Studienkolleg + Feststellungsprüfung. Master’s: a relevant bachelor’s degree.",
+      "deadline_note": "Depends on the programme; applications for the winter semester usually close in spring.",
+      "scholarships_note": "DAAD, Deutschlandstipendium."
+    },
+    "closes_month": null,
     "name": "Technical University of Munich (TUM)",
     "country": "Almaniya",
     "city": "Münhen",
@@ -89,6 +153,18 @@ export const DEMO_UNIVERSITIES: Omit<University, 'id'>[] = [
   },
   {
     "sort": 30,
+    "en": {
+      "country": "Hungary",
+      "city": "Debrecen",
+      "language": "English",
+      "tuition_note": "Medicine: $16,900 a year (2026/27). Other programmes cost less.",
+      "app_fee_note": "$150 application fee; a $350 entrance fee if you are admitted.",
+      "exams": "Medicine: entrance exam in biology and chemistry, interview.",
+      "requirements": "Secondary school certificate; biology and chemistry knowledge for medicine.",
+      "deadline_note": "Usually spring–summer, in several rounds.",
+      "scholarships_note": "Free tuition is possible with Stipendium Hungaricum."
+    },
+    "closes_month": null,
     "name": "University of Debrecen",
     "country": "Macarıstan",
     "city": "Debrecen",
@@ -118,6 +194,19 @@ export const DEMO_UNIVERSITIES: Omit<University, 'id'>[] = [
   },
   {
     "sort": 60,
+    "en": {
+      "name": "Middle East Technical University (METU)",
+      "country": "Türkiye",
+      "city": "Ankara",
+      "language": "English",
+      "tuition_note": "About $1,600–2,400 a year (depends on the faculty).",
+      "app_fee_note": "No application fee for 2026/27.",
+      "exams": "YÖS, SAT, ACT, IB or ABITUR.",
+      "requirements": "Entrance exam result + school certificate. Without an English certificate (e.g. TOEFL iBT 75+) you do a preparatory year.",
+      "deadline_note": "Bachelor’s: 1 June – 12 July in 2026.",
+      "scholarships_note": "Admission with Türkiye Bursları is also possible."
+    },
+    "closes_month": 7,
     "name": "Middle East Technical University (ODTÜ)",
     "country": "Türkiyə",
     "city": "Ankara",

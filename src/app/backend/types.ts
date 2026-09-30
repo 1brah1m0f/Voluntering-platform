@@ -1,6 +1,6 @@
-import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
+import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
-export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap'>>;
+export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap' | 'student_prefs'>>;
 
 /**
  * Error codes surfaced to the UI. Implementations throw `BackendError` with one
@@ -80,6 +80,10 @@ export interface Backend {
   addToShortlist(universityId: string): Promise<void>;
   setShortlistStatus(universityId: string, status: ShortlistStatus): Promise<void>;
   removeFromShortlist(universityId: string): Promise<void>;
+  listSavedScholarships(): Promise<SavedScholarship[]>;
+  saveScholarship(scholarshipId: string): Promise<void>;
+  setScholarshipStatus(scholarshipId: string, status: ShortlistStatus): Promise<void>;
+  unsaveScholarship(scholarshipId: string): Promise<void>;
 
   /** Saved searches (max 10). */
   listSearches(): Promise<SavedSearch[]>;

@@ -520,3 +520,43 @@ alter table public.student_shortlist enable row level security;
 drop policy if exists "own shortlist" on public.student_shortlist;
 create policy "own shortlist" on public.student_shortlist
   for all to authenticated using (user_id = auth.uid() and public.is_student()) with check (user_id = auth.uid() and public.is_student());
+
+-- ---------------------------------------------------------------------------
+-- Student section, v2: English text, structured facts and saved scholarships.
+-- ---------------------------------------------------------------------------
+-- English versions of the text columns ({"coverage": "...", ...}); the app falls
+-- back to the Azerbaijani column when a key is missing.
+alter table public.scholarships add column if not exists en jsonb not null default '{}';
+alter table public.universities add column if not exists en jsonb not null default '{}';
+
+-- What a scholarship pays for, shown as chips on its card.
+alter table public.scholarships add column if not exists covers text[] not null default '{}'
+  check (covers <@ array['tuition', 'stipend', 'housing', 'flights', 'insurance', 'language']::text[]);
+alter table public.scholarships add column if not exists funding text check (funding in ('full', 'partial'));
+
+-- The usual application window as months (1–12), when the official page names them.
+-- `deadline` stays the exact date once it is announced.
+alter table public.scholarships add column if not exists opens_month smallint check (opens_month between 1 and 12);
+alter table public.scholarships add column if not exists closes_month smallint check (closes_month between 1 and 12);
+alter table public.universities add column if not exists closes_month smallint check (closes_month between 1 and 12);
+
+-- The student's level, field, IELTS and yearly budget ("My plan"), used to
+-- mark scholarships and universities that fit.
+alter table public.profiles add column if not exists student_prefs jsonb not null default '{}'
+  check (jsonb_typeof(student_prefs) = 'object' and pg_column_size(student_prefs) <= 1000);
+grant update (student_prefs) on public.profiles to authenticated;
+
+-- Scholarships a student has saved, with their own application status.
+create table if not exists public.student_saved_scholarships (
+  user_id        uuid not null references auth.users (id) on delete cascade default auth.uid(),
+  scholarship_id uuid not null references public.scholarships (id) on delete cascade,
+  status         text not null default 'planning' check (status in ('planning', 'applied', 'accepted', 'rejected')),
+  created_at     timestamptz not null default now(),
+  primary key (user_id, scholarship_id)
+);
+
+alter table public.student_saved_scholarships enable row level security;
+
+drop policy if exists "own saved scholarships" on public.student_saved_scholarships;
+create policy "own saved scholarships" on public.student_saved_scholarships
+  for all to authenticated using (user_id = auth.uid() and public.is_student()) with check (user_id = auth.uid() and public.is_student());

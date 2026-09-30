@@ -23,6 +23,8 @@ export interface Profile {
   headline: string;
   /** Student plan: ids of the ticked study-abroad roadmap steps. */
   roadmap?: string[];
+  /** Student plan: level, field, IELTS and budget from "My plan". */
+  student_prefs?: StudentPrefs;
 }
 
 export interface Opportunity {
@@ -114,6 +116,13 @@ export interface Peer {
 // --- Student section (Student plan) ----------------------------------------
 export type StudyLevel = 'bachelor' | 'master' | 'phd';
 
+/** What a scholarship pays for. */
+export type Cover = 'tuition' | 'stipend' | 'housing' | 'flights' | 'insurance' | 'language';
+
+/** Text columns with an English version in `en`. */
+export type ScholarshipText = 'name' | 'provider' | 'country' | 'coverage' | 'deadline_note' | 'eligibility' | 'how_to_apply';
+export type UniversityText = 'name' | 'city' | 'country' | 'language' | 'tuition_note' | 'app_fee_note' | 'exams' | 'requirements' | 'deadline_note' | 'scholarships_note';
+
 export interface Scholarship {
   id: string;
   name: string;
@@ -123,12 +132,19 @@ export interface Scholarship {
   /** Empty = any field. */
   fields: string[];
   coverage: string;
+  /** Exact next deadline, once announced. */
   deadline: string | null;
   deadline_note: string;
   eligibility: string;
   how_to_apply: string;
   url: string;
   sort: number;
+  en: Partial<Record<ScholarshipText, string>>;
+  covers: Cover[];
+  funding: 'full' | 'partial' | null;
+  /** Usual application window (1–12), when the official page names it. */
+  opens_month: number | null;
+  closes_month: number | null;
 }
 
 export interface University {
@@ -154,12 +170,29 @@ export interface University {
   scholarships_note: string;
   url: string;
   sort: number;
+  en: Partial<Record<UniversityText, string>>;
+  /** Month applications usually close (1–12), when it is fixed. */
+  closes_month: number | null;
 }
 
 export type ShortlistStatus = 'planning' | 'applied' | 'accepted' | 'rejected';
 export interface ShortlistItem {
   university_id: string;
   status: ShortlistStatus;
+}
+export interface SavedScholarship {
+  scholarship_id: string;
+  status: ShortlistStatus;
+}
+
+export interface StudentPrefs {
+  level?: StudyLevel;
+  /** A key of FIELDS in student/roadmap.ts. */
+  field?: string;
+  /** 0 or missing = no score yet. */
+  ielts?: number;
+  /** Euros per year. */
+  budget?: number;
 }
 
 export interface SavedSearch {

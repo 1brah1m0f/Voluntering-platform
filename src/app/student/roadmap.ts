@@ -121,4 +121,18 @@ const EN: RoadmapPhase[] = [
 ];
 
 export const ROADMAP: Record<Lang, RoadmapPhase[]> = { az: AZ, en: EN };
+
+export type StudentTab = 'roadmap' | 'scholarships' | 'universities' | 'plan';
+
+/** Where a step's "Open" link goes: a tab of the Student page, or another page. */
+export const STEP_LINKS: Record<string, { tab: StudentTab } | { to: string }> = {
+  goal: { tab: 'universities' },
+  budget: { tab: 'plan' },
+  shortlist: { tab: 'universities' },
+  scholarships: { tab: 'scholarships' },
+  essay: { to: '/guides/motivation-letter' },
+  submit: { tab: 'plan' },
+  decide: { tab: 'universities' },
+  visa: { to: '/guides/visa-documents' },
+};
 export const ROADMAP_STEP_COUNT = AZ.reduce((n, p) => n + p.steps.length, 0);

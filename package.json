@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:jobs": "node --test jobs/plan.test.mjs",
-    "notify": "node jobs/notify.mjs"
+    "notify": "node jobs/notify.mjs",
+    "test:student": "node --experimental-strip-types --no-warnings --test src/app/student/logic.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

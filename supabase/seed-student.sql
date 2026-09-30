@@ -44,3 +44,203 @@ on conflict (name) do update set
   living_eur_month = excluded.living_eur_month, app_fee_eur = excluded.app_fee_eur, app_fee_note = excluded.app_fee_note,
   min_ielts = excluded.min_ielts, exams = excluded.exams, requirements = excluded.requirements, deadline_note = excluded.deadline_note,
   scholarships_note = excluded.scholarships_note, url = excluded.url, sort = excluded.sort, updated_at = now();
+
+-- English text, what each scholarship pays for, and its usual application window.
+-- Months are set only where the official note names them; otherwise they stay null
+-- and the app shows the note instead. Needs the "Student section, v2" part of app.sql.
+update public.scholarships set covers = array['tuition', 'stipend', 'flights']::text[], funding = 'full', opens_month = 8, closes_month = 10, en = $j${
+  "provider": "UK Government (FCDO)", "country": "United Kingdom",
+  "coverage": "Full scholarship: tuition, a monthly living allowance, return flights and visa costs.",
+  "deadline_note": "For the 2027/28 academic year: 6 October 2026, 11:00 UTC. Applications usually open in August.",
+  "eligibility": "Azerbaijani citizen; bachelor’s degree; at least 2 years of work experience; commitment to return to Azerbaijan for at least 2 years after your studies. You must apply to 3 master’s programmes in the UK.",
+  "how_to_apply": "Online form at chevening.org: essays on leadership, networking, “why the UK” and your career plan, plus 2 references. Shortlisted candidates are interviewed in Baku."
+}$j$::jsonb where name = 'Chevening';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'insurance', 'flights']::text[], funding = 'full', opens_month = null, closes_month = null, en = $j${
+  "provider": "US Department of State", "country": "United States",
+  "coverage": "Tuition, a monthly living stipend, health insurance and an international flight.",
+  "deadline_note": "Announced every year by the US Embassy in Baku (the current round is for the 2027–2028 academic year).",
+  "eligibility": "Azerbaijani citizen; bachelor’s degree; strong English. Clinical fields (medicine, dentistry, pharmacy, nursing) are not eligible; public health is.",
+  "how_to_apply": "Online form from the embassy’s announcement, essays and references; then tests (TOEFL, GRE) and an interview."
+}$j$::jsonb where name = 'Fulbright Foreign Student Program';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'housing', 'insurance']::text[], funding = 'full', opens_month = 11, closes_month = 1, en = $j${
+  "provider": "Government of Hungary", "country": "Hungary",
+  "coverage": "Free tuition, a monthly stipend, a dorm place or housing support, and medical insurance.",
+  "deadline_note": "Usually opens in November and closes in mid-January (2026/27 round: 15 January 2026).",
+  "eligibility": "Azerbaijan is a partner country. The levels and fields open to each country are set by a bilateral agreement; you need approval from the sending partner in Azerbaijan.",
+  "how_to_apply": "Apply on the stipendiumhungaricum.hu portal and choose up to 2 programmes; then the university’s entrance exam or interview."
+}$j$::jsonb where name = 'Stipendium Hungaricum';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'housing', 'insurance', 'flights', 'language']::text[], funding = 'full', opens_month = 1, closes_month = 2, en = $j${
+  "provider": "Government of Türkiye", "country": "Türkiye",
+  "coverage": "Tuition, a monthly stipend, a dorm place, medical insurance, one return flight and a 1-year Turkish language course.",
+  "deadline_note": "Usually January–February (2026 round: 10 January – 25 February, extended).",
+  "eligibility": "Age limits: under 21 for bachelor’s, under 30 for master’s, under 35 for PhD; minimum grade requirements apply.",
+  "how_to_apply": "Free online application at turkiyeburslari.gov.tr; choose several universities and programmes, then an interview."
+}$j$::jsonb where name = 'Türkiye Bursları';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'flights', 'insurance', 'language']::text[], funding = 'full', opens_month = null, closes_month = null, en = $j${
+  "provider": "Government of Korea (NIIED)", "country": "South Korea",
+  "coverage": "Tuition, a monthly stipend, flights, medical insurance and a 1-year Korean language course.",
+  "deadline_note": "Master’s/PhD: usually February–March; bachelor’s: usually September–October. There is an embassy track and a university track.",
+  "eligibility": "Azerbaijani citizens can apply. Under 40 for master’s/PhD; under 25 for bachelor’s.",
+  "how_to_apply": "Submit your documents through the embassy or directly to a university, following the announcement on Study in Korea."
+}$j$::jsonb where name = 'Global Korea Scholarship (GKS)';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'insurance', 'flights']::text[], funding = 'full', opens_month = null, closes_month = 2, en = $j${
+  "provider": "Swedish Institute", "country": "Sweden",
+  "coverage": "Tuition, monthly living costs, insurance and a travel grant (10,000 SEK for Azerbaijan).",
+  "deadline_note": "Usually in February (you must apply to a Swedish university first).",
+  "eligibility": "Azerbaijan is an eligible country. You need official proof of work experience (no minimum number of hours for Azerbaijan); leadership experience is assessed.",
+  "how_to_apply": "Apply to a master’s programme on universityadmissions.se, then apply for the scholarship on si.se."
+}$j$::jsonb where name = 'Swedish Institute Scholarships for Global Professionals';
+
+update public.scholarships set covers = array['stipend', 'insurance', 'flights']::text[], funding = 'partial', opens_month = null, closes_month = null, en = $j${
+  "name": "DAAD scholarships", "provider": "German Academic Exchange Service (DAAD)", "country": "Germany",
+  "coverage": "A monthly stipend, health insurance and a travel allowance; other costs depending on the programme.",
+  "deadline_note": "Depends on the programme — often about a year before your studies start (in the autumn).",
+  "eligibility": "Depends on the programme. For example, EPOS (development-related master’s programmes) usually asks for at least 2 years of work experience.",
+  "how_to_apply": "In the DAAD scholarship database, choose Azerbaijan as your country and check the conditions of the programme that fits you."
+}$j$::jsonb where name = 'DAAD təqaüdləri';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'flights']::text[], funding = 'full', opens_month = null, closes_month = null, en = $j${
+  "provider": "European Union", "country": "Europe (several countries)",
+  "coverage": "Full scholarship: tuition, travel and a monthly allowance; you study in at least 2 European countries.",
+  "deadline_note": "Each programme has its own deadline, usually December–February.",
+  "eligibility": "Citizens of any country; bachelor’s degree; the programme’s own requirements (language, field).",
+  "how_to_apply": "Pick a programme from the Erasmus Mundus catalogue and apply directly to its consortium."
+}$j$::jsonb where name = 'Erasmus Mundus Joint Masters';
+
+update public.scholarships set covers = array['tuition']::text[], funding = null, opens_month = null, closes_month = null, en = $j${
+  "name": "State Programme for Study Abroad", "provider": "Ministry of Science and Education of Azerbaijan", "country": "Azerbaijan (study abroad)",
+  "coverage": "Your study costs at a leading foreign university are covered under the State Programme (the conditions are in the programme rules).",
+  "deadline_note": "Applications are announced separately for each academic year.",
+  "eligibility": "Azerbaijani citizen; admission to (or study at) a leading foreign university on the list; one of 15 priority fields (IT, engineering, statistics, health, education, energy, economics and more). At least 80% of places are for master’s. There are obligations after graduation — read the rules carefully.",
+  "how_to_apply": "Create a “Personal account” in the Ministry’s online system and upload your documents; suitable candidates are invited to an interview."
+}$j$::jsonb where name = 'Xaricdə təhsil üzrə Dövlət Proqramı';
+
+update public.scholarships set covers = array['tuition', 'stipend', 'flights']::text[], funding = 'full', opens_month = null, closes_month = null, en = $j${
+  "name": "MEXT (Japanese Government Scholarship)", "provider": "Japanese Ministry of Education (MEXT)", "country": "Japan",
+  "coverage": "Tuition, a monthly stipend and a return flight.",
+  "deadline_note": "Embassy track: usually announced in spring by the Embassy of Japan in Azerbaijan.",
+  "eligibility": "Age limits depend on the level; written exam and interview.",
+  "how_to_apply": "Documents as in the embassy’s announcement, then an exam and an interview; there is also a university track."
+}$j$::jsonb where name = 'MEXT (Yaponiya hökuməti təqaüdü)';
+
+update public.scholarships set covers = array['tuition', 'housing', 'stipend', 'insurance']::text[], funding = 'full', opens_month = 1, closes_month = 4, en = $j${
+  "name": "Chinese Government Scholarship (CSC)", "country": "China",
+  "coverage": "Full scholarship: tuition, a dorm place, a monthly stipend and medical insurance.",
+  "deadline_note": "Usually January–April, through a university or the embassy.",
+  "eligibility": "Age limits depend on the level; the university’s admission requirements.",
+  "how_to_apply": "Apply online on the Campus China portal and meet the chosen university’s requirements."
+}$j$::jsonb where name = 'Çin hökuməti təqaüdü (CSC)';
+
+update public.scholarships set covers = array['stipend', 'flights', 'insurance']::text[], funding = 'partial', opens_month = null, closes_month = 1, en = $j${
+  "provider": "French Ministry for Europe and Foreign Affairs (Campus France)", "country": "France",
+  "coverage": "A monthly allowance, travel, health insurance and cultural activities.",
+  "deadline_note": "A French university nominates you, usually in January.",
+  "eligibility": "Master’s and PhD candidates in law, economics and management, political science, engineering and sciences.",
+  "how_to_apply": "First apply to a French university; the university puts you forward for the Eiffel programme."
+}$j$::jsonb where name = 'Eiffel Excellence Scholarship';
+
+-- Universities: English text and, where it is fixed, the month applications close.
+update public.universities set closes_month = null, en = $j${
+  "country": "Germany", "city": "Munich", "language": "English / German",
+  "tuition_note": "Non-EU students (since 2024/25): bachelor’s 2,000–3,000 € per semester, master’s 4,000–6,000 €. Plus a ~150 € semester fee.",
+  "app_fee_note": "For most programmes you apply directly on TUMonline, free of charge.",
+  "exams": "Bachelor’s: an aptitude test/SAT for some programmes; master’s: GRE for some programmes.",
+  "requirements": "Direct bachelor’s admission with an Azerbaijani school certificate is usually not possible: you first need 1–2 years of university in Azerbaijan, or a Studienkolleg + Feststellungsprüfung. Master’s: a relevant bachelor’s degree.",
+  "deadline_note": "Depends on the programme; applications for the winter semester usually close in spring.",
+  "scholarships_note": "DAAD, Deutschlandstipendium."
+}$j$::jsonb where name = 'Technical University of Munich (TUM)';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Italy", "city": "Milan", "language": "English / Italian",
+  "tuition_note": "Income-based: about 900–3,900 € a year (standard non-EU amount ~3,900 €).",
+  "app_fee_note": "Application fee ~50–150 € depending on the round, non-refundable.",
+  "exams": "Bachelor’s: SAT or Politecnico’s TOL/TIL test; a portfolio for design and architecture master’s.",
+  "requirements": "12 years of secondary school; a relevant bachelor’s degree for master’s.",
+  "deadline_note": "Several application rounds, usually from autumn to spring.",
+  "scholarships_note": "Income-based regional (DSU) scholarships, Politecnico awards."
+}$j$::jsonb where name = 'Politecnico di Milano';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Hungary", "city": "Debrecen", "language": "English",
+  "tuition_note": "Medicine: $16,900 a year (2026/27). Other programmes cost less.",
+  "app_fee_note": "$150 application fee; a $350 entrance fee if you are admitted.",
+  "exams": "Medicine: entrance exam in biology and chemistry, interview.",
+  "requirements": "Secondary school certificate; biology and chemistry knowledge for medicine.",
+  "deadline_note": "Usually spring–summer, in several rounds.",
+  "scholarships_note": "Free tuition is possible with Stipendium Hungaricum."
+}$j$::jsonb where name = 'University of Debrecen';
+
+update public.universities set closes_month = 4, en = $j${
+  "country": "Czechia", "city": "Prague", "language": "English / Czech",
+  "tuition_note": "English-taught programmes ~1,000–24,000 € a year (average ~6,000 €). Studying in Czech is free.",
+  "app_fee_note": "Depends on the faculty: e.g. Social Sciences ~940 CZK (~41 €), Medicine 285 €.",
+  "exams": "The faculty’s entrance exam (by field).",
+  "requirements": "Your certificate or diploma may need to be recognised in Czechia (nostrification).",
+  "deadline_note": "Usually February–April (depends on the faculty).",
+  "scholarships_note": "Czech government scholarships, faculty scholarships."
+}$j$::jsonb where name = 'Charles University';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Estonia", "city": "Tartu", "language": "English",
+  "tuition_note": "Depends on the programme. From 2026/27 there are no tuition-free places for non-EU students; some programmes offer discounts.",
+  "app_fee_note": "100 € (up to 2 programmes), through DreamApply.",
+  "exams": "Motivation letter; an interview for some programmes.",
+  "requirements": "For master’s: a relevant bachelor’s degree and an English certificate.",
+  "deadline_note": "Usually in spring — check the programme page.",
+  "scholarships_note": "A limited number of university scholarships."
+}$j$::jsonb where name = 'University of Tartu';
+
+update public.universities set closes_month = 7, en = $j${
+  "name": "Middle East Technical University (METU)", "country": "Türkiye", "city": "Ankara", "language": "English",
+  "tuition_note": "About $1,600–2,400 a year (depends on the faculty).",
+  "app_fee_note": "No application fee for 2026/27.",
+  "exams": "YÖS, SAT, ACT, IB or ABITUR.",
+  "requirements": "Entrance exam result + school certificate. Without an English certificate (e.g. TOEFL iBT 75+) you do a preparatory year.",
+  "deadline_note": "Bachelor’s: 1 June – 12 July in 2026.",
+  "scholarships_note": "Admission with Türkiye Bursları is also possible."
+}$j$::jsonb where name = 'Middle East Technical University (ODTÜ)';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Türkiye", "city": "Istanbul", "language": "English",
+  "tuition_note": "About $21,500 a year; medicine ~$29,000 a year.",
+  "app_fee_note": "No application fee for bachelor’s.",
+  "exams": "SAT/ACT, IB, A-Level or equivalent.",
+  "requirements": "Strong academic results and test scores; an English certificate.",
+  "deadline_note": "Several application rounds — check the university website.",
+  "scholarships_note": "25%, 50%, 75% and 100% scholarships are considered automatically on admission (except medicine)."
+}$j$::jsonb where name = 'Koç University';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Belgium", "city": "Leuven", "language": "English / Dutch",
+  "tuition_note": "About 9,500 € a year for non-EU students (60 credits); different for some programmes.",
+  "app_fee_note": "Application fee 90 €.",
+  "exams": "GRE/GMAT for some programmes.",
+  "requirements": "Master’s: a relevant bachelor’s degree and an English certificate.",
+  "deadline_note": "For non-EU applicants usually before spring — check the programme page.",
+  "scholarships_note": "Partial tuition reductions for non-EU students in some faculties."
+}$j$::jsonb where name = 'KU Leuven';
+
+update public.universities set closes_month = null, en = $j${
+  "country": "Poland", "city": "Warsaw", "language": "English / Polish",
+  "tuition_note": "Non-EU students pay for English-taught programmes; the amount depends on the programme (in Poland generally ~1,000–18,000 € a year).",
+  "app_fee_note": "Recruitment fee — usually 20–50 € in Poland.",
+  "exams": "Depends on the programme.",
+  "requirements": "Recognition of your certificate or diploma; an English certificate.",
+  "deadline_note": "Usually spring–summer.",
+  "scholarships_note": "Polish government NAWA scholarships."
+}$j$::jsonb where name = 'University of Warsaw';
+
+update public.universities set closes_month = 1, en = $j${
+  "country": "United Kingdom", "city": "Manchester", "language": "English",
+  "tuition_note": "Estimated £27,000–35,000 a year for international students (depends on the programme).",
+  "app_fee_note": "Bachelor’s: UCAS fee £34.50 (2027 entry, up to 5 choices). Master’s: directly to the university.",
+  "exams": "A-Level/IB; with an Azerbaijani school certificate a Foundation year is usually required.",
+  "requirements": "Bachelor’s: a Foundation year or an international diploma; master’s: a relevant bachelor’s degree.",
+  "deadline_note": "UCAS: 13 January 2027 for most bachelor’s programmes.",
+  "scholarships_note": "Chevening (master’s), university scholarships."
+}$j$::jsonb where name = 'University of Manchester';
