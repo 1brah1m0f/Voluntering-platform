@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, Clock, ExternalLink, Info, UsersRound, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, ExternalLink, Globe2, GraduationCap, HeartHandshake, Info, Users, UsersRound, Wallet } from 'lucide-react';
+import { useLang } from '../../i18n';
 import { GUIDES, guideBySlug } from '../../content/guides';
 import { PROGRAM_PAGES, programPageBySlug } from '../../content/programs';
 import { programLogo } from '../../lib/programs';
@@ -8,6 +9,10 @@ import { useAppText } from '../text';
 import { ErrorState, Spinner } from '../ui';
 import { daysUntil } from '../util';
 import { OpportunityCard } from './OpportunitiesPage';
+
+// The four kinds of opportunity (landing page copy): icon and where "learn more" leads.
+const KIND_ICONS = [Users, GraduationCap, HeartHandshake, Globe2];
+const KIND_TARGETS = ['/guides/youth-exchange', '/programs/salto-youth', '/programs/european-solidarity-corps', '/programs/un-volunteers'];
 
 function BackLink({ to, label }: { to: string; label: string }) {
   return (
@@ -18,57 +23,99 @@ function BackLink({ to, label }: { to: string; label: string }) {
   );
 }
 
-/** /guides: programme hubs and step-by-step guides. */
+/** /guides: the guides as a numbered reading path, the kinds of opportunity, and the programme hubs. */
 export function GuidesPage() {
   const { tx, lang } = useAppText();
+  const { t } = useLang();
   const { opportunities } = useData();
   const openIn = (name: string) => (opportunities ?? []).filter((o) => o.published && o.program === name && daysUntil(o.deadline) >= 0).length;
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.learn.title}</h1>
-      <p className="mt-1 max-w-2xl text-slate-600">{tx.learn.sub}</p>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.learn.title}</h1>
+      <p className="mt-2 max-w-2xl text-slate-600 sm:text-lg">{tx.learn.sub}</p>
 
-      <h2 className="mt-8 text-lg font-extrabold">{tx.learn.guidesTitle}</h2>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
-        {GUIDES.map((g) => (
-          <Link
-            key={g.slug}
-            to={`/guides/${g.slug}`}
-            className="group flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-              <BookOpen className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <h3 className="mt-3 font-bold leading-snug text-slate-900 group-hover:text-brand-800">{g.text[lang].title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{g.text[lang].summary}</p>
-            <p className="mt-auto inline-flex items-center gap-1.5 pt-3 text-xs font-semibold text-slate-500">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              {tx.learn.minutes(g.minutes)}
-            </p>
-          </Link>
-        ))}
+      <h2 className="mt-10 text-2xl font-extrabold tracking-tight">{tx.learn.guidesTitle}</h2>
+      <div className="relative mt-4">
+        <span className="pointer-events-none absolute inset-x-6 top-[1.3rem] hidden border-t-2 border-dashed border-line lg:block" aria-hidden="true" />
+        <ol className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          {GUIDES.map((g, i) => {
+            const first = i === 0;
+            return (
+              <li key={g.slug} className="flex flex-col gap-3">
+                <span
+                  className={`hidden h-11 w-11 items-center justify-center rounded-full font-display font-extrabold ring-[6px] ring-paper lg:flex ${first ? 'bg-coral-700 text-white' : 'border-2 border-slate-300 bg-white text-slate-600'}`}
+                  aria-hidden="true"
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <Link
+                  to={`/guides/${g.slug}`}
+                  className={`group flex flex-1 flex-col gap-2 rounded-[1.375rem] p-5 transition hover:-translate-y-0.5 ${
+                    first ? 'bg-brand-900 text-white hover:shadow-soft' : 'border border-line bg-white hover:border-brand-200 hover:shadow-card'
+                  }`}
+                >
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${first ? 'text-brand-200' : 'text-brand-700'}`}>
+                    <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {tx.learn.minutes(g.minutes)}
+                  </span>
+                  <span className={`font-display text-xl font-bold leading-snug ${first ? 'text-white' : 'text-ink group-hover:text-brand-800'}`}>{g.text[lang].title}</span>
+                  <span className={`text-sm leading-relaxed ${first ? 'text-brand-100' : 'text-slate-600'}`}>{g.text[lang].summary}</span>
+                  <ArrowRight
+                    className={`mt-auto h-5 w-5 pt-1 transition group-hover:translate-x-1 ${first ? 'text-coral-200' : 'text-brand-700'}`}
+                    aria-hidden="true"
+                  />
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
-      <h2 className="mt-10 text-lg font-extrabold">{tx.learn.programsTitle}</h2>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+      <h2 className="mt-12 text-2xl font-extrabold tracking-tight">{t.explain.title}</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {t.explain.items.map((item, i) => {
+          const Icon = KIND_ICONS[i];
+          return (
+            <Link key={item.title} to={KIND_TARGETS[i]} className="group flex flex-col gap-2 rounded-[1.375rem] border border-line bg-white p-5 transition hover:border-brand-200">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                <Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span className="font-display text-lg font-bold text-ink group-hover:text-brand-800">{item.title}</span>
+              <span className="text-sm leading-relaxed text-slate-600">{item.text}</span>
+            </Link>
+          );
+        })}
+      </div>
+
+      <h2 className="mt-12 text-2xl font-extrabold tracking-tight">{tx.learn.programsTitle}</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {PROGRAM_PAGES.map((p) => {
           const logo = programLogo(p.name);
           return (
             <Link
               key={p.slug}
               to={`/programs/${p.slug}`}
-              className="group flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card"
+              className="group flex items-center gap-4 rounded-[1.375rem] border border-line bg-white p-4 pr-5 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card"
             >
-              <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-2xl border border-slate-100 bg-white p-2">
-                {logo ? <img src={logo} alt="" className="max-h-full max-w-full object-contain" /> : <BookOpen className="h-6 w-6 text-slate-400" aria-hidden="true" />}
-              </span>
+              {logo ? (
+                <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-2xl border border-line/70 bg-white p-2.5">
+                  <img src={logo} alt="" className="max-h-full max-w-full object-contain" />
+                </span>
+              ) : (
+                <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-2xl bg-brand-900 font-display text-lg font-extrabold text-white" aria-hidden="true">
+                  {p.name
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .join('')}
+                </span>
+              )}
               <span className="min-w-0 flex-1">
-                <span className="block font-bold text-slate-900 group-hover:text-brand-800">{p.name}</span>
+                <span className="block font-display text-lg font-bold text-ink group-hover:text-brand-800">{p.name}</span>
                 <span className="mt-0.5 block text-sm text-slate-600">{p.text[lang].tagline}</span>
-                <span className="mt-1.5 block text-xs font-semibold text-brand-700">{tx.program.open(openIn(p.name))}</span>
+                <span className="mt-2 inline-block rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-900">{tx.program.open(openIn(p.name))}</span>
               </span>
-              <ArrowRight className="h-5 w-5 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-brand-600" aria-hidden="true" />
+              <ArrowRight className="h-5 w-5 shrink-0 text-brand-700 transition group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           );
         })}

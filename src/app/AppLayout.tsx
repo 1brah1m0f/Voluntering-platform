@@ -79,10 +79,10 @@ export default function AppLayout() {
 
   return (
     <DataProvider>
-      <div className="min-h-screen bg-slate-50 lg:flex">
+      <div className="min-h-screen bg-paper lg:flex">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-5 lg:flex">
-          <Link to="/" className="flex items-center gap-2 text-lg font-extrabold text-slate-900">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white p-5 lg:flex">
+          <Link to="/" className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
@@ -98,13 +98,13 @@ export default function AppLayout() {
                       end={item.end}
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                          activeFor(item, isActive) ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          activeFor(item, isActive) ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-paper hover:text-ink'
                         }`
                       }
                     >
                       <item.Icon className="h-4 w-4" aria-hidden="true" />
                       {item.label}
-                      {item.badge && <span className="ml-auto rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-700">{item.badge}</span>}
+                      {item.badge && <span className="ml-auto rounded-full bg-coral-50 px-2 py-0.5 text-xs font-bold text-coral-800">{item.badge}</span>}
                     </NavLink>
                   ))}
                 </div>
@@ -112,21 +112,21 @@ export default function AppLayout() {
             ))}
           </nav>
           <div className="mt-auto space-y-3">
-            <div className="flex rounded-full border border-slate-200 p-0.5 text-xs font-bold">
+            <div className="flex rounded-full border border-line p-0.5 text-xs font-bold">
               {(['az', 'en'] as const).map((l) => (
                 <button
                   key={l}
                   type="button"
                   onClick={() => setLang(l)}
                   aria-pressed={lang === l}
-                  className={`flex-1 rounded-full px-2.5 py-1 uppercase transition ${lang === l ? 'bg-brand-700 text-white' : 'text-slate-600'}`}
+                  className={`flex-1 rounded-full px-2.5 py-1 uppercase transition ${lang === l ? 'bg-brand-900 text-white' : 'text-slate-600'}`}
                 >
                   {l}
                 </button>
               ))}
             </div>
             {guest ? (
-              <div className="space-y-2 rounded-2xl bg-slate-50 p-3">
+              <div className="space-y-2 rounded-2xl bg-paper p-3">
                 <p className="text-sm text-slate-600">{tx.guest.sidebar}</p>
                 <Link to="/register" state={back} className="btn-primary w-full !py-2 text-sm">
                   {tx.guest.signUp}
@@ -136,7 +136,7 @@ export default function AppLayout() {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+              <div className="flex items-center gap-3 rounded-2xl bg-paper p-3">
                 <Avatar profile={profile} />
                 <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
@@ -160,8 +160,8 @@ export default function AppLayout() {
 
         <div className="min-w-0 flex-1 pb-20 lg:pb-0">
           {/* mobile top bar */}
-          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
-            <Link to="/" className="flex items-center gap-2 font-extrabold text-slate-900">
+          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+            <Link to="/" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
               <Logo className="h-7 w-7" />
               {BRAND}
             </Link>
@@ -192,14 +192,14 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
 
-          <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:py-10">
+          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             <Outlet />
           </main>
         </div>
 
         {/* mobile bottom tabs */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
           style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
           aria-label="App"
         >
@@ -209,10 +209,12 @@ export default function AppLayout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${activeFor(item, isActive) ? 'text-brand-700' : 'text-slate-500'}`
+                `group flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${activeFor(item, isActive) ? 'active text-brand-900' : 'text-slate-500'}`
               }
             >
-              <item.Icon className="h-5 w-5" aria-hidden="true" />
+              <span className="flex h-7 w-12 items-center justify-center rounded-full group-[.active]:bg-brand-50">
+                <item.Icon className="h-5 w-5" aria-hidden="true" />
+              </span>
               <span className="max-w-full truncate px-1">{item.label}</span>
             </NavLink>
           ))}

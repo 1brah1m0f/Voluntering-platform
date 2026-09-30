@@ -4,7 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Instrument Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // Headings and big numbers.
+        display: ['"Bricolage Grotesque"', 'Georgia', 'serif'],
       },
       // Readability: the smallest sizes are a notch larger than Tailwind's defaults
       // (labels, chips and meta text were hard to read at 12px).
@@ -13,6 +15,10 @@ export default {
         sm: ['0.9375rem', { lineHeight: '1.4rem' }],
       },
       colors: {
+        // App ground, body text and hairlines of the "paper" look.
+        paper: '#f5f2ea',
+        ink: '#0f2a2e',
+        line: '#e4dfd3',
         // Secondary text in slate-400/500 was too faint; these are darker, still clearly "secondary".
         slate: {
           400: '#7d8a9e',

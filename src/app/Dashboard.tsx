@@ -8,23 +8,37 @@ import type { Profile, SavedSearch } from './types';
 import { prepProgress } from './checklist';
 import { useData } from './DataContext';
 import { useAppText } from './text';
-import { DeadlineChip, Notice, ProgramBadge, useDismissed } from './ui';
+import { DeadlineChip, Notice, useDismissed } from './ui';
 import { daysUntil } from './util';
 
-function Stat({ to, Icon, value, label, tone }: { to: string; Icon: LucideIcon; value: number; label: string; tone: string }) {
+/** One cell of the stats strip; `hot` tints the cell (e.g. deadlines this week). */
+function Stat({ to, Icon, value, label, tone, hot = false }: { to: string; Icon: LucideIcon; value: number; label: string; tone: string; hot?: boolean }) {
   return (
     <Link
       to={to}
-      className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:flex-row sm:items-center sm:gap-3 sm:p-4"
+      className={`flex flex-col gap-2 p-3.5 transition sm:flex-row sm:items-center sm:gap-3.5 sm:px-5 sm:py-4 ${hot ? 'bg-amber-50 hover:bg-amber-100/60' : 'bg-white hover:bg-paper'}`}
     >
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${tone}`}>
+      <span className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:flex ${tone}`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="min-w-0">
-        <span className="block text-2xl font-extrabold leading-none text-slate-900">{value}</span>
+        <span className={`block font-display text-3xl font-bold leading-none ${hot ? 'text-amber-800' : 'text-ink'}`}>{value}</span>
         <span className="mt-1 block text-sm font-medium leading-snug text-slate-600">{label}</span>
       </span>
     </Link>
+  );
+}
+
+/** Month + day stamp, dashed like a postmark; the colour follows how close the deadline is. */
+function DateStamp({ deadline }: { deadline: string }) {
+  const { tx } = useAppText();
+  const d = daysUntil(deadline);
+  const tone = d <= 3 ? 'border-coral-700 text-coral-700' : d <= 7 ? 'border-amber-600 text-amber-800' : 'border-slate-400 text-slate-600';
+  return (
+    <span className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl border-[1.5px] border-dashed leading-none ${tone}`} aria-hidden="true">
+      <span className="text-[0.6875rem] font-bold uppercase tracking-widest">{tx.calendar.months[Number(deadline.slice(5, 7)) - 1].slice(0, 3)}</span>
+      <span className="mt-0.5 font-display text-2xl font-extrabold">{Number(deadline.slice(8, 10))}</span>
+    </span>
   );
 }
 
@@ -84,16 +98,16 @@ export function Dashboard({
 
   return (
     <section aria-labelledby="dash-title">
-      <h1 id="dash-title" className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+      <h1 id="dash-title" className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">
         {tx.dash.hello(firstName)}
       </h1>
-      <p className="mt-1 text-slate-600">{tx.dash.sub(openCount, fits)}</p>
+      <p className="mt-2 text-slate-600 sm:text-lg">{tx.dash.sub(openCount, fits)}</p>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat to="/app/tracker" Icon={Bookmark} value={count('saved')} label={tx.dash.saved} tone="bg-coral-50 text-coral-600" />
+      <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4">
+        <Stat to="/app/tracker" Icon={Bookmark} value={count('saved')} label={tx.dash.saved} tone="bg-coral-50 text-coral-700" />
         <Stat to="/app/tracker" Icon={Send} value={count('applied')} label={tx.dash.applied} tone="bg-brand-50 text-brand-700" />
         <Stat to="/app/tracker" Icon={PartyPopper} value={count('accepted')} label={tx.dash.accepted} tone="bg-emerald-50 text-emerald-700" />
-        <Stat to="/app/tracker" Icon={AlarmClock} value={closing} label={tx.dash.closing} tone="bg-amber-50 text-amber-700" />
+        <Stat to="/app/tracker" Icon={AlarmClock} value={closing} label={tx.dash.closing} tone="bg-amber-100 text-amber-800" hot={closing > 0} />
       </div>
 
       {searches.length > 0 && (
@@ -104,7 +118,7 @@ export function Dashboard({
               const matches = applyFilters(published, readFilters(new URLSearchParams(s.params), interests), interests);
               const fresh = matches.filter((o) => new Date(o.created_at) > new Date(s.last_seen_at)).length;
               return (
-                <li key={s.id} className="flex items-center rounded-full border border-slate-200 bg-white shadow-sm">
+                <li key={s.id} className="flex items-center rounded-full border border-line bg-white">
                   <button
                     type="button"
                     onClick={() => openSearch(s)}
@@ -132,10 +146,10 @@ export function Dashboard({
       )}
 
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
-        <div className={`min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${showCompleteness ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+        <div className={`min-w-0 rounded-3xl border border-line bg-white p-5 sm:p-6 ${showCompleteness ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-bold text-slate-900">{tx.dash.upcoming}</h2>
+              <h2 className="text-xl font-bold">{tx.dash.upcoming}</h2>
               <p className="text-sm text-slate-500">{tx.dash.upcomingSub}</p>
             </div>
             {tracked.length > 0 && (
@@ -146,23 +160,22 @@ export function Dashboard({
             )}
           </div>
           {pending.length === 0 ? (
-            <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">{tx.dash.upcomingEmpty}</p>
+            <p className="mt-4 rounded-2xl bg-paper px-4 py-3 text-sm text-slate-600">{tx.dash.upcomingEmpty}</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-100">
+            <ul className="mt-4 divide-y divide-line/70">
               {pending.slice(0, 4).map(({ o, item }) => {
                 const prep = prepProgress(o, item.checklist);
                 return (
-                  <li key={o.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <span className="hidden sm:block">
-                      <ProgramBadge program={o.program} />
-                    </span>
+                  <li key={o.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 sm:gap-4">
+                    <DateStamp deadline={o.deadline} />
                     <div className="min-w-0 flex-1">
-                      <Link to={`/o/${o.id}`} className="block truncate font-semibold text-slate-900 hover:text-brand-700">
+                      <Link to={`/o/${o.id}`} className="block truncate font-bold text-ink hover:text-brand-700">
                         {o.title}
                       </Link>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
-                          <span className="block h-full rounded-full bg-brand-500" style={{ width: `${(prep.done / prep.total) * 100}%` }} />
+                      <p className="truncate text-sm text-slate-500">{[o.program, o.is_online ? tx.list.online : o.city || o.country].filter(Boolean).join(' · ')}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="h-1.5 w-24 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+                          <span className="block h-full rounded-full bg-brand-700" style={{ width: `${(prep.done / prep.total) * 100}%` }} />
                         </span>
                         <span className="text-xs font-medium text-slate-500">{tx.dash.prep(prep.done, prep.total)}</span>
                       </div>
@@ -216,7 +229,7 @@ function ProfileCompleteness({ profile, onClose }: { profile: Profile; onClose: 
   const { tx } = useAppText();
   const { percent, missing } = completeness(profile);
   return (
-    <div className="relative min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="relative min-w-0 rounded-3xl border border-line bg-white p-5 sm:p-6">
       <button
         type="button"
         onClick={onClose}
@@ -227,18 +240,18 @@ function ProfileCompleteness({ profile, onClose }: { profile: Profile; onClose: 
         <X className="h-4 w-4" aria-hidden="true" />
       </button>
       <div className="flex items-center gap-3 pr-6">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
           <UserRoundCheck className="h-5 w-5" aria-hidden="true" />
         </span>
-        <h2 className="font-bold text-slate-900">{tx.complete.title(percent)}</h2>
+        <h2 className="text-lg font-bold">{tx.complete.title(percent)}</h2>
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
-        <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-brand-600" style={{ width: `${percent}%` }} />
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+        <div className="h-full rounded-full bg-brand-700" style={{ width: `${percent}%` }} />
       </div>
       <p className="mt-3 text-sm text-slate-600">{tx.complete.sub}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {missing.map((k) => (
-          <span key={k} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+          <span key={k} className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-semibold text-slate-600">
             + {tx.complete.items[k]}
           </span>
         ))}

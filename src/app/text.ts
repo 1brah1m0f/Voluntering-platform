@@ -132,6 +132,10 @@ const az = {
     loadError: 'Məlumat yüklənmədi.',
     // roadmap
     progress: (d: number, t: number) => `${d}/${t} addım tamamlanıb`,
+    phaseDone: (d: number, t: number) => `${d}/${t} tamamlanıb`,
+    youAreHere: 'Buradasan',
+    nextUp: 'Növbəti addım',
+    allDone: 'Hamısı tamamlandı — uğurlar!',
     // filters
     allFields: 'Bütün ixtisaslar',
     allCountries: 'Bütün ölkələr',
@@ -631,6 +635,10 @@ const en: AppText = {
     lockGuest: 'Sign up for free first',
     loadError: 'Couldn’t load the data.',
     progress: (d: number, t: number) => `${d}/${t} steps done`,
+    phaseDone: (d: number, t: number) => `${d} of ${t} done`,
+    youAreHere: 'You are here',
+    nextUp: 'Next up',
+    allDone: 'All done — good luck!',
     allFields: 'All fields',
     allCountries: 'All countries',
     allLevels: 'All levels',

@@ -9,7 +9,7 @@ import { daysUntil } from './util';
 import type { Profile, Status } from './types';
 
 export const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200';
+  'w-full rounded-xl border border-line bg-paper/50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200';
 
 export function Spinner({ label }: { label?: string }) {
   return (
@@ -54,7 +54,7 @@ export function Chip({ on, onClick, children, title }: { on: boolean; onClick: (
       onClick={onClick}
       title={title}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-        on ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700'
+        on ? 'border-brand-700 bg-brand-700 text-white' : 'border-line bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700'
       }`}
     >
       {on && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -68,13 +68,13 @@ export function ProgramBadge({ program, size = 'md' }: { program: string; size?:
   const box = size === 'lg' ? 'h-16 w-24' : 'h-12 w-16';
   if (logo) {
     return (
-      <span className={`flex shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200 ${box}`}>
+      <span className={`flex shrink-0 items-center justify-center rounded-xl bg-white p-1.5 ring-1 ring-line ${box}`}>
         <img src={logo} alt="" className="max-h-full max-w-full object-contain" />
       </span>
     );
   }
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 text-sm font-extrabold text-white ${box}`}>
+    <span className={`flex shrink-0 items-center justify-center rounded-xl bg-brand-900 font-display text-sm font-extrabold text-white ${box}`}>
       {program.slice(0, 2).toUpperCase()}
     </span>
   );
@@ -136,10 +136,10 @@ export function SaveButton({ id, withLabel = false }: { id: string; withLabel?: 
       aria-pressed={on}
       aria-label={on ? tx.card.saved : tx.card.save}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition disabled:opacity-60 ${
-        on ? 'border-coral-200 bg-coral-50 text-coral-700' : 'border-slate-200 bg-white text-slate-600 hover:border-coral-200 hover:text-coral-700'
+        on ? 'border-coral-200 bg-coral-50 text-coral-800' : 'border-line bg-white text-slate-700 hover:border-coral-200 hover:text-coral-700'
       }`}
     >
-      <Bookmark className={`h-4 w-4 ${on ? 'fill-coral-500 text-coral-500' : ''}`} aria-hidden="true" />
+      <Bookmark className={`h-4 w-4 ${on ? 'fill-coral-700 text-coral-700' : ''}`} aria-hidden="true" />
       {withLabel && (on ? tx.card.saved : tx.card.save)}
     </button>
   );
@@ -160,7 +160,7 @@ export function Avatar({ profile, className = 'h-9 w-9 text-xs' }: { profile: Pi
     return <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBroken(url)} className={`shrink-0 rounded-full object-cover ${className}`} />;
   }
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-700 font-bold text-white ${className}`} aria-hidden="true">
+    <span className={`flex shrink-0 items-center justify-center rounded-full bg-brand-700 font-bold text-white ${className}`} aria-hidden="true">
       {initials}
     </span>
   );
@@ -202,7 +202,7 @@ export function useDismissed(key: string): [boolean, () => void] {
 
 const noticeTones = {
   brand: { box: 'border-brand-100 bg-brand-50/70', icon: 'bg-white text-brand-700', text: 'text-brand-950' },
-  violet: { box: 'border-violet-200 bg-violet-50/70', icon: 'bg-white text-violet-700', text: 'text-violet-950' },
+  violet: { box: 'border-coral-100 bg-coral-50/70', icon: 'bg-white text-coral-700', text: 'text-coral-900' },
   amber: { box: 'border-amber-200 bg-amber-50/70', icon: 'bg-white text-amber-600', text: 'text-amber-950' },
 };
 

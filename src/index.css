@@ -10,10 +10,9 @@
   }
   body {
     @apply bg-white font-sans text-base leading-relaxed text-slate-700 antialiased;
-    font-feature-settings: 'cv11', 'ss03'; /* Inter: open digits and a clearer "l" */
   }
   h1, h2, h3, h4 {
-    @apply text-slate-900;
+    @apply font-display text-ink;
   }
   :focus-visible {
     @apply outline-none ring-2 ring-coral-500 ring-offset-2;

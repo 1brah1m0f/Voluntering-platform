@@ -22,7 +22,8 @@ import { hasStudent } from '../plans';
 import { FIELDS, LEVELS, ROADMAP, ROADMAP_STEP_COUNT } from '../student/roadmap';
 import { useAppText } from '../text';
 import type { Scholarship, ShortlistItem, ShortlistStatus, StudyLevel, University } from '../types';
-import { Chip, DeadlineChip, ErrorState, Spinner, inputClass } from '../ui';
+import { Chip, ErrorState, Spinner, inputClass } from '../ui';
+import { daysUntil, formatDate } from '../util';
 
 type Tab = 'roadmap' | 'scholarships' | 'universities' | 'planner';
 const TABS: { id: Tab; Icon: typeof MapIcon }[] = [
@@ -47,7 +48,7 @@ function yearlyCost(u: University): number | null {
  * database (RLS): other plans see a preview and an upgrade card.
  */
 export default function StudentPage() {
-  const { tx } = useAppText();
+  const { tx, lang } = useAppText();
   const { profile } = useAuth();
   const [params, setParams] = useSearchParams();
   const tabParam = params.get('tab') as Tab | null;
@@ -79,6 +80,10 @@ export default function StudentPage() {
 
   if (!allowed) return <StudentPaywall />;
 
+  const done = profile?.roadmap ?? [];
+  const steps = ROADMAP[lang].flatMap((p) => p.steps);
+  const nextStep = steps.find((st) => !done.includes(st.id));
+
   const shortlistOps = {
     add: async (id: string) => {
       setShortlist((cur) => (cur.some((x) => x.university_id === id) ? cur : [...cur, { university_id: id, status: 'planning' }]));
@@ -96,17 +101,41 @@ export default function StudentPage() {
 
   return (
     <div>
-      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-violet-700 to-brand-800 p-6 text-white shadow-soft sm:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-coral-400/25 blur-3xl" aria-hidden="true" />
-        <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-violet-100">
-          <GraduationCap className="h-4 w-4" aria-hidden="true" />
-          Openly {tx.student.title}
-        </p>
-        <h1 className="relative mt-2 text-2xl font-extrabold tracking-tight !text-white sm:text-3xl">{tx.student.hubTitle}</h1>
-        <p className="relative mt-1 max-w-2xl text-violet-100">{tx.student.hubSub}</p>
+      <header className="relative overflow-hidden rounded-[1.75rem] bg-brand-900 p-6 text-white sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
+        {/* The sun and ring from the logo. Decorative. */}
+        <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
+        <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-[22px] border-brand-800" aria-hidden="true" />
+        <div className="relative max-w-xl">
+          <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-200">
+            <GraduationCap className="h-4 w-4" aria-hidden="true" />
+            Openly {tx.student.title}
+          </p>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl">{tx.student.hubTitle}</h1>
+          <p className="mt-2 leading-relaxed text-brand-100 sm:text-lg">{tx.student.hubSub}</p>
+        </div>
+        <div className="relative mt-6 rounded-2xl border border-brand-700 bg-brand-800 p-4 sm:p-5 lg:mt-0 lg:w-96 lg:shrink-0">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="font-bold text-white">{tx.student.progress(done.length, ROADMAP_STEP_COUNT)}</p>
+            <p className="font-display text-2xl font-extrabold text-coral-200">{Math.round((done.length / ROADMAP_STEP_COUNT) * 100)}%</p>
+          </div>
+          <div className="mt-3 grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-hidden="true">
+            {steps.map((st) => (
+              <span key={st.id} className={`h-2 rounded-full transition-colors ${done.includes(st.id) ? 'bg-coral-200' : 'bg-brand-700'}`} />
+            ))}
+          </div>
+          <p className="mt-3 text-sm text-brand-100">
+            {nextStep ? (
+              <>
+                {tx.student.nextUp}: <strong className="text-white">{nextStep.title}</strong>
+              </>
+            ) : (
+              tx.student.allDone
+            )}
+          </p>
+        </div>
       </header>
 
-      <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+      <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-full bg-white p-1 ring-1 ring-line">
         {TABS.map(({ id, Icon }) => (
           <button
             key={id}
@@ -114,8 +143,8 @@ export default function StudentPage() {
             role="tab"
             aria-selected={tab === id}
             onClick={() => setParams(id === 'roadmap' ? {} : { tab: id }, { replace: true })}
-            className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition ${
-              tab === id ? 'bg-violet-700 text-white' : 'text-slate-600 hover:text-slate-900'
+            className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-semibold transition ${
+              tab === id ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'
             }`}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
@@ -124,7 +153,7 @@ export default function StudentPage() {
         ))}
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         {tab === 'roadmap' ? (
           <RoadmapTab />
         ) : error ? (
@@ -155,15 +184,15 @@ function StudentPaywall() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-violet-700 to-brand-800 p-6 text-white shadow-soft sm:p-10">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-coral-400/25 blur-3xl" aria-hidden="true" />
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-brand-900 p-6 text-white sm:p-10">
+        <span className="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-coral-500/90" aria-hidden="true" />
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-bold">
             <GraduationCap className="h-4 w-4" aria-hidden="true" />
             {tx.student.badge}
           </span>
           <h1 className="mt-4 text-balance text-2xl font-extrabold leading-tight tracking-tight !text-white sm:text-4xl">{tx.student.lockTitle}</h1>
-          <p className="mt-3 max-w-xl leading-relaxed text-violet-100">{tx.student.lockSub}</p>
+          <p className="mt-3 max-w-xl leading-relaxed text-brand-100">{tx.student.lockSub}</p>
           <ul className="mt-6 space-y-2.5">
             {tx.student.lockItems(counts.scholarships, counts.universities).map((item) => (
               <li key={item} className="flex items-start gap-2.5">
@@ -175,14 +204,14 @@ function StudentPaywall() {
           <div className="mt-8 flex flex-col items-start gap-2">
             {userId ? (
               <>
-                <button type="button" disabled className="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-violet-800 opacity-90">
+                <button type="button" disabled className="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-brand-800 opacity-90">
                   <Crown className="h-5 w-5 text-amber-500" aria-hidden="true" />
                   {tx.student.lockCta}
                 </button>
-                <p className="text-sm text-violet-100">{tx.student.lockNote}</p>
+                <p className="text-sm text-brand-100">{tx.student.lockNote}</p>
               </>
             ) : (
-              <Link to="/register" state={{ from: location.pathname }} className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-violet-800">
+              <Link to="/register" state={{ from: location.pathname }} className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-brand-800">
                 {tx.student.lockGuest}
               </Link>
             )}
@@ -191,11 +220,11 @@ function StudentPaywall() {
       </div>
 
       {/* Preview: the roadmap's shape, without the content. */}
-      <div className="relative mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm" aria-hidden="true">
+      <div className="relative mt-6 overflow-hidden rounded-3xl border border-line bg-white p-6" aria-hidden="true">
         <div className="space-y-4 blur-[3px]">
           {ROADMAP[lang].map((phase) => (
             <div key={phase.when} className="flex items-center gap-4">
-              <span className="w-32 shrink-0 text-sm font-bold text-violet-700">{phase.when}</span>
+              <span className="w-32 shrink-0 text-sm font-bold text-brand-700">{phase.when}</span>
               <span className="h-3 flex-1 rounded-full bg-slate-200" />
               <span className="h-3 w-16 rounded-full bg-slate-100" />
             </div>
@@ -203,7 +232,7 @@ function StudentPaywall() {
         </div>
         <div className="absolute inset-0 flex items-center justify-center bg-white/40">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-card">
-            <Lock className="h-5 w-5 text-violet-700" />
+            <Lock className="h-5 w-5 text-brand-700" />
           </span>
         </div>
       </div>
@@ -215,7 +244,9 @@ function RoadmapTab() {
   const { tx, lang } = useAppText();
   const { profile, setProfile } = useAuth();
   const done = profile?.roadmap ?? [];
-  const count = done.length;
+  const phases = ROADMAP[lang];
+  // The first phase with unticked steps is where the user is now.
+  const current = phases.findIndex((p) => p.steps.some((st) => !done.includes(st.id)));
 
   const toggle = async (id: string) => {
     if (!profile) return;
@@ -231,47 +262,51 @@ function RoadmapTab() {
   };
 
   return (
-    <div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <p className="flex items-center gap-2 font-bold text-slate-900">
-            <ListChecks className="h-5 w-5 text-violet-600" aria-hidden="true" />
-            {tx.student.progress(count, ROADMAP_STEP_COUNT)}
-          </p>
-          <span className="text-sm font-bold text-violet-700">{Math.round((count / ROADMAP_STEP_COUNT) * 100)}%</span>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-brand-600 transition-all" style={{ width: `${(count / ROADMAP_STEP_COUNT) * 100}%` }} />
-        </div>
-      </div>
-
-      <ol className="relative mt-6 space-y-6 border-l-2 border-violet-100 pl-6 sm:pl-8">
-        {ROADMAP[lang].map((phase, pi) => (
-          <li key={phase.when} className="relative">
-            <span className="absolute -left-[2.1rem] top-0 flex h-8 w-8 items-center justify-center rounded-full bg-violet-700 text-sm font-bold text-white ring-4 ring-slate-50 sm:-left-[2.6rem]">
-              {pi + 1}
-            </span>
-            <p className="text-sm font-bold uppercase tracking-wide text-violet-700">{phase.when}</p>
-            <h2 className="text-xl font-extrabold">{phase.title}</h2>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              {phase.steps.map((step) => {
-                const on = done.includes(step.id);
-                return (
-                  <label
-                    key={step.id}
-                    className={`flex cursor-pointer gap-3 rounded-2xl border bg-white p-4 shadow-sm transition ${on ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 hover:border-violet-200'}`}
-                  >
-                    <input type="checkbox" checked={on} onChange={() => toggle(step.id)} className="mt-1 h-5 w-5 shrink-0 accent-violet-600" />
-                    <span>
-                      <span className={`block font-bold ${on ? 'text-slate-500 line-through' : 'text-slate-900'}`}>{step.title}</span>
-                      <span className="mt-1 block text-sm leading-relaxed text-slate-600">{step.text}</span>
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </li>
-        ))}
+    <div className="relative">
+      {/* Desktop: the four phases read left to right along a dashed timeline. */}
+      <span className="pointer-events-none absolute inset-x-6 top-[1.3rem] hidden border-t-2 border-dashed border-line lg:block" aria-hidden="true" />
+      <ol className="relative grid gap-10 lg:grid-cols-4 lg:gap-5">
+        {phases.map((phase, pi) => {
+          const n = phase.steps.filter((st) => done.includes(st.id)).length;
+          const state = n === phase.steps.length ? 'done' : pi === current ? 'current' : 'future';
+          return (
+            <li key={phase.when} className="flex flex-col gap-4">
+              <div className="flex h-11 items-center gap-2.5">
+                <span
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-extrabold ring-[6px] ring-paper ${
+                    state === 'done' ? 'bg-brand-700 text-white' : state === 'current' ? 'bg-coral-700 text-white' : 'border-2 border-slate-300 bg-white text-slate-600'
+                  }`}
+                >
+                  {state === 'done' ? <Check className="h-5 w-5" strokeWidth={2.6} aria-hidden="true" /> : pi + 1}
+                </span>
+                {state === 'current' && <span className="rounded-full bg-coral-50 px-2.5 py-1 text-xs font-bold text-coral-800">{tx.student.youAreHere}</span>}
+              </div>
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-brand-700">{phase.when}</p>
+                <h2 className="mt-1 text-2xl font-extrabold leading-tight">{phase.title}</h2>
+                <p className="mt-1 text-sm text-slate-500">{tx.student.phaseDone(n, phase.steps.length)}</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                {phase.steps.map((step) => {
+                  const on = done.includes(step.id);
+                  return (
+                    <label
+                      key={step.id}
+                      className={`flex cursor-pointer gap-3 rounded-2xl border p-4 transition ${on ? 'border-brand-100 bg-brand-50/60' : 'border-line bg-white hover:border-brand-200'}`}
+                    >
+                      <input type="checkbox" checked={on} onChange={() => toggle(step.id)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-700" />
+                      <span>
+                        <span className={`block font-bold leading-snug ${on ? 'text-slate-500 line-through decoration-slate-400' : 'text-ink'}`}>{step.title}</span>
+                        {/* Ticked steps fold down to their title. */}
+                        {!on && <span className="mt-1.5 block text-sm leading-relaxed text-slate-600">{step.text}</span>}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
@@ -313,7 +348,7 @@ function Expandable({ children }: { children: ReactNode }) {
   return (
     <div className="mt-3">
       {open && <div className="space-y-3 border-t border-slate-100 pt-3 text-sm leading-relaxed text-slate-700">{children}</div>}
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-violet-700 hover:underline">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
         {open ? tx.student.less : tx.student.more}
         <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
@@ -332,44 +367,58 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
 
 function ScholarshipCard({ s }: { s: Scholarship }) {
   const { tx, lang } = useAppText();
+  const d = s.deadline ? daysUntil(s.deadline) : null;
+  const soon = d !== null && d >= 0 && d <= 14;
   return (
-    <article className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
+    <article className="rounded-3xl border border-line bg-white p-5 sm:p-7">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-violet-700">{s.country}</p>
-          <h3 className="mt-0.5 font-bold leading-snug text-slate-900">{s.name}</h3>
-          <p className="text-sm text-slate-500">{s.provider}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-700">
+            {s.country} · {s.provider}
+          </p>
+          <h3 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">{s.name}</h3>
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {s.levels.map((l) => (
+              <span key={l} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-900">
+                {LEVELS[l]?.[lang] ?? l}
+              </span>
+            ))}
+          </div>
         </div>
-        {s.deadline && <DeadlineChip deadline={s.deadline} />}
+        {s.deadline && d !== null && (
+          // Deadline "stamp"; tilted and coral when it closes within two weeks.
+          <div className={`shrink-0 self-start rounded-2xl border-2 border-dashed px-4 py-3 text-center sm:w-48 ${soon ? '-rotate-2 border-coral-700 text-coral-800' : 'border-slate-300 text-slate-600'}`}>
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em]">{tx.student.deadline}</p>
+            <p className="mt-0.5 font-display text-2xl font-extrabold leading-tight">{formatDate(s.deadline, lang)}</p>
+            <p className="text-xs font-bold">{tx.daysLeft(d)}</p>
+          </div>
+        )}
       </div>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {s.levels.map((l) => (
-          <span key={l} className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-800">
-            {LEVELS[l]?.[lang] ?? l}
-          </span>
-        ))}
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-slate-700">{s.coverage}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-800">
-        {tx.student.deadline}: <span className="font-normal text-slate-600">{s.deadline_note}</span>
-      </p>
-      <Expandable>
+      <div className="mt-5 grid gap-5 border-t border-line/70 pt-5 text-sm leading-relaxed text-slate-700 lg:grid-cols-3">
+        <Detail label={tx.student.coverage}>{s.coverage}</Detail>
         <Detail label={tx.student.eligibility}>{s.eligibility}</Detail>
         <Detail label={tx.student.howToApply}>{s.how_to_apply}</Detail>
-        <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-bold text-brand-700 hover:underline">
+      </div>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a href={s.url} target="_blank" rel="noopener noreferrer" className={`${soon ? 'btn-primary' : 'btn-secondary'} shrink-0 !py-2.5 text-sm`}>
           {tx.student.officialPage}
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </a>
-      </Expandable>
+        <p className="text-sm text-slate-500">
+          <span className="font-semibold text-slate-700">{tx.student.deadline}:</span> {s.deadline_note}
+        </p>
+      </div>
     </article>
   );
 }
 
 function ScholarshipsTab({ items }: { items: Scholarship[] }) {
-  const { tx } = useAppText();
+  const { tx, lang } = useAppText();
   const [level, setLevel] = useState<StudyLevel | ''>('');
   const [field, setField] = useState('');
   const shown = items.filter((s) => (!level || s.levels.includes(level)) && (!field || s.fields.length === 0 || s.fields.includes(field)));
+  // Side list: known upcoming dates first (soonest on top), then the ones with only a note.
+  const ahead = [...shown.filter((s) => s.deadline && daysUntil(s.deadline) >= 0).sort((a, b) => a.deadline!.localeCompare(b.deadline!)), ...shown.filter((s) => !s.deadline)];
   return (
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -377,12 +426,35 @@ function ScholarshipsTab({ items }: { items: Scholarship[] }) {
         <FieldSelect value={field} onChange={setField} label={tx.student.allFields} />
       </div>
       {shown.length === 0 ? (
-        <p className="mt-6 rounded-3xl border border-dashed border-slate-300 py-12 text-center text-slate-500">{tx.student.noResults}</p>
+        <p className="mt-6 rounded-3xl border border-dashed border-line py-12 text-center text-slate-500">{tx.student.noResults}</p>
       ) : (
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {shown.map((s) => (
-            <ScholarshipCard key={s.id} s={s} />
-          ))}
+        <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
+          <div className="grid gap-4">
+            {shown.map((s) => (
+              <ScholarshipCard key={s.id} s={s} />
+            ))}
+          </div>
+          <aside className="hidden rounded-3xl border border-line bg-white p-5 lg:sticky lg:top-6 lg:block">
+            <h2 className="text-lg font-bold">{tx.dash.upcoming}</h2>
+            <ol className="mt-4 space-y-4 border-l-2 border-line pl-4">
+              {ahead.map((s) => {
+                const d = s.deadline ? daysUntil(s.deadline) : null;
+                const soon = d !== null && d <= 14;
+                return (
+                  <li key={s.id} className="relative">
+                    <span
+                      className={`absolute -left-[1.4rem] top-1 h-3 w-3 rounded-full ring-[3px] ring-white ${soon ? 'bg-coral-700' : 'border-2 border-slate-400 bg-white'}`}
+                      aria-hidden="true"
+                    />
+                    <p className={`text-xs font-bold ${soon ? 'text-coral-800' : 'text-slate-500'}`}>
+                      {s.deadline && d !== null ? `${formatDate(s.deadline, lang)} · ${tx.daysLeft(d)}` : <span className="line-clamp-2 font-medium">{s.deadline_note}</span>}
+                    </p>
+                    <p className="mt-0.5 text-sm font-bold text-ink">{s.name}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </aside>
         </div>
       )}
       <p className="mt-6 text-center text-xs text-slate-500">{tx.student.disclaimer}</p>
@@ -400,7 +472,7 @@ function UniversityCard({ u, onList, onAdd, extra }: { u: University; onList: bo
         : tx.student.unknown;
   const fee = u.app_fee_eur === null ? tx.student.unknown : u.app_fee_eur === 0 ? tx.student.free : `~${eur(u.app_fee_eur)}`;
   return (
-    <article className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="flex flex-col rounded-3xl border border-line bg-white p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-wide text-brand-700">
@@ -415,7 +487,7 @@ function UniversityCard({ u, onList, onAdd, extra }: { u: University; onList: bo
           onClick={onAdd}
           disabled={onList}
           className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition ${
-            onList ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-800 hover:bg-violet-100'
+            onList ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
           }`}
         >
           {onList ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -499,7 +571,7 @@ function UniversitiesTab({ items, shortlist, onAdd }: { items: University[]; sho
         </div>
       </div>
       {shown.length === 0 ? (
-        <p className="mt-6 rounded-3xl border border-dashed border-slate-300 py-12 text-center text-slate-500">{tx.student.noResults}</p>
+        <p className="mt-6 rounded-3xl border border-dashed border-line py-12 text-center text-slate-500">{tx.student.noResults}</p>
       ) : (
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {shown.map((u) => (
@@ -543,9 +615,9 @@ function PlannerTab({
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-3xl border border-line bg-white p-5">
           <h2 className="flex items-center gap-2 text-lg font-extrabold">
-            <Calculator className="h-5 w-5 text-violet-600" aria-hidden="true" />
+            <Calculator className="h-5 w-5 text-brand-600" aria-hidden="true" />
             {tx.student.plannerTitle}
           </h2>
           <p className="mt-1 text-sm text-slate-600">{tx.student.plannerSub}</p>
@@ -577,15 +649,15 @@ function PlannerTab({
               </select>
             </label>
             <label className="block text-sm font-semibold text-slate-800">
-              {tx.student.budget}: <span className="text-violet-700">{eur(budget)}</span>
-              <input type="range" min={2000} max={45000} step={1000} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="mt-3 w-full accent-violet-600" />
+              {tx.student.budget}: <span className="text-brand-700">{eur(budget)}</span>
+              <input type="range" min={2000} max={45000} step={1000} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="mt-3 w-full accent-brand-700" />
             </label>
           </div>
         </section>
 
         <h3 className="mt-6 text-lg font-extrabold">{tx.student.matchesTitle(matches.length)}</h3>
         {matches.length === 0 ? (
-          <p className="mt-3 rounded-3xl border border-dashed border-slate-300 py-10 text-center text-slate-500">{tx.student.noResults}</p>
+          <p className="mt-3 rounded-3xl border border-dashed border-line py-10 text-center text-slate-500">{tx.student.noResults}</p>
         ) : (
           <div className="mt-3 grid gap-4">
             {matches.map(({ u, cost }) => {
@@ -618,13 +690,13 @@ function PlannerTab({
       </div>
 
       <aside className="space-y-6">
-        <section className="rounded-3xl border border-violet-200 bg-violet-50/50 p-5">
-          <h3 className="flex items-center gap-2 font-extrabold text-violet-950">
+        <section className="rounded-3xl border border-brand-200 bg-brand-50/50 p-5">
+          <h3 className="flex items-center gap-2 font-extrabold text-brand-950">
             <ListChecks className="h-5 w-5" aria-hidden="true" />
             {tx.student.shortlistTitle}
           </h3>
           {listed.length === 0 ? (
-            <p className="mt-2 text-sm text-violet-900/80">{tx.student.shortlistEmpty}</p>
+            <p className="mt-2 text-sm text-brand-900/80">{tx.student.shortlistEmpty}</p>
           ) : (
             <>
               <ul className="mt-3 space-y-2">
@@ -653,13 +725,13 @@ function PlannerTab({
               </ul>
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between gap-2">
-                  <dt className="text-violet-900/80">{tx.student.feesTotal}</dt>
-                  <dd className="font-bold text-violet-950">~{eur(feesTotal)}</dd>
+                  <dt className="text-brand-900/80">{tx.student.feesTotal}</dt>
+                  <dd className="font-bold text-brand-950">~{eur(feesTotal)}</dd>
                 </div>
                 {costs.length > 0 && (
                   <div className="flex justify-between gap-2">
-                    <dt className="text-violet-900/80">{tx.student.firstYear}</dt>
-                    <dd className="font-bold text-violet-950">
+                    <dt className="text-brand-900/80">{tx.student.firstYear}</dt>
+                    <dd className="font-bold text-brand-950">
                       {Math.min(...costs) === Math.max(...costs) ? `~${eur(costs[0])}` : `~${eur(Math.min(...costs))} – ${eur(Math.max(...costs))}`}
                     </dd>
                   </div>
@@ -671,7 +743,7 @@ function PlannerTab({
 
         <section>
           <h3 className="flex items-center gap-2 font-extrabold">
-            <Coins className="h-5 w-5 text-violet-600" aria-hidden="true" />
+            <Coins className="h-5 w-5 text-brand-600" aria-hidden="true" />
             {tx.student.scholarshipsFor}
           </h3>
           <ul className="mt-3 space-y-2">

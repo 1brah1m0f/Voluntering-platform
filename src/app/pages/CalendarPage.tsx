@@ -59,8 +59,8 @@ export default function CalendarPage() {
         key={o.id}
         to={`/o/${o.id}`}
         title={o.title}
-        className={`flex items-center gap-1 truncate rounded-lg px-1.5 py-0.5 text-xs font-semibold transition ${
-          mine ? 'bg-coral-100 text-coral-800 hover:bg-coral-200' : 'bg-brand-50 text-brand-800 hover:bg-brand-100'
+        className={`flex items-center gap-1 truncate rounded-lg px-2 py-1 text-xs font-bold transition ${
+          mine ? 'bg-coral-50 text-coral-800 hover:bg-coral-100' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'
         }`}
       >
         {mine && <Bookmark className="h-3 w-3 shrink-0 fill-current" aria-hidden="true" />}
@@ -71,29 +71,33 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.calendar.title}</h1>
-      <p className="mt-1 text-slate-600">{tx.calendar.sub}</p>
-
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
-          <button type="button" onClick={() => shift(-1)} aria-label={tx.calendar.prev} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
-            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <p className="min-w-[9.5rem] text-center font-bold text-slate-900" aria-live="polite">
-            {tx.calendar.months[month.m]} {month.y}
-          </p>
-          <button type="button" onClick={() => shift(1)} aria-label={tx.calendar.next} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
-            <ChevronRight className="h-5 w-5" aria-hidden="true" />
-          </button>
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.calendar.title}</h1>
+          <p className="mt-2 text-slate-600 sm:text-lg">{tx.calendar.sub}</p>
         </div>
-        <button type="button" onClick={() => setMonth({ y: now.getFullYear(), m: now.getMonth() })} className="btn-secondary !px-4 !py-1.5 text-sm">
-          {tx.calendar.today}
-        </button>
-        {userId && (
-          <Chip on={onlyMine} onClick={() => setOnlyMine((v) => !v)}>
-            {tx.calendar.onlyMine}
-          </Chip>
-        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-full bg-white p-1 ring-1 ring-line">
+            <button type="button" onClick={() => shift(-1)} aria-label={tx.calendar.prev} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <p className="min-w-[9.5rem] text-center font-display text-lg font-bold text-ink" aria-live="polite">
+              {tx.calendar.months[month.m]} {month.y}
+            </p>
+            <button type="button" onClick={() => shift(1)} aria-label={tx.calendar.next} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+          <button type="button" onClick={() => setMonth({ y: now.getFullYear(), m: now.getMonth() })} className="btn-secondary !px-4 !py-1.5 text-sm">
+            {tx.calendar.today}
+          </button>
+          {userId && (
+            <Chip on={onlyMine} onClick={() => setOnlyMine((v) => !v)}>
+              {tx.calendar.onlyMine}
+            </Chip>
+          )}
+        </div>
       </div>
 
       {nextDeadline && (
@@ -107,61 +111,74 @@ export default function CalendarPage() {
         </button>
       )}
 
-      {/* Month grid (tablets and up) */}
-      <div className="mt-5 hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:block">
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
-          {tx.calendar.weekdays.map((d) => (
-            <p key={d} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
-              {d}
-            </p>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {cells.map((d, i) => {
-            const key = d ? isoDay(month.y, month.m, d) : `empty-${i}`;
-            const items = d ? (byDay.get(key) ?? []) : [];
-            return (
-              <div key={key} className={`min-h-[6.5rem] border-b border-r border-slate-100 p-1.5 [&:nth-child(7n)]:border-r-0 ${d ? '' : 'bg-slate-50/60'}`}>
-                {d && (
-                  <>
-                    <p
-                      className={`mb-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${key === today ? 'bg-brand-700 text-white' : key < today ? 'text-slate-400' : 'text-slate-700'}`}
-                    >
-                      {d}
-                    </p>
-                    <div className="space-y-1">
-                      {items.slice(0, 3).map(pill)}
-                      {items.length > 3 && <p className="px-1.5 text-xs font-semibold text-slate-500">{tx.calendar.more(items.length - 3)}</p>}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Agenda (phones) */}
-      <div className="mt-5 sm:hidden">
-        {agenda.length === 0 ? (
-          <p className="rounded-3xl border border-dashed border-slate-300 py-10 text-center text-slate-500">{tx.calendar.empty}</p>
-        ) : (
-          <ol className="space-y-3">
-            {agenda.map(([day, items]) => (
-              <li key={day} className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                <span
-                  className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center leading-none ${day === today ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-800'}`}
-                >
-                  <span className="text-lg font-extrabold">{Number(day.slice(8))}</span>
-                  <span className="mt-0.5 text-[10px] font-bold uppercase">{tx.calendar.months[month.m].slice(0, 3)}</span>
-                </span>
-                <div className="min-w-0 flex-1 space-y-1">{items.map(pill)}</div>
-              </li>
+      <div className="mt-6 items-start gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem]">
+        {/* Month grid (tablets and up) */}
+        <div className="hidden overflow-hidden rounded-3xl border border-line bg-white sm:block">
+          <div className="grid grid-cols-7 border-b border-line bg-paper/60">
+            {tx.calendar.weekdays.map((d) => (
+              <p key={d} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
+                {d}
+              </p>
             ))}
-          </ol>
-        )}
+          </div>
+          <div className="grid grid-cols-7">
+            {cells.map((d, i) => {
+              const key = d ? isoDay(month.y, month.m, d) : `empty-${i}`;
+              const items = d ? (byDay.get(key) ?? []) : [];
+              return (
+                <div key={key} className={`min-h-[7.5rem] border-b border-r border-line/60 p-2 [&:nth-child(7n)]:border-r-0 ${d ? '' : 'bg-paper/50'}`}>
+                  {d && (
+                    <>
+                      <p
+                        className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${key === today ? 'bg-brand-900 text-white' : key < today ? 'font-medium text-slate-400' : 'text-ink'}`}
+                      >
+                        {d}
+                      </p>
+                      <div className="space-y-1">
+                        {items.slice(0, 3).map(pill)}
+                        {items.length > 3 && <p className="px-1.5 text-xs font-semibold text-slate-500">{tx.calendar.more(items.length - 3)}</p>}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Agenda: the whole view on phones, a side list next to the grid on large screens. */}
+        <div className="sm:hidden lg:block">
+          <h2 className="mb-3 hidden text-lg font-bold lg:block">
+            {tx.calendar.months[month.m]} {month.y}
+          </h2>
+          {agenda.length === 0 ? (
+            <p className="rounded-3xl border border-dashed border-line py-10 text-center text-slate-500 lg:py-6 lg:text-sm">{tx.calendar.empty}</p>
+          ) : (
+            <ol className="space-y-3 lg:space-y-2">
+              {agenda.map(([day, items]) => (
+                <li key={day} className="flex gap-3 rounded-2xl border border-line bg-white p-3">
+                  <span
+                    className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center leading-none ${day === today ? 'bg-brand-900 text-white' : 'bg-paper text-ink'}`}
+                  >
+                    <span className="font-display text-lg font-extrabold">{Number(day.slice(8))}</span>
+                    <span className="mt-0.5 text-[10px] font-bold uppercase">{tx.calendar.months[month.m].slice(0, 3)}</span>
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-1">{items.map(pill)}</div>
+                </li>
+              ))}
+            </ol>
+          )}
+          {userId && (
+            <div className="mt-4 hidden space-y-1.5 px-1 text-xs text-slate-600 lg:block">
+              <p className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded bg-coral-100 ring-1 ring-coral-200" aria-hidden="true" />
+                {tx.card.saved}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-      {agenda.length === 0 && <p className="mt-4 hidden text-center text-sm text-slate-500 sm:block">{tx.calendar.empty}</p>}
+      {agenda.length === 0 && <p className="mt-4 hidden text-center text-sm text-slate-500 sm:block lg:hidden">{tx.calendar.empty}</p>}
     </div>
   );
 }

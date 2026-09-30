@@ -16,7 +16,7 @@ import { hasPremium } from '../plans';
 
 function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
   const { tx } = useAppText();
-  const tone = score >= 80 ? 'bg-emerald-100 text-emerald-800' : score >= GOOD_MATCH ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600';
+  const tone = score >= 80 ? 'bg-emerald-50 text-emerald-800' : score >= GOOD_MATCH ? 'bg-brand-50 text-brand-900' : 'bg-paper text-slate-600';
   const why = reasons.map((r) => tx.list.matchReasons[r]).join(' · ');
   return (
     <span title={why} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${tone}`}>
@@ -31,14 +31,14 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
   const closed = daysUntil(o.deadline) < 0;
   return (
     <article
-      className={`group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-soft ${closed ? 'opacity-60' : ''}`}
+      className={`group relative flex flex-col rounded-[1.375rem] border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card ${closed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
         <ProgramBadge program={o.program} />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-brand-700">{o.program}</p>
-          <h3 className="mt-0.5 font-bold leading-snug text-slate-900">
-            <Link to={`/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-3xl focus:outline-none">
+          <h3 className="mt-0.5 text-lg font-bold leading-snug">
+            <Link to={`/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-[1.375rem] focus:outline-none">
               {o.title}
             </Link>
           </h3>
@@ -52,22 +52,22 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
         {!(o.is_online && o.kind === 'online') && <span>{KINDS[o.kind][lang]}</span>}
         {o.costs === 'full' && <span className="font-semibold text-emerald-700">{COSTS.full[lang]}</span>}
       </p>
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mb-4 mt-3 flex flex-wrap gap-1.5">
         {match && <MatchBadge score={match.score} reasons={match.reasons} />}
         {o.interests.slice(0, 3).map((i) => (
-          <span key={i} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+          <span key={i} className="rounded-full bg-paper px-2 py-0.5 text-xs font-medium text-slate-600">
             {INTERESTS[i as InterestId]?.[lang] ?? i}
           </span>
         ))}
         {!o.published && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">{tx.list.draft}</span>}
         {Date.now() - new Date(o.created_at).getTime() < PREMIUM_EARLY_HOURS * 3_600_000 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-100 to-coral-100 px-2 py-0.5 text-xs font-bold text-coral-800">
+          <span className="inline-flex items-center gap-1 rounded-full bg-coral-700 px-2 py-0.5 text-xs font-bold text-white">
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             {tx.list.newBadge}
           </span>
         )}
       </div>
-      <div className="relative z-10 mt-auto flex items-center justify-between gap-2 pt-4">
+      <div className="relative z-10 mt-auto flex items-center justify-between gap-2 border-t border-dashed border-line pt-3.5">
         <DeadlineChip deadline={o.deadline} />
         <SaveButton id={o.id} withLabel />
       </div>
@@ -233,7 +233,7 @@ export default function OpportunitiesPage() {
         <Dashboard openCount={openCount} fits={fits} searches={searches} setSearches={setSearches} />
       ) : (
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.list.title}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.list.title}</h1>
           <p className="text-slate-600">{tx.list.sub(openCount)}</p>
         </div>
       )}
@@ -241,13 +241,13 @@ export default function OpportunitiesPage() {
       {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
 
       {profile && (
-        <div className="mt-8 flex items-baseline justify-between gap-2">
-          <h2 className="text-xl font-extrabold tracking-tight">{tx.list.allTitle}</h2>
+        <div className="mt-10 flex items-baseline justify-between gap-2">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-[1.75rem]">{tx.list.allTitle}</h2>
           <p className="text-sm text-slate-500">{tx.list.sub(openCount)}</p>
         </div>
       )}
 
-      <div className="mt-4 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4">
         <div className="flex gap-2">
           <label className="relative block flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -374,14 +374,14 @@ export default function OpportunitiesPage() {
 
       {matches && results.length > 1 && (
         <div className="mt-5 flex justify-end">
-          <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm shadow-sm ring-1 ring-slate-200">
+          <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm ring-1 ring-line">
             {(['best', 'deadline'] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 aria-pressed={sort === k}
                 onClick={() => setParam('sort', k === 'deadline' ? 'deadline' : null)}
-                className={`rounded-full px-3 py-1 font-semibold transition ${sort === k ? 'bg-violet-600 text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`rounded-full px-3.5 py-1.5 font-semibold transition ${sort === k ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'}`}
               >
                 {k === 'best' ? tx.list.sortBest : tx.list.sortDeadline}
               </button>
@@ -391,9 +391,9 @@ export default function OpportunitiesPage() {
       )}
 
       {results.length === 0 ? (
-        <p className="mt-10 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">{tx.list.empty}</p>
+        <p className="mt-10 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {ordered.map((o) => (
             <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
           ))}
