@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, GraduationCap, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -46,6 +46,8 @@ export default function AppLayout() {
 
   type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string; badge?: string };
   const explore: NavItem[] = [
+    // The dashboard is a page of its own; /app is the search.
+    ...(guest ? [] : [{ to: '/app/home', end: false, label: tx.nav.home, Icon: House }]),
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
     { to: '/app/calendar', end: false, label: tx.nav.calendar, Icon: CalendarDays },
     { to: '/student', end: false, label: tx.nav.student, Icon: GraduationCap, badge: hasStudent(profile) ? undefined : '7 ₼' },
@@ -66,7 +68,8 @@ export default function AppLayout() {
   ].filter((g) => g.items.length);
   // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
   // Guides are linked from the dashboard; admin pages are for desktop.
-  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : [explore[0], explore[1], explore[2], ...mine.filter((i) => i.to !== '/admin')];
+  const pick = (...paths: string[]) => paths.flatMap((p) => [...explore, ...mine].filter((i) => i.to === p));
+  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : pick('/app/home', '/app', '/student', '/app/tracker', '/app/profile');
   const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
   const isPremium = isPaidPlan(profile?.plan);
 
@@ -192,7 +195,7 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
 
-          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+          <main className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-10 lg:py-10 ${location.pathname.startsWith('/student') ? 'max-w-7xl' : 'max-w-6xl'}`}>
             <Outlet />
           </main>
         </div>

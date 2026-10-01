@@ -62,7 +62,7 @@ export function ScholarshipsTab({
       {shown.length === 0 ? (
         <p className="mt-3 rounded-3xl border border-dashed border-line py-12 text-center text-slate-500">{tx.student.noResults}</p>
       ) : (
-        <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <div className="mt-3 grid gap-4">
           {shown.map((r) => (
             <ScholarshipCard key={r.s.id} row={r} saved={data.saved.some((x) => x.scholarship_id === r.s.id)} onSave={() => data.sch.toggle(r.s.id)} onOpen={() => onOpen(r.s.id)} />
           ))}
@@ -73,44 +73,54 @@ export function ScholarshipsTab({
   );
 }
 
-/** The facts that decide whether to read on: who, where, what it pays for, when, and whether it fits. */
+/**
+ * The facts that decide whether to read on. Large screens: one wide row in three
+ * parts (who and where · what it pays for · when and actions); phones: stacked.
+ */
 function ScholarshipCard({ row: { s, info, fit }, saved, onSave, onOpen }: { row: Row; saved: boolean; onSave: () => void; onOpen: () => void }) {
   const { tx, lang } = useAppText();
   return (
-    <article className="flex flex-col gap-3 rounded-[1.375rem] border border-line bg-white p-5 transition hover:border-brand-200">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider text-brand-700">{s.country}</p>
-          <h3 className="mt-1 text-xl font-bold leading-snug">
-            <button type="button" onClick={onOpen} className="text-left hover:text-brand-800">
-              {s.name}
-            </button>
-          </h3>
-          <p className="mt-0.5 text-sm text-slate-600">{s.provider}</p>
+    <article className="grid gap-5 rounded-[1.375rem] border border-line bg-white p-5 transition hover:border-brand-200 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_15rem] lg:gap-8">
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider text-brand-700">{s.country}</p>
+        <h3 className="mt-1 text-xl font-bold leading-snug sm:text-2xl">
+          <button type="button" onClick={onOpen} className="text-left hover:text-brand-800">
+            {s.name}
+          </button>
+        </h3>
+        <p className="mt-1 text-sm text-slate-600">{s.provider}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {s.levels.map((l) => (
+            <span key={l} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-900">
+              {LEVELS[l]?.[lang] ?? l}
+            </span>
+          ))}
+          {s.funding && (
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.funding === 'full' ? 'bg-emerald-50 text-emerald-800' : 'bg-paper text-slate-700'}`}>
+              {s.funding === 'full' ? tx.student.fullFunding : tx.student.partialFunding}
+            </span>
+          )}
         </div>
-        <SaveToggle on={saved} onClick={onSave} withLabel={false} />
       </div>
-      <div className="flex flex-wrap gap-1.5">
-        {s.levels.map((l) => (
-          <span key={l} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-900">
-            {LEVELS[l]?.[lang] ?? l}
-          </span>
-        ))}
-        {s.funding && (
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.funding === 'full' ? 'bg-emerald-50 text-emerald-800' : 'bg-paper text-slate-700'}`}>
-            {s.funding === 'full' ? tx.student.fullFunding : tx.student.partialFunding}
-          </span>
-        )}
+
+      <div className="min-w-0 lg:border-l lg:border-line lg:pl-8">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">{tx.student.coverage}</p>
+        {/* Rows loaded before the covers column existed fall back to the text. */}
+        {s.covers.length > 0 ? <CoverChips covers={s.covers} /> : <p className="line-clamp-3 text-sm leading-relaxed text-slate-700">{s.coverage}</p>}
       </div>
-      {/* Rows loaded before the covers column existed fall back to the text. */}
-      {s.covers.length > 0 ? <CoverChips covers={s.covers} /> : <p className="line-clamp-2 text-sm text-slate-700">{s.coverage}</p>}
-      <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-dashed border-line pt-3">
-        <DeadlineBadge info={info} />
-        <FitBadge fit={fit} />
-        <button type="button" onClick={onOpen} className="ml-auto inline-flex min-h-[2.75rem] items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900">
-          {tx.student.details}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+
+      <div className="flex flex-col gap-3 border-t border-dashed border-line pt-4 lg:border-l lg:border-t-0 lg:border-solid lg:pl-8 lg:pt-0">
+        <div className="flex flex-wrap gap-2">
+          <DeadlineBadge info={info} />
+          <FitBadge fit={fit} />
+        </div>
+        <div className="mt-auto flex items-center gap-2">
+          <button type="button" onClick={onOpen} className="btn-secondary flex-1 !px-4 !py-2.5 text-sm">
+            {tx.student.details}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <SaveToggle on={saved} onClick={onSave} withLabel={false} />
+        </div>
       </div>
     </article>
   );

@@ -13,6 +13,7 @@ const RegisterPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ d
 const ForgotPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ResetPasswordPage })));
 const OpportunitiesPage = lazy(() => import('./app/pages/OpportunitiesPage'));
+const HomePage = lazy(() => import('./app/pages/HomePage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
@@ -49,6 +50,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/guides/:slug" element={<GuidePage />} />
                 <Route path="/programs/:slug" element={<ProgramPage />} />
                 <Route element={<RequireAuth />}>
+                  <Route path="/app/home" element={<HomePage />} />
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />

@@ -445,7 +445,7 @@ Deno.serve(async (req) => {
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, interests, country, about, plan, is_admin, student_prefs")
+    .select("full_name, interests, country, about, plan, is_admin")
     .eq("id", user.id)
     .single();
   // Student (7 ₼) includes everything in Premium.
@@ -453,6 +453,10 @@ Deno.serve(async (req) => {
 
   if (STUDENT_ACTIONS.includes(body.action as string)) {
     if (profile.plan !== "student" && !profile.is_admin) return json({ error: "student_required" }, 403);
+    // Read on its own: if supabase/app.sql (Student section, v2) hasn't been run yet the
+    // column is missing, and the advisor still works without the preferences.
+    const { data: prefsRow } = await admin.from("profiles").select("student_prefs").eq("id", user.id).maybeSingle();
+    (profile as Row).student_prefs = (prefsRow as Row | null)?.student_prefs ?? {};
     const lang = (body.lang as Lang) === "en" ? "en" : "az";
     const target = body.target as { kind: "scholarship" | "university"; id: string } | undefined;
     const needsCatalogue = body.action === "student_plan" || body.action === "student_ask";

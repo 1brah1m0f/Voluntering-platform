@@ -68,7 +68,7 @@ export function UniversitiesTab({
       {shown.length === 0 ? (
         <p className="mt-3 rounded-3xl border border-dashed border-line py-12 text-center text-slate-500">{tx.student.noResults}</p>
       ) : (
-        <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <div className="mt-3 grid gap-4">
           {shown.map(({ u, fit }) => (
             <UniversityCard
               key={u.id}
@@ -139,69 +139,74 @@ function UniversityCard({
   const costText = useCostText();
   const fee = u.app_fee_eur === null ? '—' : u.app_fee_eur === 0 ? tx.student.free : `~${eur(u.app_fee_eur)}`;
   return (
-    <article className={`flex flex-col gap-3 rounded-[1.375rem] border bg-white p-5 transition ${comparing ? 'border-brand-400 ring-2 ring-brand-100' : 'border-line hover:border-brand-200'}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wider text-brand-700">{[u.city, u.country].filter(Boolean).join(', ')}</p>
-          <h3 className="mt-1 text-xl font-bold leading-snug">
-            <button type="button" onClick={onOpen} className="text-left hover:text-brand-800">
-              {u.name}
-            </button>
-          </h3>
-          <p className="mt-0.5 text-sm text-slate-600">{u.language}</p>
+    <article
+      className={`grid gap-5 rounded-[1.375rem] border bg-white p-5 transition sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] lg:gap-8 ${
+        comparing ? 'border-brand-400 ring-2 ring-brand-100' : 'border-line hover:border-brand-200'
+      }`}
+    >
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider text-brand-700">{[u.city, u.country].filter(Boolean).join(', ')}</p>
+        <h3 className="mt-1 text-xl font-bold leading-snug sm:text-2xl">
+          <button type="button" onClick={onOpen} className="text-left hover:text-brand-800">
+            {u.name}
+          </button>
+        </h3>
+        <p className="mt-1 text-sm text-slate-600">{u.language}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {u.fields.slice(0, 4).map((x) => (
+            <span key={x} className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              {FIELDS[x]?.[lang] ?? x}
+            </span>
+          ))}
+          {u.fields.length > 4 && <span className="px-1 text-xs font-medium text-slate-500">+{u.fields.length - 4}</span>}
         </div>
-        <label
-          className={`inline-flex min-h-[2.75rem] shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 text-sm font-semibold ${
-            comparing ? 'border-brand-300 bg-brand-50 text-brand-900' : 'border-line text-slate-700'
-          } ${!comparing && compareFull ? 'cursor-not-allowed opacity-60' : ''}`}
-          title={!comparing && compareFull ? tx.student.compareMax : undefined}
-        >
-          <input type="checkbox" checked={comparing} disabled={!comparing && compareFull} onChange={onCompare} className="h-4 w-4 accent-brand-700" />
-          {tx.student.compare}
-        </label>
       </div>
 
-      <dl className="grid grid-cols-3 gap-2 text-sm">
-        <div className="rounded-xl bg-paper p-2.5">
-          <dt className="text-xs font-semibold text-slate-500">{tx.student.yearCost}</dt>
+      <dl className="grid grid-cols-3 content-start gap-2 text-sm lg:grid-cols-1 lg:gap-3 lg:border-l lg:border-line lg:pl-8">
+        <div className="rounded-xl bg-paper p-2.5 lg:flex lg:items-baseline lg:justify-between lg:gap-3 lg:bg-transparent lg:p-0">
+          <dt className="text-xs font-semibold text-slate-500 lg:text-sm">{tx.student.yearCost}</dt>
           <dd className="font-bold text-ink">{costText(yearlyCostRange(u))}</dd>
         </div>
-        <div className="rounded-xl bg-paper p-2.5">
-          <dt className="text-xs font-semibold text-slate-500">{tx.student.appFee}</dt>
+        <div className="rounded-xl bg-paper p-2.5 lg:flex lg:items-baseline lg:justify-between lg:gap-3 lg:bg-transparent lg:p-0">
+          <dt className="text-xs font-semibold text-slate-500 lg:text-sm">{tx.student.appFee}</dt>
           <dd className="font-bold text-ink">{fee}</dd>
         </div>
-        <div className="rounded-xl bg-paper p-2.5">
-          <dt className="text-xs font-semibold text-slate-500">IELTS</dt>
+        <div className="rounded-xl bg-paper p-2.5 lg:flex lg:items-baseline lg:justify-between lg:gap-3 lg:bg-transparent lg:p-0">
+          <dt className="text-xs font-semibold text-slate-500 lg:text-sm">IELTS</dt>
           <dd className="font-bold text-ink">{u.min_ielts !== null ? `${u.min_ielts}+` : '—'}</dd>
         </div>
       </dl>
 
-      <div className="flex flex-wrap gap-1.5">
-        {u.fields.slice(0, 4).map((x) => (
-          <span key={x} className="rounded-full bg-paper px-2.5 py-0.5 text-xs font-medium text-slate-600">
-            {FIELDS[x]?.[lang] ?? x}
-          </span>
-        ))}
-        {u.fields.length > 4 && <span className="px-1 text-xs font-medium text-slate-500">+{u.fields.length - 4}</span>}
-      </div>
-
-      <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-dashed border-line pt-3">
-        <FitBadge fit={fit} minIelts={u.min_ielts} />
+      <div className="flex flex-col gap-3 border-t border-dashed border-line pt-4 lg:border-l lg:border-t-0 lg:border-solid lg:pl-8 lg:pt-0">
+        <div className="flex flex-wrap gap-2">
+          <FitBadge fit={fit} minIelts={u.min_ielts} />
+        </div>
         <button
           type="button"
           onClick={onList}
           disabled={listed}
-          className={`inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full px-3.5 text-sm font-bold transition ${
+          className={`inline-flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition ${
             listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'
           }`}
         >
           {listed ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
           {listed ? tx.student.inShortlist : tx.student.addShortlist}
         </button>
-        <button type="button" onClick={onOpen} className="ml-auto inline-flex min-h-[2.75rem] items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900">
-          {tx.student.details}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="mt-auto grid grid-cols-2 gap-2 lg:grid-cols-1">
+          <button type="button" onClick={onOpen} className="btn-secondary !px-4 !py-2.5 text-sm">
+            {tx.student.details}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <label
+            className={`inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold ${
+              comparing ? 'border-brand-300 bg-brand-50 text-brand-900' : 'border-line text-slate-700'
+            } ${!comparing && compareFull ? 'cursor-not-allowed opacity-60' : ''}`}
+            title={!comparing && compareFull ? tx.student.compareMax : undefined}
+          >
+            <input type="checkbox" checked={comparing} disabled={!comparing && compareFull} onChange={onCompare} className="h-4 w-4 accent-brand-700" />
+            {tx.student.compare}
+          </label>
+        </div>
       </div>
     </article>
   );

@@ -301,7 +301,6 @@ const az = {
   list: {
     title: 'Fürsətlər',
     allTitle: 'Bütün fürsətlər',
-    overview: 'Ümumi baxış',
     picked: 'Sənin üçün seçilmişlər',
     seeAll: 'Hamısına bax',
     filters: 'Filtrlər',
@@ -877,7 +876,6 @@ const en: AppText = {
   list: {
     title: 'Opportunities',
     allTitle: 'All opportunities',
-    overview: 'Overview',
     picked: 'Picked for you',
     seeAll: 'See all',
     filters: 'Filters',

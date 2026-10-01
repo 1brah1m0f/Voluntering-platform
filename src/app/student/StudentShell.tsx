@@ -104,43 +104,66 @@ export default function StudentPage() {
 
   return (
     <div>
-      <header className="relative overflow-hidden rounded-[1.75rem] bg-brand-900 p-6 text-white sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
-        {/* The sun and ring from the logo. Decorative. */}
-        <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
-        <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-[22px] border-brand-800" aria-hidden="true" />
-        <div className="relative max-w-xl">
-          <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-200">
-            <GraduationCap className="h-4 w-4" aria-hidden="true" />
-            Openly {tx.student.title}
-          </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl">{tx.student.hubTitle}</h1>
-          <p className="mt-2 leading-relaxed text-brand-100 sm:text-lg">{tx.student.hubSub}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => goTab('roadmap')}
-          className="relative mt-6 block w-full rounded-2xl border border-brand-700 bg-brand-800 p-4 text-left transition hover:border-brand-600 sm:p-5 lg:mt-0 lg:w-96 lg:shrink-0"
-        >
-          <span className="flex items-baseline justify-between gap-3">
-            <span className="font-bold text-white">{tx.student.progress(done.length, ROADMAP_STEP_COUNT)}</span>
-            <span className="font-display text-2xl font-extrabold text-coral-200">{Math.round((done.length / ROADMAP_STEP_COUNT) * 100)}%</span>
-          </span>
-          <span className="mt-3 grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-hidden="true">
-            {steps.map((st) => (
-              <span key={st.id} className={`h-2 rounded-full transition-colors ${done.includes(st.id) ? 'bg-coral-200' : 'bg-brand-700'}`} />
-            ))}
-          </span>
-          <span className="mt-3 block text-sm text-brand-100">
-            {nextStep ? (
-              <>
-                {tx.student.nextUp}: <strong className="text-white">{nextStep.title}</strong>
-              </>
-            ) : (
-              tx.student.allDone
-            )}
-          </span>
-        </button>
-      </header>
+      {tab === 'roadmap' ? (
+        <header className="relative overflow-hidden rounded-[1.75rem] bg-brand-900 p-6 text-white sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
+          {/* The sun and ring from the logo. Decorative. */}
+          <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
+          <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-[22px] border-brand-800" aria-hidden="true" />
+          <div className="relative max-w-xl">
+            <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-200">
+              <GraduationCap className="h-4 w-4" aria-hidden="true" />
+              Openly {tx.student.title}
+            </p>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl">{tx.student.hubTitle}</h1>
+            <p className="mt-2 leading-relaxed text-brand-100 sm:text-lg">{tx.student.hubSub}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => goTab('roadmap')}
+            className="relative mt-6 block w-full rounded-2xl border border-brand-700 bg-brand-800 p-4 text-left transition hover:border-brand-600 sm:p-5 lg:mt-0 lg:w-96 lg:shrink-0"
+          >
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="font-bold text-white">{tx.student.progress(done.length, ROADMAP_STEP_COUNT)}</span>
+              <span className="font-display text-2xl font-extrabold text-coral-200">{Math.round((done.length / ROADMAP_STEP_COUNT) * 100)}%</span>
+            </span>
+            <span className="mt-3 grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-hidden="true">
+              {steps.map((st) => (
+                <span key={st.id} className={`h-2 rounded-full transition-colors ${done.includes(st.id) ? 'bg-coral-200' : 'bg-brand-700'}`} />
+              ))}
+            </span>
+            <span className="mt-3 block text-sm text-brand-100">
+              {nextStep ? (
+                <>
+                  {tx.student.nextUp}: <strong className="text-white">{nextStep.title}</strong>
+                </>
+              ) : (
+                tx.student.allDone
+              )}
+            </span>
+          </button>
+        </header>
+      ) : (
+        // Other tabs keep the page for their content: a one-line title and the progress.
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
+              <GraduationCap className="h-4 w-4" aria-hidden="true" />
+              Openly {tx.student.title}
+            </p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{tx.student.tabs[tab]}</h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => goTab('roadmap')}
+            className="inline-flex items-center gap-3 rounded-full border border-line bg-white py-2 pl-4 pr-3 text-sm font-semibold text-slate-700 transition hover:border-brand-200"
+          >
+            {tx.student.progress(done.length, ROADMAP_STEP_COUNT)}
+            <span className="h-1.5 w-20 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+              <span className="block h-full rounded-full bg-brand-700" style={{ width: `${(done.length / ROADMAP_STEP_COUNT) * 100}%` }} />
+            </span>
+          </button>
+        </header>
+      )}
 
       <div role="tablist" aria-label={tx.student.hubTitle} className="-mx-4 mt-5 flex gap-1 overflow-x-auto bg-white p-1 ring-1 ring-line sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full">
         {TABS.map(({ id, Icon }) => (

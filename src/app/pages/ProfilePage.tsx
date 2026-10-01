@@ -57,7 +57,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       setProfile(updated);
       if (onboarding) {
         const next = params.get('next') ?? '';
-        navigate(next.startsWith('/') && !next.startsWith('//') ? next : '/app', { replace: true }); // same-site paths only
+        navigate(next.startsWith('/') && !next.startsWith('//') ? next : '/app/home', { replace: true }); // same-site paths only
       } else setMsg({ ok: true, text: tx.profile.saved });
     } catch (err) {
       console.error('[profile] save failed', err);

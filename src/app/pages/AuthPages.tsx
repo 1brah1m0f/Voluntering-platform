@@ -148,7 +148,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() => (oauthErrorInUrl() ? tx.auth.oauthError : null));
-  const from = (location.state as { from?: string } | null)?.from ?? '/app';
+  const from = (location.state as { from?: string } | null)?.from ?? '/app/home';
 
   if (!loading && userId) return <Navigate to={from} replace />;
 
@@ -496,7 +496,7 @@ export function ResetPasswordPage() {
   }
   return (
     <AuthLayout title={tx.auth.resetTitle} sub={tx.auth.resetSub}>
-      <NewPasswordForm submitLabel={tx.auth.savePassword} onDone={() => navigate('/app', { replace: true })} />
+      <NewPasswordForm submitLabel={tx.auth.savePassword} onDone={() => navigate('/app/home', { replace: true })} />
     </AuthLayout>
   );
 }

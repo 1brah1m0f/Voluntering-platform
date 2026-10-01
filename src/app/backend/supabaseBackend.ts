@@ -188,6 +188,11 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
             /* non-JSON error body */
           }
         }
+        // The live function predates this action (supabase/functions/ai needs a redeploy).
+        if (code === 'bad_request' && detail === 'bad action') {
+          console.warn('[ai] this action is missing on the server — redeploy supabase/functions/ai');
+          throw new BackendError('not_configured');
+        }
         if (code === 'premium_required' || code === 'student_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
         throw new BackendError('ai_unavailable', detail);
       }
