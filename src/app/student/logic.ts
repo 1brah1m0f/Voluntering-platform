@@ -117,3 +117,31 @@ export function matchesQuery(query: string, ...fields: string[]): boolean {
   const q = norm(query.trim());
   return !q || fields.some((f) => norm(f).includes(q));
 }
+
+/** A roadmap step the app can tick by itself, from what the student already did here. */
+export interface AutoStep {
+  met: boolean;
+  /** Counted steps, e.g. 3 of the 5 universities a shortlist needs. */
+  progress?: [number, number];
+}
+
+const SHORTLIST_TARGET = 5;
+
+export function autoSteps(input: { prefs: StudentPrefs; shortlist: { status: string }[]; saved: { status: string }[] }): Record<string, AutoStep> {
+  const statuses = [...input.shortlist, ...input.saved].map((x) => x.status);
+  const n = input.shortlist.length;
+  return {
+    goal: { met: !!(input.prefs.level && input.prefs.field) },
+    language: { met: !!input.prefs.ielts },
+    budget: { met: !!input.prefs.budget },
+    shortlist: { met: n >= SHORTLIST_TARGET, progress: [Math.min(n, SHORTLIST_TARGET), SHORTLIST_TARGET] },
+    scholarships: { met: input.saved.length > 0 },
+    submit: { met: statuses.some((s) => s === 'applied' || s === 'accepted') },
+    decide: { met: statuses.includes('accepted') },
+  };
+}
+
+/** Done steps: the ones ticked by hand, plus every automatic step that is met (automatic ones can't be ticked by hand). */
+export function roadmapDone(manual: string[], auto: Record<string, AutoStep>): string[] {
+  return [...manual.filter((id) => !(id in auto)), ...Object.keys(auto).filter((id) => auto[id].met)];
+}

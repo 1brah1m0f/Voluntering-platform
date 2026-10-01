@@ -188,7 +188,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
             /* non-JSON error body */
           }
         }
-        if (code === 'premium_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
+        if (code === 'premium_required' || code === 'student_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
         throw new BackendError('ai_unavailable', detail);
       }
       return data as { result: unknown; remaining: number };

@@ -67,7 +67,39 @@ export type AiRequest =
       /** Pasted / extracted text; ignored when a PDF `file` is attached. */
       text: string;
       file?: { name: string; mimeType: 'application/pdf'; data: string };
-    };
+    }
+  // Student plan: the AI advisor (uses the profile's student_prefs and the catalogue on the server).
+  | { action: 'student_plan'; lang: 'az' | 'en' }
+  | { action: 'student_ask'; lang: 'az' | 'en'; question: string }
+  | { action: 'student_fit'; lang: 'az' | 'en'; target: StudentTarget }
+  | { action: 'student_review'; lang: 'az' | 'en'; text: string; target?: StudentTarget };
+
+export interface StudentTarget {
+  kind: 'scholarship' | 'university';
+  id: string;
+}
+
+export interface AiStudentPlan {
+  summary: string;
+  scholarships: { id: string; why: string }[];
+  universities: { id: string; why: string }[];
+  next_steps: { when: string; action: string }[];
+  risks: string[];
+}
+
+export interface AiStudentAnswer {
+  answer: string;
+  related: StudentTarget[];
+  follow_up: string[];
+}
+
+export interface AiStudentFit {
+  verdict: 'likely' | 'maybe' | 'unlikely';
+  summary: string;
+  reasons: string[];
+  prepare: string[];
+  check: string[];
+}
 
 export interface AiQuestions {
   questions: { question: string; why: string }[];

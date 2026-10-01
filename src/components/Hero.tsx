@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { useLang } from '../i18n';
 import { Reveal } from './Section';
 
@@ -17,17 +17,8 @@ export default function Hero() {
     <section id="top" className="relative overflow-hidden bg-paper pb-16 pt-10 sm:pt-16 lg:pb-24">
       <div className="container-x relative grid items-center gap-14 lg:grid-cols-[1.1fr_1fr] lg:gap-10">
         <div className="text-center lg:text-left">
-          <Reveal delay={0}>
-            <p className="inline-flex items-center gap-2 rounded-full bg-coral-50 px-3.5 py-1.5 text-xs font-bold text-coral-800">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-coral-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-coral-700" />
-              </span>
-              {t.hero.badge}
-            </p>
-          </Reveal>
           <Reveal delay={100}>
-            <h1 className="mt-5 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[4rem]">
+            <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[4rem]">
               {t.hero.title1} <span className="text-coral-700">{t.hero.title2}</span>
             </h1>
           </Reveal>
@@ -47,14 +38,6 @@ export default function Hero() {
             </div>
           </Reveal>
 
-          <Reveal delay={400}>
-            <div className="mt-8 flex flex-col items-center gap-3 text-sm text-slate-700 sm:flex-row sm:justify-center sm:gap-5 lg:justify-start">
-              <span className="inline-flex max-w-xs items-center gap-1.5 text-left sm:max-w-none">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-brand-600" aria-hidden="true" />
-                {t.hero.trust}
-              </span>
-            </div>
-          </Reveal>
         </div>
 
         <Reveal variant="right" delay={200} className="hidden sm:block">

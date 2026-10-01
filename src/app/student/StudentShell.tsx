@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, GraduationCap, Landmark, Map as MapIcon, School, type LucideIcon } from 'lucide-react';
+import { Calculator, GraduationCap, Landmark, Map as MapIcon, School, Sparkles, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { hasStudent } from '../plans';
 import { useAppText } from '../text';
 import { ErrorState, Spinner } from '../ui';
+import { AiTab, type AiMode } from './AiTab';
 import { CompareSheet } from './CompareSheet';
 import { ScholarshipSheet, UniversitySheet } from './DetailSheet';
+import { autoSteps, roadmapDone } from './logic';
 import { Paywall } from './Paywall';
 import { PlanTab } from './PlanTab';
 import { RoadmapTab } from './RoadmapTab';
@@ -20,10 +22,11 @@ const TABS: { id: StudentTab; Icon: LucideIcon }[] = [
   { id: 'scholarships', Icon: Landmark },
   { id: 'universities', Icon: School },
   { id: 'plan', Icon: Calculator },
+  { id: 'ai', Icon: Sparkles },
 ];
 
 // Filters that belong to one list; switching tabs starts the next list clean.
-const LIST_PARAMS = ['q', 'level', 'field', 'country', 'open', 'fit', 'sort'];
+const LIST_PARAMS = ['q', 'level', 'field', 'country', 'open', 'fit', 'sort', 'mode'];
 
 /**
  * /student — the Student plan (7 ₼). State lives in the URL so links can be
@@ -89,7 +92,8 @@ export default function StudentPage() {
 
   if (!allowed) return <Paywall />;
 
-  const done = profile?.roadmap ?? [];
+  const auto = autoSteps({ prefs: data.prefs, shortlist: data.shortlist, saved: data.saved });
+  const done = roadmapDone(profile?.roadmap ?? [], auto);
   const steps = ROADMAP[lang].flatMap((p) => p.steps);
   const nextStep = steps.find((st) => !done.includes(st.id));
   const ready = !!data.scholarships && !!data.universities;
@@ -138,7 +142,7 @@ export default function StudentPage() {
         </button>
       </header>
 
-      <div role="tablist" aria-label={tx.student.hubTitle} className="mt-5 grid grid-cols-4 gap-1 rounded-2xl bg-white p-1 ring-1 ring-line sm:rounded-full">
+      <div role="tablist" aria-label={tx.student.hubTitle} className="-mx-4 mt-5 flex gap-1 overflow-x-auto bg-white p-1 ring-1 ring-line sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full">
         {TABS.map(({ id, Icon }) => (
           <button
             key={id}
@@ -146,19 +150,19 @@ export default function StudentPage() {
             role="tab"
             aria-selected={tab === id}
             onClick={() => goTab(id)}
-            className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-xs font-semibold transition sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3 sm:py-2.5 sm:text-sm ${
+            className={`flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2.5 text-sm font-semibold transition sm:min-w-0 sm:px-3 ${
               tab === id ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'
             }`}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
-            <span className="max-w-full truncate">{tx.student.tabs[id]}</span>
+            <span className="sm:truncate">{tx.student.tabs[id]}</span>
           </button>
         ))}
       </div>
 
       <div className="mt-8">
         {tab === 'roadmap' ? (
-          <RoadmapTab savedCount={data.saved.length} goTab={goTab} />
+          <RoadmapTab auto={auto} done={done} savedCount={data.saved.length} goTab={goTab} />
         ) : data.error ? (
           <ErrorState onRetry={data.load} />
         ) : !ready ? (
@@ -175,6 +179,14 @@ export default function StudentPage() {
             onOpenCompare={() => openSheet({ view: 'compare' })}
             onOpen={(id) => openSheet({ uni: id })}
             onNeedPrefs={needPrefs}
+          />
+        ) : tab === 'ai' ? (
+          <AiTab
+            data={data}
+            mode={(['plan', 'ask', 'review'] as const).find((m) => m === params.get('mode')) ?? 'plan'}
+            setMode={(m: AiMode) => update({ mode: m === 'plan' ? null : m })}
+            open={(t) => openSheet(t.kind === 'scholarship' ? { sch: t.id } : { uni: t.id })}
+            goTab={goTab}
           />
         ) : (
           <PlanTab data={data} goTab={goTab} openScholarship={(id) => openSheet({ sch: id })} openUniversity={(id) => openSheet({ uni: id })} />

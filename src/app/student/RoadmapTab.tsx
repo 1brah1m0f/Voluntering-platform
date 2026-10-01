@@ -1,22 +1,31 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
+import type { AutoStep } from './logic';
 import { ROADMAP, STEP_LINKS, type StudentTab } from './roadmap';
 
-/** The 16 steps in four phases, left to right on desktop. Open steps link to the tool that helps with them. */
-export function RoadmapTab({ savedCount, goTab }: { savedCount: number; goTab: (tab: StudentTab) => void }) {
+/**
+ * The 16 steps in four phases. One phase is shown at a time (the current one
+ * first). Most steps tick themselves from what the student does in the app;
+ * only the rest (documents, letters, visa…) are ticked by hand.
+ */
+export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<string, AutoStep>; done: string[]; savedCount: number; goTab: (tab: StudentTab) => void }) {
   const { tx, lang } = useAppText();
   const { profile, setProfile } = useAuth();
-  const done = profile?.roadmap ?? [];
   const phases = ROADMAP[lang];
-  // The first phase with unticked steps is where the user is now.
-  const current = phases.findIndex((p) => p.steps.some((st) => !done.includes(st.id)));
+  // The first phase with open steps is where the student is now.
+  const current = Math.max(0, phases.findIndex((p) => p.steps.some((st) => !done.includes(st.id))));
+  const [picked, setPicked] = useState<number | null>(null);
+  const shown = picked ?? current;
+  const phase = phases[shown];
 
   const toggle = async (id: string) => {
     if (!profile) return;
-    const next = done.includes(id) ? done.filter((x) => x !== id) : [...done, id];
+    const manual = profile.roadmap ?? [];
+    const next = manual.includes(id) ? manual.filter((x) => x !== id) : [...manual, id];
     setProfile({ ...profile, roadmap: next }); // optimistic
     try {
       setProfile(await backend.updateProfile({ roadmap: next }));
@@ -27,71 +36,121 @@ export function RoadmapTab({ savedCount, goTab }: { savedCount: number; goTab: (
     }
   };
 
-  const linkClass = 'inline-flex min-h-[2.25rem] items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900';
+  // Open steps first, finished ones after them.
+  const steps = [...phase.steps].sort((a, b) => Number(done.includes(a.id)) - Number(done.includes(b.id)));
 
   return (
-    <div className="relative">
-      {/* Desktop: the four phases read left to right along a dashed timeline. */}
-      <span className="pointer-events-none absolute inset-x-6 top-[1.3rem] hidden border-t-2 border-dashed border-line lg:block" aria-hidden="true" />
-      <ol className="relative grid gap-10 lg:grid-cols-4 lg:gap-5">
-        {phases.map((phase, pi) => {
-          const n = phase.steps.filter((st) => done.includes(st.id)).length;
-          const state = n === phase.steps.length ? 'done' : pi === current ? 'current' : 'future';
+    <div className="space-y-6">
+      {/* Phase picker: a short timeline with each phase's progress. */}
+      <ol className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {phases.map((p, i) => {
+          const n = p.steps.filter((st) => done.includes(st.id)).length;
+          const complete = n === p.steps.length;
           return (
-            <li key={phase.when} className="flex flex-col gap-4">
-              <div className="flex h-11 items-center gap-2.5">
-                <span
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-lg font-extrabold ring-[6px] ring-paper ${
-                    state === 'done' ? 'bg-brand-700 text-white' : state === 'current' ? 'bg-coral-700 text-white' : 'border-2 border-slate-300 bg-white text-slate-600'
-                  }`}
-                >
-                  {state === 'done' ? <Check className="h-5 w-5" strokeWidth={2.6} aria-hidden="true" /> : pi + 1}
+            <li key={p.when}>
+              <button
+                type="button"
+                onClick={() => setPicked(i)}
+                aria-pressed={shown === i}
+                className={`flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition ${shown === i ? 'border-brand-900 bg-brand-900 text-white' : 'border-line bg-white hover:border-brand-200'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
+                      complete ? 'bg-brand-700 text-white' : i === current ? 'bg-coral-700 text-white' : shown === i ? 'bg-brand-800 text-white' : 'bg-paper text-slate-600'
+                    }`}
+                  >
+                    {complete ? <Check className="h-4 w-4" strokeWidth={2.6} aria-hidden="true" /> : i + 1}
+                  </span>
+                  <span className={`truncate text-xs font-bold uppercase tracking-wide ${shown === i ? 'text-brand-100' : 'text-brand-700'}`}>{p.when}</span>
                 </span>
-                {state === 'current' && <span className="rounded-full bg-coral-50 px-2.5 py-1 text-xs font-bold text-coral-800">{tx.student.youAreHere}</span>}
-              </div>
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-brand-700">{phase.when}</p>
-                <h2 className="mt-1 text-2xl font-extrabold leading-tight">{phase.title}</h2>
-                <p className="mt-1 text-sm text-slate-500">{tx.student.phaseDone(n, phase.steps.length)}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                {phase.steps.map((step) => {
-                  const on = done.includes(step.id);
-                  const link = STEP_LINKS[step.id];
-                  return (
-                    <div key={step.id} className={`rounded-2xl border p-4 transition ${on ? 'border-brand-100 bg-brand-50/60' : 'border-line bg-white hover:border-brand-200'}`}>
-                      <label className="flex cursor-pointer gap-3">
-                        <input type="checkbox" checked={on} onChange={() => toggle(step.id)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-700" />
-                        <span>
-                          <span className={`block font-bold leading-snug ${on ? 'text-slate-500 line-through decoration-slate-400' : 'text-ink'}`}>{step.title}</span>
-                          {/* Ticked steps fold down to their title. */}
-                          {!on && <span className="mt-1.5 block text-sm leading-relaxed text-slate-600">{step.text}</span>}
-                        </span>
-                      </label>
-                      {!on && link && (
-                        <div className="mt-2 flex flex-wrap items-center gap-x-3 pl-8">
-                          {'tab' in link ? (
-                            <button type="button" onClick={() => goTab(link.tab)} className={linkClass}>
-                              {tx.student.tabs[link.tab]}
-                              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                            </button>
-                          ) : (
-                            <Link to={link.to} className={linkClass}>
-                              {tx.student.open}
-                              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                            </Link>
-                          )}
-                          {step.id === 'scholarships' && savedCount > 0 && <span className="text-xs font-semibold text-slate-500">{tx.student.savedCount(savedCount)}</span>}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                <span className="font-display text-lg font-bold leading-tight">{p.title}</span>
+                <span className="mt-auto flex items-center gap-2">
+                  <span className={`h-1.5 flex-1 overflow-hidden rounded-full ${shown === i ? 'bg-brand-800' : 'bg-paper'}`} aria-hidden="true">
+                    <span className={`block h-full rounded-full ${shown === i ? 'bg-coral-200' : 'bg-brand-700'}`} style={{ width: `${(n / p.steps.length) * 100}%` }} />
+                  </span>
+                  <span className={`text-xs font-semibold ${shown === i ? 'text-brand-100' : 'text-slate-500'}`}>
+                    {n}/{p.steps.length}
+                  </span>
+                </span>
+              </button>
             </li>
           );
         })}
       </ol>
+
+      <section className="rounded-3xl border border-line bg-white p-5 sm:p-7" aria-labelledby="phase-title">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="phase-title" className="text-2xl font-extrabold">
+            {phase.title}
+          </h2>
+          {shown === current && <span className="rounded-full bg-coral-50 px-2.5 py-1 text-xs font-bold text-coral-800">{tx.student.youAreHere}</span>}
+        </div>
+        <ul className="mt-4 divide-y divide-line/70">
+          {steps.map((step) => {
+            const isDone = done.includes(step.id);
+            const a = auto[step.id];
+            const link = STEP_LINKS[step.id];
+            return (
+              <li key={step.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                {a ? (
+                  // Ticked by the app, not by hand.
+                  <span
+                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${isDone ? 'bg-brand-700 text-white' : 'border-2 border-dashed border-slate-300'}`}
+                    aria-hidden="true"
+                  >
+                    {isDone && <Check className="h-4 w-4" strokeWidth={2.6} aria-hidden="true" />}
+                  </span>
+                ) : (
+                  <input type="checkbox" checked={isDone} onChange={() => toggle(step.id)} aria-label={step.title} className="mt-0.5 h-6 w-6 shrink-0 cursor-pointer accent-brand-700" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className={`text-base font-bold ${isDone ? 'text-slate-500 line-through decoration-slate-400' : 'text-ink'}`}>
+                      {isDone && a && <span className="sr-only">✓ </span>}
+                      {step.title}
+                    </h3>
+                    {a && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-800">
+                        <Sparkles className="h-3 w-3" aria-hidden="true" />
+                        {tx.student.auto}
+                        {a.progress && !isDone && ` · ${a.progress[0]}/${a.progress[1]}`}
+                      </span>
+                    )}
+                  </div>
+                  {!isDone && (
+                    <>
+                      <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-600">{step.text}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                        {link &&
+                          ('tab' in link ? (
+                            <button type="button" onClick={() => goTab(link.tab)} className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900">
+                              {tx.student.tabs[link.tab]}
+                              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                          ) : (
+                            <Link to={link.to} className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900">
+                              {tx.student.open}
+                              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                            </Link>
+                          ))}
+                        <span className="text-xs text-slate-500">{a ? tx.student.autoHint[step.id] : tx.student.manualHint}</span>
+                        {step.id === 'scholarships' && savedCount > 0 && <span className="text-xs font-semibold text-slate-500">{tx.student.savedCount(savedCount)}</span>}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        {shown < phases.length - 1 && (
+          <button type="button" onClick={() => setPicked(shown + 1)} className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-900">
+            {phases[shown + 1].title}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
+      </section>
     </div>
   );
 }

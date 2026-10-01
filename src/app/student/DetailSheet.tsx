@@ -7,6 +7,7 @@ import { deadlineInfo, scholarshipFit, universityFit, yearlyCostRange } from './
 import { FIELDS, LEVELS } from './roadmap';
 import { CoverChips, DeadlineBadge, FitBadge, SaveToggle, Section, Sheet, eur, useCostText } from './ui';
 import type { StudentData } from './useStudentData';
+import { AiFit } from './AiTab';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -64,6 +65,7 @@ export function ScholarshipSheet({ s, data, onClose }: { s: Scholarship | null; 
               <FitBadge fit={scholarshipFit(s, data.prefs)} />
             </div>
           </div>
+          <AiFit target={{ kind: 'scholarship', id: s.id }} />
           <dl className="grid grid-cols-2 gap-2 text-sm">
             <Fact label={tx.student.level}>{s.levels.map((l) => LEVELS[l]?.[lang] ?? l).join(', ')}</Fact>
             <Fact label={tx.student.field}>{s.fields.length ? s.fields.map((x) => FIELDS[x]?.[lang] ?? x).join(', ') : tx.student.anyField}</Fact>
@@ -149,6 +151,7 @@ export function UniversitySheet({
               <FitBadge fit={universityFit(u, data.prefs)} minIelts={u.min_ielts} />
             </div>
           </div>
+          <AiFit target={{ kind: 'university', id: u.id }} />
           <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
             <Fact label={tx.student.yearCost}>{costText(yearlyCostRange(u))}</Fact>
             <Fact label={`${tx.student.tuition}${tx.student.perYear}`}>{tuition}</Fact>

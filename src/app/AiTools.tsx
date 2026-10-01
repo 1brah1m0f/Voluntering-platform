@@ -12,7 +12,7 @@ import { hasPremium } from './plans';
 
 type Lang = 'az' | 'en';
 
-function useAi() {
+export function useAi() {
   const { tx } = useAppText();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,17 +38,17 @@ function useAi() {
   return { busy, error, remaining, run };
 }
 
-function Thinking() {
+export function Thinking() {
   const { tx } = useAppText();
   return (
-    <div className="flex items-center gap-3 rounded-2xl bg-violet-50 px-4 py-3 text-sm font-medium text-violet-800" role="status">
+    <div className="flex items-center gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-sm font-medium text-brand-900" role="status">
       <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
       {tx.ai.thinking}
     </div>
   );
 }
 
-function ErrorNote({ text }: { text: string | null }) {
+export function ErrorNote({ text }: { text: string | null }) {
   if (!text) return null;
   return (
     <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">
@@ -479,7 +479,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
 
 // Asked once per page load: is the AI function deployed with an API key?
 let readyCheck: Promise<boolean> | null = null;
-function useAiReady(enabled: boolean): boolean | null {
+export function useAiReady(enabled: boolean): boolean | null {
   const [ready, setReady] = useState<boolean | null>(null);
   useEffect(() => {
     if (!enabled) return;

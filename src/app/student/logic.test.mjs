@@ -73,3 +73,15 @@ test('search ignores case and Azerbaijani/Turkish letters', () => {
   assert.equal(matchesQuery('', 'anything'), true);
   assert.equal(matchesQuery('japan', 'Chevening', 'United Kingdom'), false);
 });
+
+test('roadmap steps tick themselves from what the student did', async () => {
+  const { autoSteps, roadmapDone } = await import('./logic.ts');
+  const auto = autoSteps({ prefs: { level: 'master', field: 'cs', ielts: 6.5 }, shortlist: [{ status: 'planning' }, { status: 'applied' }], saved: [] });
+  assert.equal(auto.goal.met, true);
+  assert.equal(auto.budget.met, false);
+  assert.deepEqual(auto.shortlist.progress, [2, 5]);
+  assert.equal(auto.submit.met, true);
+  assert.equal(auto.decide.met, false);
+  // A stale manual tick on an automatic step doesn't count; manual steps do.
+  assert.deepEqual(roadmapDone(['budget', 'documents'], auto).sort(), ['documents', 'goal', 'language', 'submit'].sort());
+});

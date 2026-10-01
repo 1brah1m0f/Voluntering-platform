@@ -15,6 +15,7 @@ export type ErrorCode =
   | 'unknown'
   // AI assistant
   | 'premium_required'
+  | 'student_required'
   | 'daily_limit'
   | 'ai_unavailable'
   | 'not_configured'

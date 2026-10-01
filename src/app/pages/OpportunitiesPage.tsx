@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { BookmarkPlus, Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { ArrowRight, BookmarkPlus, Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { backend } from '../backend';
 import { ONLINE, applyFilters, filterQuery, readFilters } from '../filters';
 import { Dashboard } from '../Dashboard';
@@ -202,7 +202,7 @@ export default function OpportunitiesPage() {
   ].filter(Boolean);
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
-  const clear = () => setParams(myInterests.length ? { mine: '0' } : {}, { replace: true });
+  const clear = () => setParams({ view: 'all', ...(myInterests.length ? { mine: '0' } : {}) }, { replace: true });
   const currentQuery = filterQuery(params);
   const alreadySaved = searches.some((s) => s.params === currentQuery);
   const suggestName = () =>
@@ -224,180 +224,229 @@ export default function OpportunitiesPage() {
   const activeFilters = [program, kind, country, soon, funded, showClosed].filter(Boolean).length;
   const fits = myInterests.length ? published.filter((o) => daysUntil(o.deadline) >= 0 && o.interests.some((i) => myInterests.includes(i))).length : 0;
 
+  // Members get two views: an overview (dashboard + a few picks) and the full list.
+  // Any filter in the URL (a shared link, a saved search) opens the list.
+  const LIST_KEYS = ['q', 'program', 'kind', 'country', 'soon', 'funded', 'closed', 'mine', 'sort'];
+  const view: 'overview' | 'all' = !profile || params.get('view') === 'all' || LIST_KEYS.some((k) => params.has(k)) ? 'all' : 'overview';
+  const setView = (v: 'overview' | 'all') => {
+    setParams(v === 'all' ? { view: 'all' } : {});
+    window.scrollTo({ top: 0 });
+  };
+  // Picks for the overview: open ones in the user's interests, best match (Premium) or soonest deadline first.
+  const pickPool = published.filter((o) => daysUntil(o.deadline) >= 0 && (myInterests.length === 0 || o.interests.some((i) => myInterests.includes(i))));
+  const picked = [...pickPool]
+    .sort((a, b) => (matches ? matches.get(b.id)!.score - matches.get(a.id)!.score : 0) || a.deadline.localeCompare(b.deadline))
+    .slice(0, 3);
+
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities) return <Spinner label={tx.loading} />;
 
   return (
     <div>
-      {profile ? (
-        <Dashboard openCount={openCount} fits={fits} searches={searches} setSearches={setSearches} />
-      ) : (
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.list.title}</h1>
-          <p className="text-slate-600">{tx.list.sub(openCount)}</p>
-        </div>
-      )}
-
-      {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
-
       {profile && (
-        <div className="mt-10 flex items-baseline justify-between gap-2">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-[1.75rem]">{tx.list.allTitle}</h2>
-          <p className="text-sm text-slate-500">{tx.list.sub(openCount)}</p>
-        </div>
-      )}
-
-      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4">
-        <div className="flex gap-2">
-          <label className="relative block flex-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setParam('q', e.target.value)}
-              placeholder={tx.list.search}
-              aria-label={tx.list.search}
-              className={`${inputClass} pl-10`}
-            />
-          </label>
-          {/* Phones: the filters fold behind one button so the list starts sooner. */}
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((v) => !v)}
-            aria-expanded={filtersOpen}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold sm:hidden ${filtersOpen || activeFilters ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-700'}`}
-          >
-            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-            {tx.list.filters}
-            {activeFilters > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-xs font-bold text-white">{activeFilters}</span>}
-          </button>
-        </div>
-        <div className={`${filtersOpen ? 'grid' : 'hidden'} gap-2 sm:grid sm:grid-cols-3`}>
-          <select value={program} onChange={(e) => setParam('program', e.target.value)} className={inputClass} aria-label={tx.detail.program}>
-            <option value="">{tx.list.allPrograms}</option>
-            {programs.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select value={kind} onChange={(e) => setParam('kind', e.target.value)} className={inputClass} aria-label={tx.detail.type}>
-            <option value="">{tx.list.allKinds}</option>
-            {(Object.keys(KINDS) as Kind[]).map((k) => (
-              <option key={k} value={k}>
-                {KINDS[k][lang]}
-              </option>
-            ))}
-          </select>
-          <select value={country} onChange={(e) => setParam('country', e.target.value)} className={inputClass} aria-label={tx.detail.where}>
-            <option value="">{tx.list.allCountries}</option>
-            <option value={ONLINE}>{tx.list.online}</option>
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={`${filtersOpen ? 'flex' : 'hidden'} flex-wrap items-center gap-2 sm:flex`}>
-          {myInterests.length > 0 && (
-            <Chip on={forYou} onClick={() => setParam('mine', forYou ? '0' : null)}>
-              {tx.list.forYou}
-            </Chip>
-          )}
-          <Chip on={soon} onClick={premiumToggle('soon')} title={isPremium ? undefined : tx.list.premiumFilter}>
-            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
-            {tx.list.closingSoon}
-          </Chip>
-          <Chip on={funded} onClick={premiumToggle('funded')} title={isPremium ? undefined : tx.list.premiumFilter}>
-            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
-            {tx.list.fullyFunded}
-          </Chip>
-          <Chip on={showClosed} onClick={toggle('closed')}>
-            {tx.list.showClosed}
-          </Chip>
-          {anyFilter && (
-            <button type="button" onClick={clear} className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-rose-600">
-              <X className="h-4 w-4" aria-hidden="true" />
-              {tx.list.clear}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {profile && currentQuery && currentQuery !== 'mine=0' && !alreadySaved && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {naming === null ? (
+        <div role="tablist" aria-label={tx.list.title} className="mb-8 inline-flex rounded-full bg-white p-1 ring-1 ring-line">
+          {(['overview', 'all'] as const).map((v) => (
             <button
+              key={v}
               type="button"
-              onClick={() => {
-                setSearchMsg(null);
-                setNaming(suggestName());
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-50"
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => setView(v)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition sm:px-5 ${view === v ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'}`}
             >
-              <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
-              {tx.searches.save}
+              {v === 'overview' ? tx.list.overview : `${tx.list.allTitle} · ${openCount}`}
             </button>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void saveSearch();
-              }}
-              className="flex w-full flex-wrap items-center gap-2 sm:w-auto"
-            >
-              <input
-                autoFocus
-                value={naming}
-                maxLength={60}
-                onChange={(e) => setNaming(e.target.value)}
-                placeholder={tx.searches.namePh}
-                aria-label={tx.searches.namePh}
-                className={`${inputClass} !py-1.5 sm:w-72`}
-              />
-              <button type="submit" className="btn-primary !px-4 !py-1.5 text-sm">
-                {tx.searches.saveBtn}
-              </button>
-              <button type="button" onClick={() => setNaming(null)} className="text-sm font-semibold text-slate-500 hover:text-slate-800">
-                {tx.searches.cancel}
-              </button>
-            </form>
-          )}
-        </div>
-      )}
-      {searchMsg && (
-        <p role="status" className={`mt-2 text-sm font-medium ${searchMsg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
-          {searchMsg.text}
-        </p>
-      )}
-
-      {matches && results.length > 1 && (
-        <div className="mt-5 flex justify-end">
-          <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm ring-1 ring-line">
-            {(['best', 'deadline'] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={sort === k}
-                onClick={() => setParam('sort', k === 'deadline' ? 'deadline' : null)}
-                className={`rounded-full px-3.5 py-1.5 font-semibold transition ${sort === k ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'}`}
-              >
-                {k === 'best' ? tx.list.sortBest : tx.list.sortDeadline}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {results.length === 0 ? (
-        <p className="mt-10 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
-      ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {ordered.map((o) => (
-            <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
           ))}
         </div>
+      )}
+
+      {view === 'overview' && profile ? (
+        <>
+          <Dashboard openCount={openCount} fits={fits} searches={searches} setSearches={setSearches} />
+          {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
+          <section className="mt-10" aria-labelledby="picked-title">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 id="picked-title" className="text-2xl font-extrabold tracking-tight">
+                {tx.list.picked}
+              </h2>
+              <button type="button" onClick={() => setView('all')} className="inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:underline">
+                {tx.list.seeAll}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            {picked.length === 0 ? (
+              <p className="mt-4 rounded-3xl border border-dashed border-line py-10 text-center text-slate-500">{tx.list.empty}</p>
+            ) : (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {picked.map((o) => (
+                  <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{profile ? tx.list.allTitle : tx.list.title}</h1>
+            <p className="text-slate-600">{tx.list.sub(openCount)}</p>
+          </div>
+
+          {!profile && notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
+
+          <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4">
+            <div className="flex gap-2">
+              <label className="relative block flex-1">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setParam('q', e.target.value)}
+                  placeholder={tx.list.search}
+                  aria-label={tx.list.search}
+                  className={`${inputClass} pl-10`}
+                />
+              </label>
+              {/* Phones: the filters fold behind one button so the list starts sooner. */}
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((v) => !v)}
+                aria-expanded={filtersOpen}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold sm:hidden ${filtersOpen || activeFilters ? 'border-brand-300 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-700'}`}
+              >
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                {tx.list.filters}
+                {activeFilters > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-xs font-bold text-white">{activeFilters}</span>}
+              </button>
+            </div>
+            <div className={`${filtersOpen ? 'grid' : 'hidden'} gap-2 sm:grid sm:grid-cols-3`}>
+              <select value={program} onChange={(e) => setParam('program', e.target.value)} className={inputClass} aria-label={tx.detail.program}>
+                <option value="">{tx.list.allPrograms}</option>
+                {programs.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <select value={kind} onChange={(e) => setParam('kind', e.target.value)} className={inputClass} aria-label={tx.detail.type}>
+                <option value="">{tx.list.allKinds}</option>
+                {(Object.keys(KINDS) as Kind[]).map((k) => (
+                  <option key={k} value={k}>
+                    {KINDS[k][lang]}
+                  </option>
+                ))}
+              </select>
+              <select value={country} onChange={(e) => setParam('country', e.target.value)} className={inputClass} aria-label={tx.detail.where}>
+                <option value="">{tx.list.allCountries}</option>
+                <option value={ONLINE}>{tx.list.online}</option>
+                {countries.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={`${filtersOpen ? 'flex' : 'hidden'} flex-wrap items-center gap-2 sm:flex`}>
+              {myInterests.length > 0 && (
+                <Chip on={forYou} onClick={() => setParam('mine', forYou ? '0' : null)}>
+                  {tx.list.forYou}
+                </Chip>
+              )}
+              <Chip on={soon} onClick={premiumToggle('soon')} title={isPremium ? undefined : tx.list.premiumFilter}>
+                {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
+                {tx.list.closingSoon}
+              </Chip>
+              <Chip on={funded} onClick={premiumToggle('funded')} title={isPremium ? undefined : tx.list.premiumFilter}>
+                {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
+                {tx.list.fullyFunded}
+              </Chip>
+              <Chip on={showClosed} onClick={toggle('closed')}>
+                {tx.list.showClosed}
+              </Chip>
+              {anyFilter && (
+                <button type="button" onClick={clear} className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-rose-600">
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  {tx.list.clear}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {profile && currentQuery && currentQuery !== 'mine=0' && !alreadySaved && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {naming === null ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchMsg(null);
+                    setNaming(suggestName());
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-50"
+                >
+                  <BookmarkPlus className="h-4 w-4" aria-hidden="true" />
+                  {tx.searches.save}
+                </button>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void saveSearch();
+                  }}
+                  className="flex w-full flex-wrap items-center gap-2 sm:w-auto"
+                >
+                  <input
+                    autoFocus
+                    value={naming}
+                    maxLength={60}
+                    onChange={(e) => setNaming(e.target.value)}
+                    placeholder={tx.searches.namePh}
+                    aria-label={tx.searches.namePh}
+                    className={`${inputClass} !py-1.5 sm:w-72`}
+                  />
+                  <button type="submit" className="btn-primary !px-4 !py-1.5 text-sm">
+                    {tx.searches.saveBtn}
+                  </button>
+                  <button type="button" onClick={() => setNaming(null)} className="text-sm font-semibold text-slate-500 hover:text-slate-800">
+                    {tx.searches.cancel}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+          {searchMsg && (
+            <p role="status" className={`mt-2 text-sm font-medium ${searchMsg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {searchMsg.text}
+            </p>
+          )}
+
+          {matches && results.length > 1 && (
+            <div className="mt-5 flex justify-end">
+              <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm ring-1 ring-line">
+                {(['best', 'deadline'] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={sort === k}
+                    onClick={() => setParam('sort', k === 'deadline' ? 'deadline' : null)}
+                    className={`rounded-full px-3.5 py-1.5 font-semibold transition ${sort === k ? 'bg-brand-900 text-white' : 'text-slate-600 hover:text-ink'}`}
+                  >
+                    {k === 'best' ? tx.list.sortBest : tx.list.sortDeadline}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {results.length === 0 ? (
+            <p className="mt-10 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
+          ) : (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {ordered.map((o) => (
+                <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

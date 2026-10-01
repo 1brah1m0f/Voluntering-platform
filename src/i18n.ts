@@ -37,14 +37,12 @@ const az = {
     langLabel: 'Dili dəyiş',
   },
   hero: {
-    badge: 'Pulsuzdur · Qeydiyyatsız da baxa bilərsən',
     title1: 'Xaricdə könüllü olmaq',
     title2: 'düşündüyündən asandır.',
     subtitle:
       'Avropada gənclər üçün mübadilələr, təlimlər və könüllülük proqramları var — çox vaxt yol, yaşayış və yeməyi proqram özü ödəyir. Çətin olan onları vaxtında tapmaqdır. Openly Azərbaycandan qatıla biləcəyin fürsətləri bir yerə yığır, son tarixləri xatırladır və müraciətini izləməyə kömək edir.',
     cta: 'Fürsətlərə bax',
     secondary: 'Pulsuz qeydiyyat',
-    trust: 'Kart lazım deyil. Spam göndərmirik.',
     // Boarding-pass cards in the hero (decorative).
     pass: {
       exchange: 'Gənclər mübadiləsi',
@@ -277,14 +275,12 @@ const en: Dict = {
     langLabel: 'Change language',
   },
   hero: {
-    badge: 'Free · Browse without an account',
     title1: 'Volunteering abroad is',
     title2: 'easier than you think.',
     subtitle:
       'Europe runs youth exchanges, training courses and volunteering programmes for young people — often with travel, accommodation and food paid by the programme. The hard part is finding them in time. Openly collects the ones you can join from Azerbaijan, reminds you of deadlines and helps you keep track of your applications.',
     cta: 'Browse opportunities',
     secondary: 'Sign up free',
-    trust: 'No card needed. No spam.',
     pass: {
       exchange: 'Youth exchange',
       training: 'Training course',
