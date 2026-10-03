@@ -71,7 +71,9 @@ Type-check locally: `deno check supabase/functions/ai/index.ts`.
 
 ## Student plan (7 ₼)
 
-A third plan above Premium: everything in Premium plus the student section at `/student` —
+A third plan above Premium: everything in Premium plus the separate student experience at `/student`.
+Students enter through `/student/login` or `/student/register`; this area has its own shell and
+does not appear in the regular app navigation. It includes
 scholarships, universities (fields, tuition, application fees, requirements), a 16-step
 study-abroad roadmap (progress saved in `profiles.roadmap`) and a planner that matches
 universities to the user's level, field, IELTS score and budget, with a shortlist that adds up

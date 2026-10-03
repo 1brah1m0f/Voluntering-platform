@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App';
 import { LangProvider } from './LangProvider';
 import { AuthProvider } from './app/AuthContext';
-import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth } from './app/AppLayout';
+import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth, RequireStudentAuth } from './app/AppLayout';
 import { Spinner } from './app/ui';
 
 // App pages load on demand so the landing page stays light.
@@ -49,7 +49,6 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/app" element={<OpportunitiesPage />} />
                 <Route path="/o/:id" element={<DetailPage />} />
                 <Route path="/app/calendar" element={<CalendarPage />} />
-                <Route path="/student" element={<StudentPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/guides/:slug" element={<GuidePage />} />
                 <Route path="/programs/:slug" element={<ProgramPage />} />
@@ -65,6 +64,9 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="/admin/new" element={<AdminEditPage />} />
                     <Route path="/admin/:id" element={<AdminEditPage />} />
                   </Route>
+                </Route>
+                <Route element={<RequireStudentAuth />}>
+                  <Route path="/student" element={<StudentPage />} />
                 </Route>
               </Route>
               {/* Old links (emails sent before the move). */}

@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, GraduationCap, Landmark, Map as MapIcon, School, Sparkles, type LucideIcon } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Calculator, GraduationCap, Landmark, LogOut, Map as MapIcon, School, Sparkles, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { backend } from '../backend';
+import { BRAND } from '../../config';
+import { Logo } from '../../components/Icons';
 import { hasStudent } from '../plans';
 import { useAppText } from '../text';
 import { ErrorState, Spinner } from '../ui';
@@ -101,9 +104,23 @@ export default function StudentPage() {
   const openUni = data.universities?.find((u) => u.id === params.get('uni')) ?? null;
   const compareUnis = compare.map((id) => data.universities?.find((u) => u.id === id)).filter((u) => !!u);
   const needPrefs = () => goTab('plan');
+  const logout = async () => {
+    await backend.signOut();
+    navigate('/student/login', { replace: true });
+  };
 
   return (
-    <div>
+    <div className="min-h-screen">
+      <div className="mb-5 flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 shadow-sm sm:px-5">
+        <Link to="/student" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
+          <Logo className="h-7 w-7" />
+          {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
+        </Link>
+        <button type="button" onClick={logout} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          {tx.nav.logout}
+        </button>
+      </div>
       {tab === 'roadmap' ? (
         <header className="relative overflow-hidden rounded-[2rem] bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
           {/* The sun and ring from the logo. Decorative. */}

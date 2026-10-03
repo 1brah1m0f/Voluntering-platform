@@ -17,7 +17,7 @@ function StudentUpsell() {
   const p = tx.premium;
   return (
     <Link
-      to="/student"
+      to="/student/register"
       className="group mt-6 flex items-start gap-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-brand-50 p-5 transition hover:-translate-y-0.5 hover:shadow-card sm:p-6"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-700 text-white shadow">

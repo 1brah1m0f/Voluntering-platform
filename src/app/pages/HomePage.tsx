@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, GraduationCap, Search } from 'lucide-react';
+import { ArrowRight, CalendarDays, Search } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { Dashboard } from '../Dashboard';
@@ -44,7 +44,6 @@ export default function HomePage() {
   const shortcuts = [
     { to: '/app', Icon: Search, label: tx.nav.opportunities, sub: tx.list.sub(open.length) },
     { to: '/app/calendar', Icon: CalendarDays, label: tx.nav.calendar, sub: tx.calendar.sub },
-    { to: '/student', Icon: GraduationCap, label: tx.nav.student, sub: tx.student.hubTitle },
   ];
 
   return (
