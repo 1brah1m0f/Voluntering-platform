@@ -14,7 +14,9 @@ export default function Hero() {
   const { t } = useLang();
 
   return (
-    <section id="top" className="relative overflow-hidden bg-paper pb-16 pt-10 sm:pt-16 lg:pb-24">
+    <section id="top" className="relative overflow-hidden bg-paper pb-14 pt-8 sm:pb-20 sm:pt-16 lg:pb-24">
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-100/70 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-coral-100/60 blur-3xl" aria-hidden="true" />
       <div className="container-x relative grid items-center gap-14 lg:grid-cols-[1.1fr_1fr] lg:gap-10">
         <div className="text-center lg:text-left">
           <Reveal delay={100}>
@@ -37,7 +39,23 @@ export default function Hero() {
               </Link>
             </div>
           </Reveal>
-
+          <Reveal delay={360} className="sm:hidden">
+            <div className="mt-7 rounded-3xl border border-line bg-white p-4 text-left shadow-card">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-700">{t.hero.pass.exchange} · Erasmus+</span>
+                <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{t.hero.pass.covered}</span>
+              </div>
+              <div className="mt-4 flex items-center gap-3 font-display text-2xl font-extrabold text-ink">
+                {t.hero.pass.from}
+                <ArrowRight className="h-5 w-5 text-coral-700" />
+                {t.hero.pass.lisbon}
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-dashed border-line pt-3 text-sm">
+                <span className="text-slate-500">{t.hero.pass.environment}</span>
+                <span className="font-bold text-coral-700">{t.hero.pass.daysLeft(3)}</span>
+              </div>
+            </div>
+          </Reveal>
         </div>
 
         <Reveal variant="right" delay={200} className="hidden sm:block">

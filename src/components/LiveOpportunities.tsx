@@ -40,7 +40,7 @@ export default function LiveOpportunities() {
             <Link
               key={o.id}
               to={`/o/${o.id}`}
-              className="group flex gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-soft"
+              className="group flex gap-4 rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-6"
             >
               <ProgramBadge program={o.program} />
               <div className="min-w-0 flex-1">

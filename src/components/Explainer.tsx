@@ -22,7 +22,7 @@ export default function Explainer() {
             const Icon = icons[i];
             return (
               <Reveal key={item.title} delay={(i % 2) * 120} className="h-full">
-                <article className="flex h-full gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                <article className="flex h-full gap-4 rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:p-6">
                   <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tones[cardTones[i]].icon}`}>
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </span>
