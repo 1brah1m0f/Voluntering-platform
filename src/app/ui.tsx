@@ -9,7 +9,7 @@ import { daysUntil } from './util';
 import type { Profile, Status } from './types';
 
 export const inputClass =
-  'w-full rounded-xl border border-line bg-paper/50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200';
+  'field-surface';
 
 export function Spinner({ label }: { label?: string }) {
   return (

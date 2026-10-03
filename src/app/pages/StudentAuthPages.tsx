@@ -79,7 +79,7 @@ function StudentAuthShell({ children }: { children: React.ReactNode }) {
           <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm font-bold text-brand-100">
             <GraduationCap className="h-4 w-4" /> {tx.eyebrow}
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight xl:text-5xl">Təhsil planın üçün daha aydın yol.</h1>
+          <h1 className="mt-5 text-4xl font-extrabold leading-tight xl:text-5xl">{lang === 'az' ? 'Təhsil planın üçün daha aydın yol.' : 'A clearer path for your study plans.'}</h1>
           <ul className="mt-8 space-y-4 text-brand-100">
             {tx.perks.map((perk) => (
               <li key={perk} className="flex items-center gap-3"><Check className="h-5 w-5 text-coral-300" />{perk}</li>

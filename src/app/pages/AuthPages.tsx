@@ -57,7 +57,7 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
           </ul>
         </div>
       </aside>
-      <main className="flex flex-col px-4 py-6 sm:px-8">
+      <main className="app-surface flex flex-col px-4 py-6 sm:px-8">
         <div className="flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-brand-700">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
