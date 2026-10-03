@@ -6,7 +6,7 @@ export default {
       fontFamily: {
         sans: ['"Instrument Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         // Headings and big numbers.
-        display: ['"Bricolage Grotesque"', 'Georgia', 'serif'],
+        display: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       // Readability: the smallest sizes are a notch larger than Tailwind's defaults
       // (labels, chips and meta text were hard to read at 12px).
