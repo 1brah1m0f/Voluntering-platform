@@ -63,6 +63,8 @@ const copy = {
   },
 } as const;
 
+type StudentAuthCopy = (typeof copy)[keyof typeof copy];
+
 function StudentAuthShell({ children }: { children: React.ReactNode }) {
   const { lang, setLang } = useLang();
   const tx = copy[lang];
@@ -101,7 +103,7 @@ function StudentAuthShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function errorMessage(error: unknown, tx: typeof copy.az) {
+function errorMessage(error: unknown, tx: StudentAuthCopy) {
   if (!(error instanceof BackendError)) return tx.unknown;
   if (error.code === 'invalid_credentials' || error.code === 'email_not_confirmed') return tx.invalid;
   if (error.code === 'email_taken') return tx.taken;
