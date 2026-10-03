@@ -47,7 +47,7 @@ export function Sheet({ open, onClose, title, wide = false, footer, children }: 
       className={`m-0 ml-auto h-dvh max-h-none w-full max-w-none bg-transparent p-0 backdrop:bg-ink/40 ${wide ? 'sm:max-w-4xl' : 'sm:max-w-xl'}`}
     >
       {open && (
-        <div className="flex h-full flex-col bg-white sm:rounded-l-[1.75rem]">
+        <div className="flex h-full flex-col bg-white shadow-soft sm:rounded-l-[1.75rem]">
           <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-4 sm:px-7 sm:py-5">
             <h2 id={titleId} className="min-w-0 text-xl font-extrabold leading-tight sm:text-2xl">
               {title}

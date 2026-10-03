@@ -50,7 +50,7 @@ export function FilterBar({
   const toggle = (key: string, on: boolean) => update({ [key]: on ? null : '1' });
 
   return (
-    <div className="space-y-3 rounded-3xl border border-line bg-white p-4">
+    <div className="space-y-3 rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
       <div className="flex gap-2">
         <label className="relative block flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />

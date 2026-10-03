@@ -19,7 +19,7 @@ export default function Footer() {
     { to: '#faq', label: t.faq.eyebrow },
   ];
   return (
-    <footer className="border-t border-slate-200 bg-white py-12">
+    <footer className="border-t border-line bg-paper/45 py-12">
       <div className="container-x">
         <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
           <div className="max-w-sm">
@@ -66,7 +66,7 @@ export default function Footer() {
             )}
           </div>
         </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-slate-100 pt-6 text-center text-sm text-slate-600 md:flex-row md:justify-between md:text-left">
+        <div className="mt-10 flex flex-col gap-2 border-t border-line pt-6 text-center text-sm text-slate-600 md:flex-row md:justify-between md:text-left">
           <p>
             © {new Date().getFullYear()} {BRAND}. {t.footer.rights}
           </p>
