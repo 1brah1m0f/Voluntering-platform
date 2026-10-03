@@ -82,7 +82,7 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link to="/student" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-700 px-6 py-3 font-semibold text-white transition hover:bg-violet-800">
+              <Link to="/student/register" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-700 px-6 py-3 font-semibold text-white transition hover:bg-violet-800">
                 {p.student.cta}
               </Link>
             </article>

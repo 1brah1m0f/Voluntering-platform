@@ -140,7 +140,7 @@ function UniversityCard({
   const fee = u.app_fee_eur === null ? '—' : u.app_fee_eur === 0 ? tx.student.free : `~${eur(u.app_fee_eur)}`;
   return (
     <article
-      className={`grid gap-5 rounded-[1.375rem] border bg-white p-5 transition sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] lg:gap-8 ${
+      className={`grid gap-5 rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] lg:gap-8 ${
         comparing ? 'border-brand-400 ring-2 ring-brand-100' : 'border-line hover:border-brand-200'
       }`}
     >

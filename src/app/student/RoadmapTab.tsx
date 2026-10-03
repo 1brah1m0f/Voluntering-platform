@@ -79,7 +79,7 @@ export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<str
         })}
       </ol>
 
-      <section className="rounded-3xl border border-line bg-white p-5 sm:p-7" aria-labelledby="phase-title">
+      <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="phase-title">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="phase-title" className="text-2xl font-extrabold">
             {phase.title}

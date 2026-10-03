@@ -93,7 +93,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div id="mobile-menu" className="border-t border-slate-200 bg-white md:hidden">
+        <div id="mobile-menu" className="border-t border-slate-200 bg-white/95 shadow-soft backdrop-blur md:hidden">
           <ul className="container-x flex flex-col gap-1 py-3">
             {links.map((l) => (
               <li key={l.href}>
