@@ -84,7 +84,7 @@ export function AdminListPage() {
       {opportunities.length === 0 ? (
         <p className="mt-10 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">{tx.admin.empty}</p>
       ) : (
-        <ul className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <ul className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
           {opportunities.map((o) => (
             <li key={o.id} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center ${busyId === o.id ? 'opacity-50' : ''}`}>
               <div className="flex min-w-0 flex-1 items-center gap-3">

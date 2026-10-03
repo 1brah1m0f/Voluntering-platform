@@ -16,7 +16,7 @@ function Stat({ to, Icon, value, label, tone, hot = false }: { to: string; Icon:
   return (
     <Link
       to={to}
-      className={`flex flex-col gap-2 p-3.5 transition sm:flex-row sm:items-center sm:gap-3.5 sm:px-5 sm:py-4 ${hot ? 'bg-amber-50 hover:bg-amber-100/60' : 'bg-white hover:bg-paper'}`}
+      className={`flex flex-col gap-2 rounded-2xl border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:flex-row sm:items-center sm:gap-3.5 sm:px-5 sm:py-4 ${hot ? 'border-amber-200 bg-amber-50 hover:bg-amber-100/60' : 'border-line bg-white hover:border-brand-200'}`}
     >
       <span className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:flex ${tone}`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
@@ -98,12 +98,15 @@ export function Dashboard({
 
   return (
     <section aria-labelledby="dash-title">
-      <h1 id="dash-title" className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">
-        {tx.dash.hello(firstName)}
-      </h1>
-      <p className="mt-2 text-slate-600 sm:text-lg">{tx.dash.sub(openCount, fits)}</p>
+      <div className="rounded-[2rem] border border-brand-100 bg-brand-50/70 p-5 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-700">{tx.nav.home}</p>
+        <h1 id="dash-title" className="mt-2 text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">
+          {tx.dash.hello(firstName)}
+        </h1>
+        <p className="mt-2 max-w-2xl text-slate-600 sm:text-lg">{tx.dash.sub(openCount, fits)}</p>
+      </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat to="/app/tracker" Icon={Bookmark} value={count('saved')} label={tx.dash.saved} tone="bg-coral-50 text-coral-700" />
         <Stat to="/app/tracker" Icon={Send} value={count('applied')} label={tx.dash.applied} tone="bg-brand-50 text-brand-700" />
         <Stat to="/app/tracker" Icon={PartyPopper} value={count('accepted')} label={tx.dash.accepted} tone="bg-emerald-50 text-emerald-700" />
