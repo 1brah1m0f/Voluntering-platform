@@ -105,7 +105,7 @@ export default function StudentPage() {
   return (
     <div>
       {tab === 'roadmap' ? (
-        <header className="relative overflow-hidden rounded-[1.75rem] bg-brand-900 p-6 text-white sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
+        <header className="relative overflow-hidden rounded-[2rem] bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
           {/* The sun and ring from the logo. Decorative. */}
           <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
           <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-[22px] border-brand-800" aria-hidden="true" />
@@ -144,7 +144,8 @@ export default function StudentPage() {
         </header>
       ) : (
         // Other tabs keep the page for their content: a one-line title and the progress.
-        <header className="flex flex-wrap items-center justify-between gap-3">
+        <header className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
               <GraduationCap className="h-4 w-4" aria-hidden="true" />
@@ -162,10 +163,11 @@ export default function StudentPage() {
               <span className="block h-full rounded-full bg-brand-700" style={{ width: `${(done.length / ROADMAP_STEP_COUNT) * 100}%` }} />
             </span>
           </button>
+          </div>
         </header>
       )}
 
-      <div role="tablist" aria-label={tx.student.hubTitle} className="-mx-4 mt-5 flex gap-1 overflow-x-auto bg-white p-1 ring-1 ring-line sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full">
+      <div role="tablist" aria-label={tx.student.hubTitle} className="sticky top-[3.6rem] z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 p-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:shadow-none">
         {TABS.map(({ id, Icon }) => (
           <button
             key={id}
