@@ -7,8 +7,8 @@
 //   npm run notify -- --only=you@example.com    # send only to one account
 //   npm run notify -- --force-weekly            # treat today as the free-digest day
 //
-// Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SMTP_HOST, SMTP_PORT,
-//      SMTP_USER, SMTP_PASS, MAIL_FROM, SITE_URL
+// Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MAIL_FROM, SITE_URL and either
+// RESEND_API_KEY or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS.
 
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
@@ -87,15 +87,41 @@ async function main() {
     return;
   }
 
-  const port = Number(env('SMTP_PORT', '587'));
-  const mailer = nodemailer.createTransport({
-    host: env('SMTP_HOST'),
-    port,
-    secure: port === 465,
-    auth: { user: env('SMTP_USER'), pass: env('SMTP_PASS') },
-  });
   const from = env('MAIL_FROM', 'Openly <noreply@openlyapply.com>');
   const headers = { 'List-Unsubscribe': `<${SITE}/app/profile?tab=settings>` };
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  const mailer = resendKey
+    ? null
+    : (() => {
+        const port = Number(env('SMTP_PORT', '587'));
+        return nodemailer.createTransport({
+          host: env('SMTP_HOST'),
+          port,
+          secure: port === 465,
+          auth: { user: env('SMTP_USER'), pass: env('SMTP_PASS') },
+        });
+      })();
+
+  async function sendMail({ to, subject, html, text }) {
+    if (!resendKey) {
+      await mailer.sendMail({ from, to, subject, html, text, headers });
+      return;
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: ['Bearer', resendKey].join(' '),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to, subject, html, text, headers }),
+    });
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Resend ${response.status}: ${detail}`);
+    }
+  }
+
   let ok = 0;
   let failed = 0;
 
@@ -104,7 +130,7 @@ async function main() {
     if (!owned.size) continue; // another run already sent it
     try {
       const mail = digestEmail({ ...d, today: plan.today, site: SITE });
-      await mailer.sendMail({ from, to: d.email, subject: mail.subject, html: mail.html, text: mail.text, headers });
+      await sendMail({ to: d.email, subject: mail.subject, html: mail.html, text: mail.text });
       await must(sb.from('profiles').update({ last_digest_at: now.toISOString() }).eq('id', d.userId).select('id'), 'last_digest_at');
       ok++;
     } catch (err) {
@@ -120,7 +146,7 @@ async function main() {
     if (!items.length) continue;
     try {
       const mail = reminderEmail({ name: r.name, items, site: SITE });
-      await mailer.sendMail({ from, to: r.email, subject: mail.subject, html: mail.html, text: mail.text, headers });
+      await sendMail({ to: r.email, subject: mail.subject, html: mail.html, text: mail.text });
       ok++;
     } catch (err) {
       failed++;

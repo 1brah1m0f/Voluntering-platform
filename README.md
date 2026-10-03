@@ -96,13 +96,19 @@ Users can switch either off under Profile → Email notifications. Every email s
 `email_log`, so re-running the job never sends twice.
 
 Setup: re-run `supabase/app.sql`, then add these repository secrets (Settings → Secrets and
-variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SMTP_HOST`, `SMTP_PORT`,
-`SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` (e.g. `Openly <noreply@openlyapply.com>`). Test with
+variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`,
+`MAIL_FROM` (e.g. `Openly <noreply@openlyapply.com>`). The job uses the Resend API when
+`RESEND_API_KEY` is present. SMTP variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`)
+remain supported as a fallback. Test with
 Actions → Email notifications → Run workflow (dry run is on by default). Locally:
 `npm run notify -- --dry-run`. Planning logic tests: `npm run test:jobs`.
 
 Auth email designs (confirm sign-up, reset password) are in `supabase/email-templates/`; paste
-them into Supabase → Authentication → Email Templates.
+them into Supabase → Authentication → Email Templates. To deliver these auth emails through
+Resend, configure Supabase → Authentication → SMTP Settings with host `smtp.resend.com`,
+port `465` (SSL) or `587` (TLS), username `resend`, password equal to `RESEND_API_KEY`,
+and a `MAIL_FROM` address from a verified Resend domain. This is configuration outside the
+frontend; never put the Resend key in a `VITE_*` variable.
 
 ## Deploy
 
