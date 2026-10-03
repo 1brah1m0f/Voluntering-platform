@@ -58,8 +58,11 @@ export default function AdminUsersPage() {
   return (
     <div>
       <AdminTabs />
-      <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{u.title}</h1>
-      <p className="mt-1 text-slate-600">{u.sub(users.length, premiumCount, studentCount)}</p>
+      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-700">{tx.nav.admin}</p>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{u.title}</h1>
+        <p className="mt-1 text-slate-600">{u.sub(users.length, premiumCount, studentCount)}</p>
+      </div>
 
       <label className="relative mt-5 block">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -69,7 +72,7 @@ export default function AdminUsersPage() {
       {visible.length === 0 ? (
         <p className="mt-8 rounded-3xl border border-dashed border-slate-300 py-12 text-center text-slate-500">{u.empty}</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
           {visible.map((x) => {
             const premium = x.plan !== 'basic';
             const initials = (x.full_name || x.email)

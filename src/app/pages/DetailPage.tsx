@@ -140,7 +140,7 @@ export default function DetailPage() {
   return (
     <div>
       {back}
-      <article className="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card">
+      <article className="mt-4 overflow-hidden rounded-[2rem] border border-line bg-white shadow-card">
         <header className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-coral-50 p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <ProgramBadge program={o.program} size="lg" />
@@ -165,7 +165,7 @@ export default function DetailPage() {
           </div>
         </header>
 
-        <div role="tablist" aria-label={o.title} className="flex gap-1 overflow-x-auto border-b border-slate-200 px-4 sm:px-6">
+        <div role="tablist" aria-label={o.title} className="flex gap-1 overflow-x-auto border-b border-line px-4 sm:px-6">
           {tabs.map(({ id: t, label, Icon, ai }) => (
             <button
               key={t}
