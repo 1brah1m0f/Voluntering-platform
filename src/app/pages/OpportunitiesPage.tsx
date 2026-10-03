@@ -30,7 +30,7 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
   const closed = daysUntil(o.deadline) < 0;
   return (
     <article
-      className={`group relative flex flex-col rounded-[1.375rem] border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card ${closed ? 'opacity-60' : ''}`}
+      className={`group relative flex flex-col rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card ${closed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
         <ProgramBadge program={o.program} />
@@ -227,14 +227,14 @@ export default function OpportunitiesPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-1">
+      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.list.title}</h1>
-        <p className="text-slate-600">{tx.list.sub(openCount)}</p>
+        <p className="mt-2 max-w-2xl text-slate-600 sm:text-lg">{tx.list.sub(openCount)}</p>
       </div>
 
       {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
 
-      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4">
+      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="flex gap-2">
           <label className="relative block flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />

@@ -39,8 +39,11 @@ export default function TrackerPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.tracker.title}</h1>
-      <p className="mt-1 text-slate-600">{tx.tracker.sub}</p>
+      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-700">{tx.nav.tracker}</p>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.tracker.title}</h1>
+        <p className="mt-1 text-slate-600">{tx.tracker.sub}</p>
+      </div>
 
       {isFree && (
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
@@ -94,7 +97,7 @@ export default function TrackerPage() {
             const d = daysUntil(o.deadline);
             const prep = prepProgress(o, item.checklist);
             return (
-              <li key={o.id} className="flex animate-[row-in_0.3s_ease] flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+              <li key={o.id} className="flex animate-[row-in_0.3s_ease] flex-col gap-4 rounded-3xl border border-line bg-white p-4 shadow-sm transition hover:border-brand-200 hover:shadow-card sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <ProgramBadge program={o.program} />
                   <div className="min-w-0">

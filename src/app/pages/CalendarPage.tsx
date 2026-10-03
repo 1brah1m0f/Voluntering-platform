@@ -113,7 +113,7 @@ export default function CalendarPage() {
 
       <div className="mt-6 items-start gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem]">
         {/* Month grid (tablets and up) */}
-        <div className="hidden overflow-hidden rounded-3xl border border-line bg-white sm:block">
+        <div className="hidden overflow-hidden rounded-3xl border border-line bg-white shadow-sm sm:block">
           <div className="grid grid-cols-7 border-b border-line bg-paper/60">
             {tx.calendar.weekdays.map((d) => (
               <p key={d} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">

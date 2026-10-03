@@ -111,7 +111,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       )}
 
       {tab === 'profile' && (
-        <form onSubmit={submit} className="mt-6 space-y-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <form onSubmit={submit} className="mt-6 space-y-6 rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
           <fieldset>
             <legend className="mb-2 text-sm font-semibold text-slate-800">
               {tx.profile.interests} <span className="font-normal text-slate-500">— {tx.profile.interestsHint}</span>
@@ -182,7 +182,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       {tab === 'settings' && (
         <>
           <NotificationSettings />
-          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <section className="mt-6 rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
             <h2 className="flex items-center gap-2 text-lg font-bold">
               <KeyRound className="h-5 w-5 text-brand-600" aria-hidden="true" />
               {tx.profile.security}
