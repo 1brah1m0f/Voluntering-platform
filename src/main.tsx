@@ -12,6 +12,8 @@ const LoginPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ defa
 const RegisterPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ResetPasswordPage })));
+const StudentLoginPage = lazy(() => import('./app/pages/StudentAuthPages').then((m) => ({ default: m.StudentLoginPage })));
+const StudentRegisterPage = lazy(() => import('./app/pages/StudentAuthPages').then((m) => ({ default: m.StudentRegisterPage })));
 const OpportunitiesPage = lazy(() => import('./app/pages/OpportunitiesPage'));
 const HomePage = lazy(() => import('./app/pages/HomePage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
@@ -39,6 +41,8 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/student/login" element={<StudentLoginPage />} />
+              <Route path="/student/register" element={<StudentRegisterPage />} />
               {/* The opportunity list and pages are public (shareable, indexable);
                   saving, tracking, the AI tools and the account need an account. */}
               <Route element={<AppLayout />}>

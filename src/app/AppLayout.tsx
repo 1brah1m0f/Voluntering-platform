@@ -82,9 +82,9 @@ export default function AppLayout() {
 
   return (
     <DataProvider>
-      <div className="min-h-screen bg-paper lg:flex">
+      <div className="app-surface min-h-screen lg:flex">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white p-5 lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur lg:flex">
           <Link to="/" className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
@@ -195,7 +195,7 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
 
-          <main className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-10 lg:py-10 ${location.pathname.startsWith('/student') ? 'max-w-7xl' : 'max-w-6xl'}`}>
+          <main className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-10 lg:py-12 ${location.pathname.startsWith('/student') ? 'max-w-7xl' : 'max-w-6xl'}`}>
             <Outlet />
           </main>
         </div>
