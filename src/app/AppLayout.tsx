@@ -163,7 +163,7 @@ export default function AppLayout() {
     <DataProvider>
       <div className="app-surface min-h-screen lg:flex">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur lg:flex print:!hidden">
           <Link to="/" className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
@@ -240,9 +240,9 @@ export default function AppLayout() {
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 pb-20 lg:pb-0">
+        <div className="min-w-0 flex-1 pb-20 lg:pb-0 print:pb-0">
           {/* mobile top bar */}
-          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden print:hidden">
             <Link to="/" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
               <Logo className="h-7 w-7" />
               {BRAND}
@@ -272,16 +272,16 @@ export default function AppLayout() {
             </div>
           </header>
 
-          {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
+          {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800 print:hidden">{tx.demoBanner}</p>}
 
-          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
+          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12 print:max-w-none print:p-0">
             <Outlet />
           </main>
         </div>
 
         {/* mobile bottom tabs */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden"
           style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
           aria-label="App"
         >

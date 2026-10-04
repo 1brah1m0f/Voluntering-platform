@@ -162,6 +162,13 @@
   to { transform: scale(3.4); opacity: 0; }
 }
 
+/* Printing (the CV page): keep the colours and use the whole sheet. */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 10mm; }
+  body, .app-surface { background: #fff !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }

@@ -17,6 +17,7 @@ const HomePage = lazy(() => import('./app/pages/HomePage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const AiPage = lazy(() => import('./app/pages/AiPage'));
+const CvPage = lazy(() => import('./app/pages/CvPage'));
 const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
 const StudentPage = lazy(() => import('./app/pages/StudentPage'));
 const StudentProfilePage = lazy(() => import('./app/student/StudentProfile'));
@@ -65,6 +66,7 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="/app/home" element={<HomePage />} />
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/ai" element={<AiPage />} />
+                  <Route path="/app/cv" element={<CvPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
                   <Route path="/app/premium" element={<Navigate to="/app/profile?tab=premium" replace />} />
