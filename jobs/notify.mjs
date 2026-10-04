@@ -69,7 +69,7 @@ async function main() {
   const now = new Date();
   const [emails, profiles, opportunities, saved, log] = await Promise.all([
     confirmedEmails(),
-    must(sb.from('profiles').select('id, full_name, interests, plan, digest_opt_out, reminders_opt_out, last_digest_at'), 'profiles'),
+    must(sb.from('profiles').select('id, full_name, interests, plan, account_type, digest_opt_out, reminders_opt_out, last_digest_at'), 'profiles'),
     must(sb.from('opportunities').select('*').eq('published', true), 'opportunities'),
     must(sb.from('saved_opportunities').select('user_id, opportunity_id, status'), 'saved_opportunities'),
     must(sb.from('email_log').select('user_id, kind, ref').gte('sent_at', new Date(now.getTime() - 30 * 864e5).toISOString()), 'email_log'),

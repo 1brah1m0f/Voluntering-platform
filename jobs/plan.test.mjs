@@ -154,16 +154,18 @@ test('--only restricts to one address', () => {
   );
 });
 
-test('student plan gets the Premium daily digest and reminders', () => {
+test('student accounts get no volunteering emails', () => {
   const { digests, reminders } = planNotifications({
-    now: TUESDAY, // not the free weekly day
-    profiles: [profile('stu', { plan: 'student' })],
-    confirmedEmails: new Map([['stu', 's@x.com']]),
-    opportunities: [opp('a', { deadline: '2026-10-09', created_at: '2026-10-05T12:00:00Z' })], // new since yesterday; closes in 3 days
+    now: MONDAY,
+    profiles: [profile('stu', { plan: 'student', account_type: 'student' }), profile('free', { account_type: 'student' })],
+    confirmedEmails: new Map([
+      ['stu', 's@x.com'],
+      ['free', 'f@x.com'],
+    ]),
+    opportunities: [opp('a', { deadline: '2026-10-08', created_at: '2026-10-03T12:00:00Z' })], // closes in 3 days
     saved: [{ user_id: 'stu', opportunity_id: 'a', status: 'saved' }],
     sent: new Set(),
   });
-  assert.equal(digests.length, 1);
-  assert.equal(digests[0].premium, true);
-  assert.equal(reminders.length, 1);
+  assert.equal(digests.length, 0);
+  assert.equal(reminders.length, 0);
 });

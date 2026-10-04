@@ -71,9 +71,14 @@ Type-check locally: `deno check supabase/functions/ai/index.ts`.
 
 ## Student plan (7 ₼)
 
-A third plan above Premium: everything in Premium plus the separate student experience at `/student`.
-Students enter through `/student/login` or `/student/register`; this area has its own shell and
-does not appear in the regular app navigation. It includes
+Student accounts are a separate account type (`profiles.account_type = 'student'`), picked with
+the **Regular | Student** switch on `/login` and `/register` (`?as=student`; the old
+`/student/login` and `/student/register` links redirect there). The type is fixed at sign-up;
+only an admin can change it (Admin → Users). A student account only sees `/student` and is
+redirected there from every regular page; a regular account is redirected away from `/student`.
+Admins see both. Google sign-in is offered on the Regular tab only (it always creates a regular
+account). Plans follow the type: regular → basic/premium, student → basic/student (the student
+section is locked until the Student plan). The student section has its own shell. It includes
 scholarships, universities (fields, tuition, application fees, requirements), a 16-step
 study-abroad roadmap (progress saved in `profiles.roadmap`) and a planner that matches
 universities to the user's level, field, IELTS score and budget, with a shortlist that adds up

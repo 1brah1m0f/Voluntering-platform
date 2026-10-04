@@ -14,7 +14,8 @@
 //   { action: "student_fit", lang, target: {kind, id} }    → does the student fit this scholarship/university?
 //   { action: "student_review", lang, text, target? }      → essay/letter feedback for that place
 //
-// Security: the caller must be signed in and on the Premium plan (or admin);
+// Security: the caller must be signed in and either a regular account on Premium
+// (letter/review) or a student account on the Student plan (student_*), or admin;
 // requests are counted per user per day (DAILY_LIMIT). The Gemini key lives
 // only here, as the GEMINI_API_KEY function secret. Until it is set, the app
 // shows the AI tools as "coming soon".
@@ -445,14 +446,19 @@ Deno.serve(async (req) => {
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, interests, country, about, plan, is_admin")
+    .select("full_name, interests, country, about, plan, account_type, is_admin")
     .eq("id", user.id)
     .single();
-  // Student (7 ₼) includes everything in Premium.
-  if (!profile || (profile.plan !== "premium" && profile.plan !== "student" && !profile.is_admin)) return json({ error: "premium_required" }, 403);
+  if (!profile) return json({ error: "premium_required" }, 403);
+  const isStudentAction = STUDENT_ACTIONS.includes(body.action as string);
+  // Account types are separate: the advisor is for student accounts on the Student
+  // plan, the letter/review tools for regular accounts on Premium. Admins get both.
+  if (!profile.is_admin) {
+    if (isStudentAction && !(profile.account_type === "student" && profile.plan === "student")) return json({ error: "student_required" }, 403);
+    if (!isStudentAction && !(profile.account_type !== "student" && profile.plan === "premium")) return json({ error: "premium_required" }, 403);
+  }
 
-  if (STUDENT_ACTIONS.includes(body.action as string)) {
-    if (profile.plan !== "student" && !profile.is_admin) return json({ error: "student_required" }, 403);
+  if (isStudentAction) {
     // Read on its own: if supabase/app.sql (Student section, v2) hasn't been run yet the
     // column is missing, and the advisor still works without the preferences.
     const { data: prefsRow } = await admin.from("profiles").select("student_prefs").eq("id", user.id).maybeSingle();

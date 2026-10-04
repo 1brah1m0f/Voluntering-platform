@@ -56,7 +56,8 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
     const email = confirmedEmails.get(p.id);
     if (!email) continue; // unconfirmed or deleted account
     if (only && email.toLowerCase() !== only.toLowerCase()) continue;
-    const premium = p.plan === 'premium' || p.plan === 'student'; // Student includes Premium
+    if (p.account_type === 'student') continue; // student accounts don't use the volunteering app
+    const premium = p.plan === 'premium';
     const name = p.full_name || '';
 
     // --- new-opportunities digest -------------------------------------------
