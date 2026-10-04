@@ -284,7 +284,7 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800 print:hidden">{tx.demoBanner}</p>}
 
-          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12 print:max-w-none print:p-0">
+          <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-12 print:max-w-none print:p-0">
             <Outlet />
           </main>
         </div>

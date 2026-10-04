@@ -140,7 +140,7 @@ export default function DetailPage() {
     <div>
       {back}
       <article className="mt-4 overflow-hidden rounded-[2rem] border border-line bg-white shadow-card">
-        <header className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-coral-50 p-6 sm:p-8">
+        <header className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-coral-50 p-5 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <ProgramBadge program={o.program} size="lg" />
             <div className="min-w-0 flex-1">
@@ -183,7 +183,7 @@ export default function DetailPage() {
           ))}
         </div>
 
-        <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-3">
+        <div className="grid gap-6 p-4 sm:gap-8 sm:p-8 lg:grid-cols-3">
           <div className="min-w-0 lg:col-span-2">
             {aiOpened && (
               <div hidden={tab === 'about'}>
