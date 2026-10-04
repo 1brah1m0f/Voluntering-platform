@@ -249,7 +249,7 @@ export function createDemoBackend(): Backend {
     return u;
   };
   // Demo users created before account types existed are regular accounts.
-  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, account_type: p.account_type ?? 'regular', avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {} });
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, account_type: p.account_type ?? 'regular', avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {}, prefs: p.prefs ?? {} });
 
   return {
     mode: 'demo',

@@ -28,6 +28,41 @@ export interface Profile {
   roadmap?: string[];
   /** Student plan: level, field, IELTS and budget from "My plan". */
   student_prefs?: StudentPrefs;
+  /** Personalisation: studies, languages, skills, experience, what they look for, profile colour. */
+  prefs?: UserPrefs;
+}
+
+export type LangLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'native';
+export type Occupation = 'school' | 'student' | 'graduate' | 'working' | 'other';
+export type ProfileTheme = 'teal' | 'coral' | 'violet' | 'ocean' | 'forest' | 'sunset';
+
+/** Something the user has done before (a project, exchange, volunteering role). */
+export interface Experience {
+  title: string;
+  org?: string;
+  year?: number;
+  country?: string;
+}
+
+/** profiles.prefs — every field optional; the UI treats missing as "not set". */
+export interface UserPrefs {
+  birth_year?: number;
+  occupation?: Occupation;
+  school?: string;
+  field?: string;
+  languages?: { name: string; level: LangLevel }[];
+  skills?: string[];
+  experiences?: Experience[];
+  /** Preferred opportunity types; empty = all. */
+  kinds?: Kind[];
+  /** short = up to ~3 weeks (exchanges, courses), long = months (volunteering). */
+  duration?: 'short' | 'long' | 'any';
+  funded_only?: boolean;
+  passport?: boolean;
+  /** Countries the user would like to go to. */
+  destinations?: string[];
+  theme?: ProfileTheme;
+  linkedin?: string;
 }
 
 export interface Opportunity {

@@ -1,6 +1,6 @@
 import type { Profile } from './types';
 
-export type CompletenessKey = 'photo' | 'interests' | 'country' | 'headline' | 'about';
+export type CompletenessKey = 'photo' | 'interests' | 'country' | 'headline' | 'about' | 'studies' | 'languages';
 
 /** How complete a profile is, and what's missing (dashboard and profile page). */
 export function completeness(p: Profile) {
@@ -10,6 +10,8 @@ export function completeness(p: Profile) {
     ['country', !!p.country],
     ['headline', !!p.headline?.trim()],
     ['about', !!p.about?.trim()],
+    ['studies', !!p.prefs?.occupation],
+    ['languages', (p.prefs?.languages?.length ?? 0) > 0],
   ];
   const missing = checks.filter(([, ok]) => !ok).map(([k]) => k);
   return { percent: Math.round(((checks.length - missing.length) / checks.length) * 100), missing };

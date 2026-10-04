@@ -2,7 +2,7 @@ import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseC
 import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, account_type, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs';
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, account_type, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs, prefs';
 // Used if supabase/app.sql hasn't been re-run yet and the newer columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
@@ -94,7 +94,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
         console.warn('[profile] profile columns missing — re-run supabase/app.sql');
         const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
         if (base.error) throw dbError(base.error);
-        return base.data ? ({ ...base.data, account_type: 'regular', digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '', roadmap: [], student_prefs: {} } as Profile) : null;
+        return base.data ? ({ ...base.data, account_type: 'regular', digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '', roadmap: [], student_prefs: {}, prefs: {} } as Profile) : null;
       }
       if (error) throw dbError(error);
       return data as Profile | null;

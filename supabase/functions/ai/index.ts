@@ -81,12 +81,39 @@ ${o.description || "(none)"}
 </opportunity>`;
 }
 
+type Prefs = {
+  birth_year?: number;
+  occupation?: string;
+  school?: string;
+  field?: string;
+  languages?: { name: string; level: string }[];
+  skills?: string[];
+  experiences?: { title: string; org?: string; year?: number; country?: string }[];
+};
+
+/** The structured part of the profile (profiles.prefs), as plain lines; empty fields are left out. */
+function prefsLines(raw: unknown): string {
+  const p = (raw && typeof raw === "object" ? raw : {}) as Prefs;
+  const lines: string[] = [];
+  if (p.birth_year) lines.push(`Age: about ${new Date().getFullYear() - p.birth_year}`);
+  const study = [p.occupation, p.school, p.field].filter(Boolean).join(", ");
+  if (study) lines.push(`Occupation / studies: ${study}`);
+  if (p.languages?.length) lines.push(`Languages: ${p.languages.slice(0, 8).map((l) => `${l.name} (${l.level})`).join(", ")}`);
+  if (p.skills?.length) lines.push(`Skills: ${p.skills.slice(0, 20).join(", ")}`);
+  if (p.experiences?.length) {
+    lines.push("Past experience:");
+    for (const e of p.experiences.slice(0, 10)) lines.push(`- ${[e.title, e.org, e.country, e.year].filter(Boolean).join(", ")}`);
+  }
+  return lines.join("\n");
+}
+
 function profileBlock(p: Record<string, unknown>) {
+  const extra = prefsLines(p.prefs);
   return `<profile>
 Name: ${p.full_name || "(not given)"}
 Country: ${p.country || "(not given)"}
 Interests: ${(p.interests as string[] | null)?.join(", ") || "(none selected)"}
-Background (education, experience, skills - written by the applicant):
+${extra ? `${extra}\n` : ""}Background (education, experience, skills - written by the applicant):
 ${p.about || "(empty)"}
 </profile>`;
 }
@@ -504,6 +531,9 @@ Deno.serve(async (req) => {
   if ((used as number) > DAILY_LIMIT) return json({ error: "daily_limit", limit: DAILY_LIMIT }, 429);
 
   const action = body.action as "questions" | "draft" | "review";
+  // Read on its own so the assistant still works if supabase/app.sql (prefs) hasn't been run yet.
+  const { data: prefsRow } = await admin.from("profiles").select("prefs").eq("id", user.id).maybeSingle();
+  (profile as Row).prefs = (prefsRow as Row | null)?.prefs ?? {};
   try {
     const pdf = action === "review" && body.file ? (body.file as PdfFile) : undefined;
     const result = await gemini(action, buildPrompt(action, opportunity, profile, body), pdf);

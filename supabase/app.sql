@@ -683,3 +683,13 @@ end;
 $$;
 revoke all on function public.claim_student_account() from public, anon;
 grant execute on function public.claim_student_account() to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Personalisation: birth year, studies, languages, skills, past experience,
+-- what the user is looking for (types, duration, funded only, destinations)
+-- and the profile colour. One JSON object (see UserPrefs in src/app/types.ts),
+-- used for matching, the CV page and the AI assistant.
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists prefs jsonb not null default '{}'
+  check (jsonb_typeof(prefs) = 'object' and pg_column_size(prefs) <= 8000);
+grant update (prefs) on public.profiles to authenticated;
