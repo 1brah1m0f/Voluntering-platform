@@ -30,6 +30,33 @@ const MAP_STYLES = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6aa9ad' }] },
 ];
 
+// Google's own colourful map, just without the clutter of shops and stations.
+const STANDARD_STYLES = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+];
+
+type MapKind = 'standard' | 'terrain' | 'satellite' | 'clean';
+const MAP_KINDS: MapKind[] = ['standard', 'terrain', 'satellite', 'clean'];
+const KIND_KEY = 'openly_map_kind';
+
+/** Map type id and styles for each choice in the switcher. */
+function mapLook(kind: MapKind) {
+  if (kind === 'satellite') return { mapTypeId: 'hybrid', styles: [] };
+  if (kind === 'terrain') return { mapTypeId: 'terrain', styles: STANDARD_STYLES };
+  if (kind === 'clean') return { mapTypeId: 'roadmap', styles: MAP_STYLES };
+  return { mapTypeId: 'roadmap', styles: STANDARD_STYLES };
+}
+
+function readKind(): MapKind {
+  try {
+    const k = localStorage.getItem(KIND_KEY) as MapKind | null;
+    return k && MAP_KINDS.includes(k) ? k : 'standard';
+  } catch {
+    return 'standard';
+  }
+}
+
 /**
  * A clickable HTML pin on the map (country code + count). Built on OverlayView so
  * it can be styled with CSS and works without a map ID.
@@ -132,6 +159,15 @@ export default function MapPage() {
   const mapRef = useRef<GoogleMaps>(null);
   const pinsRef = useRef<GoogleMaps[]>([]);
   const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>(hasMapsKey ? 'loading' : 'failed');
+  const [kind, setKind] = useState<MapKind>(readKind);
+  const changeKind = (k: MapKind) => {
+    setKind(k);
+    try {
+      localStorage.setItem(KIND_KEY, k);
+    } catch {
+      /* storage blocked: the choice lasts for this visit */
+    }
+  };
 
   const open = useMemo(() => (opportunities ?? []).filter((o) => o.published && daysUntil(o.deadline) >= 0), [opportunities]);
   const counts = useMemo(() => {
@@ -161,7 +197,7 @@ export default function MapPage() {
           gestureHandling: 'greedy',
           clickableIcons: false,
           backgroundColor: '#cdeeee',
-          styles: MAP_STYLES,
+          ...mapLook(readKind()),
         });
         map.addListener('click', () => select('')); // tapping the sea / land closes the panel
         mapRef.current = map;
@@ -175,6 +211,12 @@ export default function MapPage() {
       live = false;
     };
   }, [dataReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Switching the map type.
+  useEffect(() => {
+    if (mapState !== 'ready' || !mapRef.current) return;
+    mapRef.current.setOptions(mapLook(kind));
+  }, [mapState, kind]);
 
   // Pins, redrawn when the data or the selection changes; the selected country comes into view.
   useEffect(() => {
@@ -253,11 +295,33 @@ export default function MapPage() {
         </div>
 
         {/* Hint until something is picked. */}
-        {!selected && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-4 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink/85 px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur">
-            <Hand className="h-4 w-4" aria-hidden="true" />
+        {!selected && mapState === 'ready' && (
+          <p className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-ink shadow-lg sm:flex">
+            <Hand className="h-4 w-4 text-coral-600" aria-hidden="true" />
             {m.hint}
           </p>
+        )}
+
+        {/* Map type switcher (hidden under the bottom sheet on phones). */}
+        {mapState === 'ready' && (
+          <div
+            role="radiogroup"
+            aria-label={m.kindLabel}
+            className={`absolute bottom-3 left-3 gap-0.5 rounded-full bg-white/95 p-1 shadow-lg ${selected ? 'hidden lg:flex' : 'flex'}`}
+          >
+            {MAP_KINDS.map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={kind === k}
+                onClick={() => changeKind(k)}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${kind === k ? 'bg-brand-800 text-white' : 'text-slate-600 hover:text-ink'}`}
+              >
+                {m.kinds[k]}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* The country's opportunities: a side panel on large screens, a bottom sheet on phones. */}
