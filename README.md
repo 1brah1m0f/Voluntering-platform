@@ -114,6 +114,11 @@ duration, funded only, passport, destination countries and the profile colour. R
 - **AI** (`/app/ai`): status and quick access to the letter / review tools; the edge function
   also reads `prefs`.
 - Accepted opportunities get a trip checklist (info pack, visa, insurance, tickets, Youthpass).
+- **Notes**: private sticky notes (`notes` table, owner-only RLS, max 100) under Profile → My
+  notes and on the home page.
+- **Map** (`/app/map`): open opportunities per country on a Google map (country centres in
+  `src/app/geo.ts`, no geocoding). Set `VITE_GOOGLE_MAPS_API_KEY` on the host and restrict the key
+  to your domains and the Maps JavaScript API; without it the page falls back to a country list.
 
 ## Email notifications
 
