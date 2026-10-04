@@ -14,9 +14,10 @@
 //   { action: "student_fit", lang, target: {kind, id} }    → does the student fit this scholarship/university?
 //   { action: "student_review", lang, text, target? }      → essay/letter feedback for that place
 //
-// Security: the caller must be signed in and either a regular account on Premium
-// (letter/review) or a student account on the Student plan (student_*), or admin;
-// requests are counted per user per day (DAILY_LIMIT). The Gemini key lives
+// Security: the caller must be signed in and either a regular account (letter/review:
+// free plan 1 use a day, Premium 15) or a student account on the Student plan
+// (student_*, 15 a day), or admin; uses are counted per user per day in ai_usage
+// ("status" also returns today's limit and what's left). The Gemini key lives
 // only here, as the GEMINI_API_KEY function secret. Until it is set, the app
 // shows the AI tools as "coming soon".
 //
@@ -30,7 +31,12 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-3.1-flash-lite";
-const DAILY_LIMIT = 30;
+// Uses per day: a letter draft, a review or a student-advisor answer is one use.
+// Interview questions (the first half of the letter flow) aren't counted, but need a use left.
+const FREE_DAILY_LIMIT = 1;
+const PAID_DAILY_LIMIT = 15;
+const ADMIN_DAILY_LIMIT = 100;
+const dailyLimit = (p: { plan?: string; is_admin?: boolean }) => (p.is_admin ? ADMIN_DAILY_LIMIT : p.plan === "basic" ? FREE_DAILY_LIMIT : PAID_DAILY_LIMIT);
 const MAX_TEXT = 12_000;
 const MAX_PDF_BASE64 = Math.ceil((3 * 1024 * 1024 * 4) / 3) + 4; // 3 MB file
 const MAX_ANSWERS = 8;
@@ -464,25 +470,37 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: "bad_request" }, 400);
   }
-  if (body.action === "status") return json({ configured: API_KEY !== "" });
-  if (!API_KEY) return json({ error: "not_configured" }, 503);
-
-  const invalid = validate(body);
-  if (invalid) return json({ error: "bad_request", detail: invalid }, 400);
-
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const { data: profile } = await admin
     .from("profiles")
     .select("full_name, interests, country, about, plan, account_type, is_admin")
     .eq("id", user.id)
     .single();
+  // Today's uses so far (ai_usage.day is the database's current_date, UTC).
+  const usedToday = async () => {
+    const { data } = await admin.from("ai_usage").select("count").eq("user_id", user.id).eq("day", new Date().toISOString().slice(0, 10)).maybeSingle();
+    return ((data as { count?: number } | null)?.count ?? 0) as number;
+  };
+
+  if (body.action === "status") {
+    if (!profile) return json({ configured: API_KEY !== "" });
+    const limit = dailyLimit(profile);
+    return json({ configured: API_KEY !== "", limit, remaining: Math.max(0, limit - (await usedToday())) });
+  }
+  if (!API_KEY) return json({ error: "not_configured" }, 503);
+
+  const invalid = validate(body);
+  if (invalid) return json({ error: "bad_request", detail: invalid }, 400);
+
   if (!profile) return json({ error: "premium_required" }, 403);
+  const limit = dailyLimit(profile);
   const isStudentAction = STUDENT_ACTIONS.includes(body.action as string);
   // Account types are separate: the advisor is for student accounts on the Student
-  // plan, the letter/review tools for regular accounts on Premium. Admins get both.
+  // plan; the letter/review tools are for regular accounts (free: 1 use a day,
+  // Premium: 15). Admins get both.
   if (!profile.is_admin) {
     if (isStudentAction && !(profile.account_type === "student" && profile.plan === "student")) return json({ error: "student_required" }, 403);
-    if (!isStudentAction && !(profile.account_type !== "student" && profile.plan === "premium")) return json({ error: "premium_required" }, 403);
+    if (!isStudentAction && profile.account_type === "student") return json({ error: "premium_required" }, 403);
   }
 
   if (isStudentAction) {
@@ -507,11 +525,11 @@ Deno.serve(async (req) => {
 
     const { data: used, error: usageError } = await admin.rpc("bump_ai_usage", { target: user.id });
     if (usageError) return json({ error: "server_error" }, 500);
-    if ((used as number) > DAILY_LIMIT) return json({ error: "daily_limit", limit: DAILY_LIMIT }, 429);
+    if ((used as number) > limit) return json({ error: "daily_limit", limit }, 429);
     try {
       const prompt = buildStudentPrompt(body.action as Action, profile, scholarships, universities, tgt.data ? localized(tgt.data as Row, lang) : null, body);
       const result = await gemini(body.action as Action, prompt, undefined, STUDENT_SYSTEM);
-      return json({ result, remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
+      return json({ result, remaining: Math.max(0, limit - (used as number)) });
     } catch (err) {
       if (err instanceof GeminiError) {
         console.error(err.message);
@@ -526,18 +544,26 @@ Deno.serve(async (req) => {
   const { data: opportunity } = await admin.from("opportunities").select("*").eq("id", body.opportunityId).single();
   if (!opportunity || (!opportunity.published && !profile.is_admin)) return json({ error: "not_found" }, 404);
 
-  const { data: used, error: usageError } = await admin.rpc("bump_ai_usage", { target: user.id });
-  if (usageError) return json({ error: "server_error" }, 500);
-  if ((used as number) > DAILY_LIMIT) return json({ error: "daily_limit", limit: DAILY_LIMIT }, 429);
-
   const action = body.action as "questions" | "draft" | "review";
+  // Questions don't use up the day's uses (they're half of one letter), but need one left.
+  let used: number;
+  if (action === "questions") {
+    used = await usedToday();
+    if (used >= limit) return json({ error: "daily_limit", limit }, 429);
+  } else {
+    const { data: bumped, error: usageError } = await admin.rpc("bump_ai_usage", { target: user.id });
+    if (usageError) return json({ error: "server_error" }, 500);
+    used = bumped as number;
+    if (used > limit) return json({ error: "daily_limit", limit }, 429);
+  }
+
   // Read on its own so the assistant still works if supabase/app.sql (prefs) hasn't been run yet.
   const { data: prefsRow } = await admin.from("profiles").select("prefs").eq("id", user.id).maybeSingle();
   (profile as Row).prefs = (prefsRow as Row | null)?.prefs ?? {};
   try {
     const pdf = action === "review" && body.file ? (body.file as PdfFile) : undefined;
     const result = await gemini(action, buildPrompt(action, opportunity, profile, body), pdf);
-    return json({ result, remaining: Math.max(0, DAILY_LIMIT - (used as number)) });
+    return json({ result, remaining: Math.max(0, limit - used) });
   } catch (err) {
     if (err instanceof GeminiError) {
       console.error(err.message);

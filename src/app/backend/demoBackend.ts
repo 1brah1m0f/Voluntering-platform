@@ -452,7 +452,7 @@ export function createDemoBackend(): Backend {
     },
 
     async aiStatus() {
-      return false;
+      return { configured: false, limit: null, remaining: null };
     },
 
     async listSaved() {

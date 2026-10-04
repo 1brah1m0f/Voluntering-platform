@@ -24,6 +24,7 @@ export function useAi() {
     try {
       const { result, remaining } = await backend.ai(req);
       setRemaining(remaining);
+      refreshAiStatus(); // the day's count changed
       return result as T;
     } catch (err) {
       const code = err instanceof BackendError ? err.code : 'unknown';
@@ -477,34 +478,80 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
   );
 }
 
-// Asked once per page load: is the AI function deployed with an API key?
-let readyCheck: Promise<boolean> | null = null;
-export function useAiReady(enabled: boolean): boolean | null {
-  const [ready, setReady] = useState<boolean | null>(null);
+export type AiInfo = { configured: boolean; limit: number | null; remaining: number | null };
+
+// Asked once per page load, and again after each AI use: is the AI function
+// deployed with an API key, and how many uses are left today?
+let statusCheck: Promise<AiInfo> | null = null;
+const statusListeners = new Set<() => void>();
+
+/** Re-reads the AI status everywhere it's shown (after a use, the count changes). */
+export function refreshAiStatus() {
+  statusCheck = null;
+  statusListeners.forEach((l) => l());
+}
+
+export function useAiInfo(enabled: boolean): AiInfo | null {
+  const [info, setInfo] = useState<AiInfo | null>(null);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const l = () => setTick((t) => t + 1);
+    statusListeners.add(l);
+    return () => {
+      statusListeners.delete(l);
+    };
+  }, []);
   useEffect(() => {
     if (!enabled) return;
-    readyCheck ??= backend.aiStatus().catch(() => false);
+    statusCheck ??= backend.aiStatus().catch(() => ({ configured: false, limit: null, remaining: null }));
     let live = true;
-    readyCheck.then((r) => live && setReady(r));
+    statusCheck.then((r) => live && setInfo(r));
     return () => {
       live = false;
     };
-  }, [enabled]);
-  return ready;
+  }, [enabled, tick]);
+  return info;
+}
+
+export function useAiReady(enabled: boolean): boolean | null {
+  const info = useAiInfo(enabled);
+  return info ? info.configured : null;
 }
 
 export type AiTool = 'letter' | 'review';
 
+/** "1 of 1 uses left today" plus, for the free plan, what Premium gives. */
+export function AiQuota({ info }: { info: AiInfo | null }) {
+  const { tx } = useAppText();
+  const { profile } = useAuth();
+  if (!info?.configured || info.limit === null || info.remaining === null) return null;
+  const free = !hasPremium(profile);
+  return (
+    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-4 py-3 text-sm ${free ? 'border border-amber-200 bg-amber-50 text-amber-950' : 'bg-violet-50 text-violet-900'}`}>
+      <span className="inline-flex items-center gap-1.5 font-bold">
+        <Sparkles className="h-4 w-4" aria-hidden="true" />
+        {tx.ai.quota(info.remaining, info.limit)}
+      </span>
+      {free && (
+        <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1 font-semibold text-amber-800 hover:underline">
+          <Crown className="h-4 w-4" aria-hidden="true" />
+          {tx.ai.freeNote}
+        </Link>
+      )}
+    </div>
+  );
+}
+
 /**
- * The AI tools for one opportunity, shown as tabs on its detail page. Free users
- * see what they'd get; Premium users see the tools, disabled with a "coming soon"
- * note until the AI backend is configured.
+ * The AI tools for one opportunity, shown as tabs on its detail page. Every
+ * regular account can use them (free: 1 use a day, Premium: 15); they're
+ * disabled with a "coming soon" note until the AI backend is configured.
  */
 export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: AiTool }) {
   const { tx } = useAppText();
   const { profile } = useAuth();
-  const premium = hasPremium(profile);
-  const ready = useAiReady(premium);
+  const info = useAiInfo(!!profile);
+  const ready = info ? info.configured : null;
   const location = useLocation();
 
   if (!profile) {
@@ -519,20 +566,9 @@ export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: 
     );
   }
 
-  if (!premium) {
-    return (
-      <div className="flex flex-col items-center gap-4 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
-        <Crown className="h-10 w-10 text-amber-500" aria-hidden="true" />
-        <p className="max-w-md text-amber-900">{tx.ai.locked}</p>
-        <Link to="/app/profile?tab=premium" className="btn-primary">
-          {tx.list.seePremium}
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
+      <AiQuota info={info} />
       {ready === false && (
         <p className="flex gap-2 rounded-2xl border border-violet-200 bg-violet-50 p-4 text-sm font-medium text-violet-900">
           <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />

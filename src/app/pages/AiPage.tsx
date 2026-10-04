@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, ClipboardCheck, Crown, PenLine, Search, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
-import { useAiReady } from '../AiTools';
+import { AiQuota, useAiInfo } from '../AiTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { hasPremium } from '../plans';
@@ -29,13 +29,17 @@ export function AiStatusPill({ status, className = '' }: { status: AiStatus; cla
   );
 }
 
-/** The AI's state for the signed-in user: locked (not Premium), still checking, active or not set up yet. */
+/**
+ * The AI's state for the signed-in user: still checking, active or not set up yet.
+ * Everyone with a regular account can use it (free: 1 a day, Premium: 15); 'locked'
+ * is left for when today's uses have run out.
+ */
 export function useAiStatus(): AiStatus {
   const { profile } = useAuth();
-  const premium = hasPremium(profile);
-  const ready = useAiReady(premium);
-  if (!premium) return 'locked';
-  return ready === null ? 'checking' : ready ? 'active' : 'soon';
+  const info = useAiInfo(!!profile);
+  if (!info) return 'checking';
+  if (!info.configured) return 'soon';
+  return info.remaining === 0 ? 'locked' : 'active';
 }
 
 function ToolCard({ Icon, title, points, tone }: { Icon: LucideIcon; title: string; points: string[]; tone: string }) {
@@ -68,7 +72,9 @@ export default function AiPage() {
   const { profile } = useAuth();
   const { opportunities, saved } = useData();
   const status = useAiStatus();
-  const locked = status === 'locked';
+  const info = useAiInfo(!!profile);
+  // Free accounts see what Premium adds (15 uses a day instead of 1).
+  const free = !hasPremium(profile);
 
   if (!opportunities || !profile) return <Spinner label={tx.loading} />;
 
@@ -91,14 +97,16 @@ export default function AiPage() {
             {tx.nav.ai}
           </span>
           <AiStatusPill status={status} />
-          {!locked && <span className="text-sm text-violet-100">{h.perDay}</span>}
+          {info?.limit != null && <span className="text-sm text-violet-100">{h.perDay(info.limit)}</span>}
         </div>
         <h1 className="relative mt-4 max-w-2xl text-3xl font-extrabold tracking-tight !text-white sm:text-4xl">{h.title}</h1>
         <p className="relative mt-2 max-w-2xl leading-relaxed text-violet-100 sm:text-lg">{h.sub}</p>
         {status === 'soon' && <p className="relative mt-4 max-w-2xl rounded-2xl bg-white/10 px-4 py-3 text-sm text-violet-50">{tx.ai.comingSoon}</p>}
       </header>
 
-      {locked && (
+      <AiQuota info={info} />
+
+      {free && (
         <div className="flex flex-col gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:p-6">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-coral-600 text-white">
             <Crown className="h-6 w-6" aria-hidden="true" />

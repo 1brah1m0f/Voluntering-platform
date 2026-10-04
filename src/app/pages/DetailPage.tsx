@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, ClipboardCheck, Crown, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users, BookOpen } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ClipboardCheck, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users, BookOpen } from 'lucide-react';
 import { AiTools } from '../AiTools';
 import { GUIDES } from '../../content/guides';
 import { programPageByName } from '../../content/programs';
@@ -15,14 +15,12 @@ import { ageFit, ageRange } from '../personal';
 import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass, statusClass } from '../ui';
 import { backend } from '../backend';
 import { daysUntil, formatDate, formatRange } from '../util';
-import { hasPremium } from '../plans';
 
 export default function DetailPage() {
   const { id = '' } = useParams();
   const { tx, lang } = useAppText();
   const { opportunities, saved, save, setStatus, error, reload } = useData();
   const { userId, profile } = useAuth();
-  const premium = hasPremium(profile);
   const [busy, setBusy] = useState(false);
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'letter' || params.get('tab') === 'review' ? (params.get('tab') as 'letter' | 'review') : 'about';
@@ -180,12 +178,7 @@ export default function DetailPage() {
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
               {label}
-              {ai &&
-                (premium ? (
-                  <span className="rounded-full bg-violet-100 px-1.5 text-[10px] font-bold uppercase text-violet-700">AI</span>
-                ) : (
-                  <Crown className="h-3.5 w-3.5 text-amber-500" aria-label="Premium" />
-                ))}
+              {ai && <span className="rounded-full bg-violet-100 px-1.5 text-[10px] font-bold uppercase text-violet-700">AI</span>}
             </button>
           ))}
         </div>

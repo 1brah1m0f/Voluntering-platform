@@ -137,7 +137,7 @@ export default function AppLayout() {
     : [
         { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
         // The AI tools live on each opportunity page; this is their visible home.
-        { to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : 'Premium' },
+        { to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : '1/24h' },
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin

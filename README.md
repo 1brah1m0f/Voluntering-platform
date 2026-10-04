@@ -41,7 +41,8 @@ demo mode is on.
 
 ## Premium AI assistant
 
-Premium users get two extra tabs on every opportunity page (`/app/o/<id>?tab=letter|review`):
+Every regular account gets two extra tabs on every opportunity page (`/o/<id>?tab=letter|review`),
+free users 1 use a day, Premium users 15:
 
 - **Motivation letter assistant** — the AI first asks 4–6 questions tailored to the opportunity
   and the user's profile, then builds a draft *only* from the answers (placeholders in
@@ -54,8 +55,9 @@ for you"), see `src/app/match.ts`.
 
 The AI runs in the Supabase Edge Function `supabase/functions/ai` and calls Google Gemini
 (`gemini-3.1-flash-lite` by default, thinking set to minimal: $0.25 / $1.50 per 1M tokens,
-roughly $1–2 per 1000 requests; `gemini-2.5-flash-lite` is no longer open to new API users). It checks that the caller is signed in and Premium, and allows 30 requests per user
-per day (`ai_usage` table). The API key never reaches the browser. **Until the key is set, the
+roughly $1–2 per 1000 requests; `gemini-2.5-flash-lite` is no longer open to new API users). It checks that the caller is signed in; free users get 1 use a day, Premium (and Student) 15 —
+a letter draft or a review is one use, the interview questions before a draft aren't counted
+(`ai_usage` table). The API key never reaches the browser. **Until the key is set, the
 tabs are visible but disabled with a "coming soon" note.**
 
 Setup:

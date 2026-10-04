@@ -74,8 +74,11 @@ export interface Backend {
 
   /** Premium AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
-  /** Whether the AI assistant is deployed and has an API key; false until it's set up. */
-  aiStatus(): Promise<boolean>;
+  /**
+   * Whether the AI assistant is deployed with an API key (false until it's set up),
+   * and the signed-in user's uses per day and what's left today (null if unknown).
+   */
+  aiStatus(): Promise<{ configured: boolean; limit: number | null; remaining: number | null }>;
 
   /** Student section. Catalogue reads fail (RLS) unless the user is on the Student plan. */
   studentCounts(): Promise<{ scholarships: number; universities: number }>;

@@ -217,7 +217,8 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     async aiStatus() {
       // Fails (and so reports "not ready") while the function isn't deployed yet.
       const { data, error } = await sb.functions.invoke('ai', { body: { action: 'status' } });
-      return !error && (data as { configured?: boolean } | null)?.configured === true;
+      const d = (error ? null : data) as { configured?: boolean; limit?: number; remaining?: number } | null;
+      return { configured: d?.configured === true, limit: d?.limit ?? null, remaining: d?.remaining ?? null };
     },
 
     async listSaved() {
