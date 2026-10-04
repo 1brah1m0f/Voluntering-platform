@@ -1,15 +1,36 @@
-import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bell, Camera, Crown, KeyRound, Loader2, Settings, Sparkles, UserRound } from 'lucide-react';
+import { Bell, Camera, Crown, Globe, Heart, IdCard, KeyRound, Loader2, LogOut, Plus, Settings, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { NewPasswordForm } from './AuthPages';
 import PremiumPlan from './PremiumPage';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
+import { useData } from '../DataContext';
+import { useLang } from '../../i18n';
+import { completeness } from '../profileProgress';
 import { COUNTRIES, INTERESTS, INTEREST_IDS } from '../taxonomy';
 import { useAppText } from '../text';
 import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
 import { squareImage } from '../util';
 import { isPaidPlan } from '../plans';
+
+/** A titled card that groups related fields or settings. */
+function Section({ Icon, title, sub, children }: { Icon: LucideIcon; title: string; sub?: string; children: ReactNode }) {
+  return (
+    <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
+      <div className="mb-5 flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold">{title}</h2>
+          {sub && <p className="mt-0.5 text-sm text-slate-500">{sub}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
 
 type Tab = 'profile' | 'premium' | 'settings';
 
@@ -20,6 +41,7 @@ type Tab = 'profile' | 'premium' | 'settings';
 export default function ProfilePage({ onboarding = false }: { onboarding?: boolean }) {
   const { tx, lang } = useAppText();
   const { profile, setProfile } = useAuth();
+  const { saved } = useData();
   const navigate = useNavigate();
   const uid = useId();
   const [name, setName] = useState('');
@@ -46,6 +68,21 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   if (!profile) return <Spinner label={tx.loading} />;
 
   const toggle = (id: string) => setInterests((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const dirty =
+    name !== profile.full_name ||
+    country !== profile.country ||
+    headline !== (profile.headline ?? '') ||
+    about !== (profile.about ?? '') ||
+    interests.length !== profile.interests.length ||
+    interests.some((i) => !profile.interests.includes(i));
+  // "Add: Studies" etc. start a new line in "About me" that the user then completes.
+  const addTip = (text: string) => setAbout((cur) => (cur.trim() ? `${cur.trimEnd()}\n${text}` : text).slice(0, 2000));
+  const items = [...saved.values()];
+  const stats = {
+    saved: items.filter((i) => i.status === 'saved').length,
+    applied: items.filter((i) => i.status === 'applied').length,
+    accepted: items.filter((i) => i.status === 'accepted').length,
+  };
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -75,7 +112,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           <p className="mt-1 text-slate-600">{tx.profile.onboardingSub}</p>
         </>
       ) : (
-        <ProfileHeader />
+        <ProfileHeader progress={completeness(profile).percent} stats={stats} />
       )}
 
       {!onboarding && (
@@ -111,11 +148,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       )}
 
       {tab === 'profile' && (
-        <form onSubmit={submit} className="mt-6 space-y-6 rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
-          <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-slate-800">
-              {tx.profile.interests} <span className="font-normal text-slate-500">— {tx.profile.interestsHint}</span>
-            </legend>
+        <form onSubmit={submit} className="mt-6 space-y-5">
+          <Section Icon={Heart} title={tx.profile.sectionInterests} sub={tx.profile.sectionInterestsSub(interests.length)}>
             <div className="flex flex-wrap gap-2">
               {INTEREST_IDS.map((id) => (
                 <Chip key={id} on={interests.includes(id)} onClick={() => toggle(id)}>
@@ -123,86 +157,113 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
                 </Chip>
               ))}
             </div>
-          </fieldset>
+          </Section>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={tx.profile.name} htmlFor={`${uid}-name`}>
-              <input id={`${uid}-name`} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={inputClass} />
-            </Field>
-            <Field label={tx.profile.country} htmlFor={`${uid}-country`}>
-              <select id={`${uid}-country`} value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>
-                <option value="">{tx.profile.countryPh}</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
+          <Section Icon={IdCard} title={tx.profile.sectionBasics} sub={tx.profile.sectionBasicsSub}>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={tx.profile.name} htmlFor={`${uid}-name`}>
+                  <input id={`${uid}-name`} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className={inputClass} />
+                </Field>
+                <Field label={tx.profile.country} htmlFor={`${uid}-country`}>
+                  <select id={`${uid}-country`} value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>
+                    <option value="">{tx.profile.countryPh}</option>
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+              {!onboarding && (
+                <Field label={tx.profile.headline} htmlFor={`${uid}-headline`}>
+                  <input
+                    id={`${uid}-headline`}
+                    value={headline}
+                    maxLength={80}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder={tx.profile.headlinePh}
+                    className={inputClass}
+                  />
+                </Field>
+              )}
+            </div>
+          </Section>
 
-          {!onboarding && (
-            <Field label={tx.profile.headline} htmlFor={`${uid}-headline`}>
-              <input
-                id={`${uid}-headline`}
-                value={headline}
-                maxLength={80}
-                onChange={(e) => setHeadline(e.target.value)}
-                placeholder={tx.profile.headlinePh}
-                className={inputClass}
-              />
-            </Field>
-          )}
-
-          <Field label={tx.profile.about} htmlFor={`${uid}-about`} hint={tx.profile.aboutHint}>
+          <Section Icon={Sparkles} title={tx.profile.sectionAbout} sub={tx.profile.sectionAboutSub}>
+            <label htmlFor={`${uid}-about`} className="sr-only">
+              {tx.profile.about}
+            </label>
             <textarea
               id={`${uid}-about`}
-              rows={4}
+              rows={6}
               maxLength={2000}
               value={about}
               onChange={(e) => setAbout(e.target.value)}
               placeholder={tx.profile.aboutPh}
               className={`${inputClass} resize-y`}
             />
-          </Field>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500">{tx.profile.aboutTipsLabel}</span>
+              {tx.profile.aboutTips.map((tip) => (
+                <button
+                  key={tip.label}
+                  type="button"
+                  onClick={() => addTip(tip.text)}
+                  className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:border-violet-300 hover:text-violet-700"
+                >
+                  <Plus className="h-3 w-3" aria-hidden="true" />
+                  {tip.label}
+                </button>
+              ))}
+              <span className={`ml-auto text-xs font-medium ${about.length > 1800 ? 'text-amber-700' : 'text-slate-400'}`}>{tx.profile.aboutCount(about.length)}</span>
+            </div>
+          </Section>
 
-          {msg && (
-            <p role={msg.ok ? 'status' : 'alert'} className={`rounded-xl px-3 py-2 text-sm font-medium ${msg.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
-              {msg.text}
-            </p>
-          )}
-
-          <button type="submit" disabled={busy} className="btn-primary w-full sm:w-auto">
-            {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
-            {onboarding ? tx.profile.continue : tx.profile.save}
-          </button>
+          {/* Save bar: stays in view on long forms and says when there's something to save. */}
+          <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
+            <div className="min-w-0 flex-1">
+              {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
+              {msg && (!msg.ok || !dirty) ? (
+                <p role={msg.ok ? 'status' : 'alert'} className={`text-sm font-semibold ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {msg.text}
+                </p>
+              ) : (
+                dirty && <p className="text-sm font-semibold text-amber-700">{tx.profile.unsaved}</p>
+              )}
+            </div>
+            <button type="submit" disabled={busy || (!dirty && !onboarding)} className="btn-primary w-full disabled:opacity-60 sm:w-auto">
+              {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+              {onboarding ? tx.profile.continue : tx.profile.save}
+            </button>
+          </div>
         </form>
       )}
 
       {tab === 'settings' && (
-        <>
+        <div className="mt-6 space-y-5">
+          <AccountSettings />
           <NotificationSettings />
-          <section className="mt-6 rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
-            <h2 className="flex items-center gap-2 text-lg font-bold">
-              <KeyRound className="h-5 w-5 text-brand-600" aria-hidden="true" />
-              {tx.profile.security}
-            </h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">{tx.profile.securityHint}</p>
+          <Section Icon={KeyRound} title={tx.profile.security} sub={tx.profile.securityHint}>
             <NewPasswordForm submitLabel={tx.auth.savePassword} onDone={() => setPwMsg(true)} />
             {pwMsg && (
               <p role="status" className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
                 {tx.auth.passwordChanged}
               </p>
             )}
-          </section>
-        </>
+          </Section>
+        </div>
       )}
     </div>
   );
 }
 
-/** Photo, name, headline and plan at the top of the account page. The photo saves immediately. Also used on /student/profile. */
-export function ProfileHeader() {
+/**
+ * Photo, name, headline and plan at the top of the account page. The photo saves immediately.
+ * The regular profile also passes how complete it is and the application counts; /student/profile doesn't.
+ */
+export function ProfileHeader({ progress, stats }: { progress?: number; stats?: { saved: number; applied: number; accepted: number } }) {
   const { tx } = useAppText();
   const { profile, setProfile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -269,12 +330,37 @@ export function ProfileHeader() {
             </button>
           )}
         </div>
+        {progress !== undefined && progress < 100 && (
+          <div className="mt-3 max-w-xs">
+            <p className="text-xs font-semibold text-slate-600">{tx.profile.completeness(progress)}</p>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+              <div className="h-full rounded-full bg-brand-700 transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
         {error && (
           <p role="alert" className="mt-2 text-xs font-medium text-rose-700">
             {tx.profile.photoError}
           </p>
         )}
       </div>
+      {stats && (
+        <dl className="hidden shrink-0 grid-cols-3 gap-2 text-center md:grid">
+          {(
+            [
+              [stats.saved, tx.profile.statSaved, 'text-coral-700'],
+              [stats.applied, tx.profile.statApplied, 'text-brand-700'],
+              [stats.accepted, tx.profile.statAccepted, 'text-emerald-700'],
+            ] as const
+          ).map(([n, label, tone]) => (
+            <div key={label} className="min-w-[4.5rem] rounded-2xl bg-paper px-3 py-2.5">
+              <dt className="sr-only">{label}</dt>
+              <dd className={`font-display text-2xl font-extrabold leading-none ${tone}`}>{n}</dd>
+              <dd className="mt-1 text-xs font-medium text-slate-500">{label}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </div>
   );
 }
@@ -305,12 +391,8 @@ function NotificationSettings() {
   ];
 
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <Bell className="h-5 w-5 text-brand-600" aria-hidden="true" />
-        {tx.profile.notifications}
-      </h2>
-      <ul className="mt-4 divide-y divide-slate-100">
+    <Section Icon={Bell} title={tx.profile.notifications}>
+      <ul className="-mt-2 divide-y divide-slate-100">
         {rows.map(({ key, title, sub, available }) => {
           const on = available && !profile[key];
           return (
@@ -334,6 +416,75 @@ function NotificationSettings() {
           );
         })}
       </ul>
-    </section>
+    </Section>
+  );
+}
+
+/** Email, account type and plan; site language; log out. */
+function AccountSettings() {
+  const { tx } = useAppText();
+  const { lang, setLang } = useLang();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  if (!profile) return null;
+  const planName = profile.plan === 'student' ? tx.profile.student : profile.plan === 'premium' ? tx.profile.premium : tx.profile.basic;
+
+  const logout = async () => {
+    await backend.signOut();
+    navigate('/login', { replace: true });
+  };
+
+  const rows: [string, string][] = [
+    [tx.profile.accountEmail, profile.email],
+    [tx.profile.accountType, profile.account_type === 'student' ? tx.profile.accountStudent : tx.profile.accountRegular],
+    [tx.profile.plan, planName],
+  ];
+
+  return (
+    <Section Icon={UserRound} title={tx.profile.account}>
+      <dl className="-mt-2 divide-y divide-slate-100">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm text-slate-500">{label}</dt>
+            <dd className="min-w-0 truncate text-right font-semibold text-slate-900">{value}</dd>
+          </div>
+        ))}
+        <div className="flex items-center justify-between gap-4 py-3">
+          <dt>
+            <span className="flex items-center gap-1.5 text-sm text-slate-500">
+              <Globe className="h-4 w-4" aria-hidden="true" />
+              {tx.profile.language}
+            </span>
+            <span className="block text-xs text-slate-400">{tx.profile.languageSub}</span>
+          </dt>
+          <dd className="flex rounded-full border border-line p-0.5 text-xs font-bold">
+            {(['az', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLang(l)}
+                aria-pressed={lang === l}
+                className={`rounded-full px-3 py-1 uppercase transition ${lang === l ? 'bg-brand-900 text-white' : 'text-slate-600'}`}
+              >
+                {l}
+              </button>
+            ))}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between gap-4 pt-3">
+          <dt className="text-sm text-slate-500">{tx.profile.logoutSub}</dt>
+          <dd>
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-4 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              {tx.profile.logout}
+            </button>
+          </dd>
+        </div>
+      </dl>
+    </Section>
   );
 }
