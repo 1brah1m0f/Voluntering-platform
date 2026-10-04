@@ -19,12 +19,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
 
   const refresh = useCallback(async () => {
+    let id: string | null = null;
     try {
-      const id = await backend.getUserId();
+      id = await backend.getUserId();
+      const p = id ? await backend.getProfile() : null;
+      // Set together: a signed-in user always comes with their profile (and account
+      // type), so the route guards never send a student into the regular app for a frame.
       setUserId(id);
-      setProfile(id ? await backend.getProfile() : null);
+      setProfile(p);
     } catch (err) {
       console.error('[auth] refresh failed', err);
+      setUserId(id);
       setProfile(null);
     } finally {
       setLoading(false);

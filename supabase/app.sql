@@ -560,3 +560,105 @@ alter table public.student_saved_scholarships enable row level security;
 drop policy if exists "own saved scholarships" on public.student_saved_scholarships;
 create policy "own saved scholarships" on public.student_saved_scholarships
   for all to authenticated using (user_id = auth.uid() and public.is_student()) with check (user_id = auth.uid() and public.is_student());
+
+-- ---------------------------------------------------------------------------
+-- Account types: a regular account (volunteering: Free / Premium) or a student
+-- account (the student section: locked until the Student plan, 7 ₼). Chosen at
+-- sign-up and fixed; only an admin can change it. Each type sees only its own
+-- part of the app (admins see both).
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists account_type text not null default 'regular'
+  check (account_type in ('regular', 'student'));
+
+-- Existing Student-plan users become student accounts.
+update public.profiles set account_type = 'student' where plan = 'student' and account_type <> 'student';
+
+-- The sign-up form sends account_type in the user metadata; Google sign-up is always regular.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, full_name, account_type)
+  values (
+    new.id,
+    new.email,
+    -- Email sign-up sends full_name; Google sends full_name and/or name.
+    coalesce(left(coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'), 80), ''),
+    case when new.raw_user_meta_data ->> 'account_type' = 'student' then 'student' else 'regular' end
+  )
+  on conflict (id) do nothing;
+  -- Google sign-up: use the Google picture as the profile photo.
+  update public.profiles set avatar_url = new.raw_user_meta_data ->> 'avatar_url'
+  where id = new.id
+    and char_length(new.raw_user_meta_data ->> 'avatar_url') <= 500
+    and new.raw_user_meta_data ->> 'avatar_url' ~ '^https://';
+  return new;
+end;
+$$;
+
+-- The student catalogue is for student accounts on the Student plan (and admins).
+create or replace function public.is_student()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select (account_type = 'student' and plan = 'student') or is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+-- Plans follow the account type: regular → basic/premium, student → basic/student.
+create or replace function public.set_user_plan(target uuid, new_plan text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  kind text;
+begin
+  if not public.is_admin() then
+    raise exception 'NOT_ADMIN' using errcode = '42501';
+  end if;
+  select account_type into kind from public.profiles where id = target;
+  if new_plan not in ('basic', 'premium', 'student')
+     or (kind = 'student' and new_plan = 'premium')
+     or (kind = 'regular' and new_plan = 'student') then
+    raise exception 'BAD_PLAN';
+  end if;
+  update public.profiles set plan = new_plan where id = target;
+end;
+$$;
+revoke all on function public.set_user_plan(uuid, text) from public, anon;
+grant execute on function public.set_user_plan(uuid, text) to authenticated;
+
+-- Admin switches an account between regular and student. A plan that doesn't
+-- exist for the new type goes back to basic.
+create or replace function public.set_account_type(target uuid, new_type text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'NOT_ADMIN' using errcode = '42501';
+  end if;
+  if new_type not in ('regular', 'student') then
+    raise exception 'BAD_TYPE';
+  end if;
+  update public.profiles
+  set account_type = new_type,
+      plan = case
+        when new_type = 'student' and plan = 'premium' then 'basic'
+        when new_type = 'regular' and plan = 'student' then 'basic'
+        else plan
+      end
+  where id = target;
+end;
+$$;
+revoke all on function public.set_account_type(uuid, text) from public, anon;
+grant execute on function public.set_account_type(uuid, text) to authenticated;

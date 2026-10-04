@@ -20,6 +20,7 @@ const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).ge
 export const DEMO_ACCOUNTS = {
   admin: { email: 'admin@openlyapply.com', password: 'demo1234' },
   user: { email: 'aysel@openlyapply.com', password: 'demo1234' },
+  student: { email: 'student@openlyapply.com', password: 'demo1234' },
 };
 
 const K = {
@@ -182,6 +183,7 @@ export function createDemoBackend(): Backend {
     const base = {
       country: 'Azərbaycan',
       plan: 'basic' as const,
+      account_type: 'regular' as const,
       digest_opt_out: false,
       reminders_opt_out: false,
       about: '',
@@ -192,6 +194,7 @@ export function createDemoBackend(): Backend {
     return [
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.admin, full_name: 'Openly Admin', interests: [], is_admin: true },
       { ...base, id: uuid(), ...DEMO_ACCOUNTS.user, full_name: 'Aysel Məmmədova', interests: ['environment', 'education'], is_admin: false },
+      { ...base, id: uuid(), ...DEMO_ACCOUNTS.student, full_name: 'Murad Əliyev', interests: [], is_admin: false, account_type: 'student' as const, plan: 'student' as const },
     ];
   };
   const users = (): DemoUser[] => {
@@ -239,13 +242,14 @@ export function createDemoBackend(): Backend {
     if (!u.is_admin) throw new BackendError('not_allowed');
   };
   // Older demo data predates the personalisation fields.
-  // Mirrors the database rule: the student catalogue is for the Student plan (and admins).
+  // Mirrors the database rule: the student catalogue is for student accounts on the Student plan (and admins).
   const requireStudent = () => {
     const u = requireUser();
-    if (u.plan !== 'student' && !u.is_admin) throw new BackendError('not_allowed');
+    if (!(u.account_type === 'student' && u.plan === 'student') && !u.is_admin) throw new BackendError('not_allowed');
     return u;
   };
-  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {} });
+  // Demo users created before account types existed are regular accounts.
+  const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, account_type: p.account_type ?? 'regular', avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {} });
 
   return {
     mode: 'demo',
@@ -260,7 +264,7 @@ export function createDemoBackend(): Backend {
       return () => listeners.delete(cb);
     },
 
-    async signUp(email, password, fullName) {
+    async signUp(email, password, fullName, accountType) {
       await wait();
       const list = users();
       const e = email.trim().toLowerCase();
@@ -274,6 +278,7 @@ export function createDemoBackend(): Backend {
         interests: [],
         country: '',
         plan: 'basic',
+        account_type: accountType,
         is_admin: false,
         digest_opt_out: false,
         reminders_opt_out: false,
@@ -422,6 +427,18 @@ export function createDemoBackend(): Backend {
       write(
         K.users,
         users().map((u) => (u.id === userId ? { ...u, plan } : u)),
+      );
+    },
+
+    async setAccountType(userId, type) {
+      requireAdmin();
+      write(
+        K.users,
+        users().map((u) => {
+          if (u.id !== userId) return u;
+          const mismatch = (type === 'student' && u.plan === 'premium') || (type === 'regular' && u.plan === 'student');
+          return { ...u, account_type: type, plan: mismatch ? ('basic' as const) : u.plan };
+        }),
       );
     },
 

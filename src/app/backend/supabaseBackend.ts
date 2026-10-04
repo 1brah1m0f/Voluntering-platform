@@ -2,7 +2,7 @@ import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseC
 import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
-const PROFILE_COLS = 'id, email, full_name, interests, country, plan, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs';
+const PROFILE_COLS = 'id, email, full_name, interests, country, plan, account_type, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs';
 // Used if supabase/app.sql hasn't been re-run yet and the newer columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
@@ -37,11 +37,15 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       return () => data.subscription.unsubscribe();
     },
 
-    async signUp(email, password, fullName) {
+    async signUp(email, password, fullName, accountType) {
       const { data, error } = await sb.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/app` },
+        // The sign-up trigger (handle_new_user) reads account_type from the metadata.
+        options: {
+          data: { full_name: fullName, account_type: accountType },
+          emailRedirectTo: `${window.location.origin}${accountType === 'student' ? '/student' : '/app'}`,
+        },
       });
       if (error) throw authError(error);
       // Supabase returns a user with no identities when the email is already registered.
@@ -84,7 +88,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
         console.warn('[profile] profile columns missing — re-run supabase/app.sql');
         const base = await sb.from('profiles').select(PROFILE_COLS_BASE).eq('id', id).maybeSingle();
         if (base.error) throw dbError(base.error);
-        return base.data ? ({ ...base.data, digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '', roadmap: [], student_prefs: {} } as Profile) : null;
+        return base.data ? ({ ...base.data, account_type: 'regular', digest_opt_out: false, reminders_opt_out: false, about: '', avatar_url: '', headline: '', roadmap: [], student_prefs: {} } as Profile) : null;
       }
       if (error) throw dbError(error);
       return data as Profile | null;
@@ -173,6 +177,11 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
     async setUserPlan(userId, plan) {
       const { error } = await sb.rpc('set_user_plan', { target: userId, new_plan: plan });
+      if (error) throw dbError(error);
+    },
+
+    async setAccountType(userId, type) {
+      const { error } = await sb.rpc('set_account_type', { target: userId, new_type: type });
       if (error) throw dbError(error);
     },
 

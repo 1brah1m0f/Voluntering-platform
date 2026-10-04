@@ -1,15 +1,64 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, MailCheck, Shield, UserRound } from 'lucide-react';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, GraduationCap, Loader2, MailCheck, Shield, UserRound } from 'lucide-react';
 import { BRAND } from '../../config';
 import { Logo } from '../../components/Icons';
 import { useLang } from '../../i18n';
 import { backend, BackendError } from '../backend';
 import { DEMO_ACCOUNTS } from '../backend/demoBackend';
 import { useAuth } from '../AuthContext';
+import { isRegularOnly, isStudentOnly } from '../plans';
 import { useAppText } from '../text';
+import type { AccountType, Profile } from '../types';
 import { Field, Spinner, inputClass } from '../ui';
 import { EMAIL_RE } from '../util';
+
+/** The account type picked on the login / register page, kept in the URL (?as=student). */
+function useAccountType(): [AccountType, (t: AccountType) => void] {
+  const [params, setParams] = useSearchParams();
+  const type: AccountType = params.get('as') === 'student' ? 'student' : 'regular';
+  const setType = (t: AccountType) =>
+    setParams(
+      (cur) => {
+        const next = new URLSearchParams(cur);
+        if (t === 'student') next.set('as', 'student');
+        else next.delete('as');
+        return next;
+      },
+      { replace: true },
+    );
+  return [type, setType];
+}
+
+/** "Regular account | Student account" switch at the top of the login and register forms. */
+function AccountTypeSwitch({ value, onChange }: { value: AccountType; onChange: (t: AccountType) => void }) {
+  const { tx } = useAppText();
+  const options = [
+    { id: 'regular' as const, label: tx.auth.typeRegular, Icon: UserRound },
+    { id: 'student' as const, label: tx.auth.typeStudent, Icon: GraduationCap },
+  ];
+  return (
+    <div role="radiogroup" aria-label={tx.auth.accountType} className="mb-6 grid grid-cols-2 gap-1 rounded-full border border-slate-200 bg-white p-1">
+      {options.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          role="radio"
+          aria-checked={value === id}
+          onClick={() => onChange(id)}
+          className={`flex items-center justify-center gap-2 rounded-full px-3 py-2.5 text-sm font-bold transition ${
+            value === id ? 'bg-brand-900 text-white shadow-sm' : 'text-slate-600 hover:text-brand-800'
+          }`}
+        >
+          <Icon className="h-4 w-4" aria-hidden="true" />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const withType = (path: string, type: AccountType) => (type === 'student' ? `${path}?as=student` : path);
 
 function LangToggle() {
   const { lang, setLang } = useLang();
@@ -140,23 +189,30 @@ function errorText(err: unknown, errors: Record<string, string>) {
 
 export function LoginPage() {
   const { tx } = useAppText();
-  const { userId, loading } = useAuth();
-  const navigate = useNavigate();
+  const { userId, loading, profile, refresh } = useAuth();
   const location = useLocation();
   const uid = useId();
+  const [type, setType] = useAccountType();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() => (oauthErrorInUrl() ? tx.auth.oauthError : null));
-  const from = (location.state as { from?: string } | null)?.from ?? '/app/home';
+  const from = (location.state as { from?: string } | null)?.from;
 
-  if (!loading && userId) return <Navigate to={from} replace />;
+  // Each account goes to its own part of the app, whichever tab was picked.
+  const destination = (p: Profile | null) => {
+    if (isStudentOnly(p)) return '/student';
+    if (isRegularOnly(p)) return from && !from.startsWith('/student') ? from : '/app/home';
+    return from ?? (type === 'student' ? '/student' : '/app/home'); // admins see both
+  };
+
+  if (!loading && userId) return <Navigate to={destination(profile)} replace />;
 
   async function signIn(mail: string, pw: string) {
     setBusy(true);
     try {
       await backend.signIn(mail, pw);
-      navigate(from, { replace: true });
+      await refresh(); // loads the profile; the redirect above then picks the right place
     } catch (err) {
       setError(errorText(err, tx.auth.errors));
     } finally {
@@ -172,15 +228,17 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout title={tx.auth.loginTitle} sub={tx.auth.loginSub}>
+    <AuthLayout title={tx.auth.loginTitle} sub={type === 'student' ? tx.auth.studentLoginSub : tx.auth.loginSub}>
+      <AccountTypeSwitch value={type} onChange={setType} />
       {backend.mode === 'demo' && (
         <div className="mb-6 rounded-2xl border border-brand-100 bg-brand-50 p-4">
           <p className="text-sm font-bold text-brand-900">{tx.demoLogin}</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-3 gap-2">
             {(
               [
                 ['admin', tx.demoAdmin, Shield],
                 ['user', tx.demoUser, UserRound],
+                ['student', tx.demoStudent, GraduationCap],
               ] as const
             ).map(([key, label, Icon]) => (
               <button
@@ -197,7 +255,8 @@ export function LoginPage() {
           </div>
         </div>
       )}
-      <GoogleSignIn nextPath={from} onError={setError} />
+      {/* Google sign-up always creates a regular account, so students use email. */}
+      {type === 'regular' && <GoogleSignIn nextPath={from ?? '/app/home'} onError={setError} />}
       <form onSubmit={submit} noValidate className="space-y-4">
         <Field label={tx.auth.email} htmlFor={`${uid}-email`}>
           <input
@@ -231,7 +290,7 @@ export function LoginPage() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-600">
         {tx.auth.noAccount}{' '}
-        <Link to="/register" state={location.state} className="font-semibold text-brand-700 hover:underline">
+        <Link to={withType('/register', type)} state={location.state} className="font-semibold text-brand-700 hover:underline">
           {tx.auth.register}
         </Link>
       </p>
@@ -241,9 +300,9 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const { tx } = useAppText();
-  const { userId, loading } = useAuth();
-  const navigate = useNavigate();
+  const { userId, loading, profile, refresh } = useAuth();
   const uid = useId();
+  const [type, setType] = useAccountType();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -255,7 +314,7 @@ export function RegisterPage() {
   const from = (location.state as { from?: string } | null)?.from;
   const welcome = from ? `/app/welcome?next=${encodeURIComponent(from)}` : '/app/welcome';
 
-  if (!loading && userId && !confirmFor) return <Navigate to={welcome} replace />;
+  if (!loading && userId && !confirmFor) return <Navigate to={isStudentOnly(profile) ? '/student' : welcome} replace />;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -265,9 +324,9 @@ export function RegisterPage() {
     if (password.length < 6) return setError(tx.auth.errors.passwordShort);
     setBusy(true);
     try {
-      const result = await backend.signUp(email.trim(), password, name.trim());
+      const result = await backend.signUp(email.trim(), password, name.trim(), type);
       if (result === 'confirm_email') setConfirmFor(email.trim());
-      else navigate(welcome, { replace: true });
+      else await refresh(); // loads the profile; the redirect above then picks the right place
     } catch (err) {
       setError(errorText(err, tx.auth.errors));
     } finally {
@@ -280,7 +339,7 @@ export function RegisterPage() {
       <AuthLayout title={tx.auth.confirmTitle} sub={tx.auth.confirmText(confirmFor)}>
         <div className="flex flex-col items-center gap-6 rounded-3xl bg-brand-50 p-8 text-center">
           <MailCheck className="h-12 w-12 text-brand-600" aria-hidden="true" />
-          <Link to="/login" className="btn-primary w-full">
+          <Link to={withType('/login', type)} className="btn-primary w-full">
             {tx.auth.login}
           </Link>
         </div>
@@ -289,8 +348,10 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthLayout title={tx.auth.registerTitle} sub={tx.auth.registerSub}>
-      <GoogleSignIn nextPath={welcome} onError={setError} />
+    <AuthLayout title={tx.auth.registerTitle} sub={type === 'student' ? tx.auth.studentRegisterSub : tx.auth.registerSub}>
+      <AccountTypeSwitch value={type} onChange={setType} />
+      {/* Google sign-up always creates a regular account, so students use email. */}
+      {type === 'regular' && <GoogleSignIn nextPath={welcome} onError={setError} />}
       <form onSubmit={submit} noValidate className="space-y-4">
         <Field label={tx.auth.name} htmlFor={`${uid}-name`}>
           <input
@@ -342,7 +403,7 @@ export function RegisterPage() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-600">
         {tx.auth.haveAccount}{' '}
-        <Link to="/login" state={location.state} className="font-semibold text-brand-700 hover:underline">
+        <Link to={withType('/login', type)} state={location.state} className="font-semibold text-brand-700 hover:underline">
           {tx.auth.login}
         </Link>
       </p>

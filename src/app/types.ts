@@ -1,5 +1,7 @@
 export type Status = 'saved' | 'applied' | 'accepted' | 'rejected';
 export type Plan = 'basic' | 'premium' | 'student';
+/** Fixed at sign-up: regular accounts use the volunteering app, student accounts the student section. */
+export type AccountType = 'regular' | 'student';
 export type Kind = 'youth_exchange' | 'training' | 'volunteering' | 'seminar' | 'online' | 'other';
 export type Costs = 'full' | 'partial' | 'none' | 'unknown';
 
@@ -10,6 +12,7 @@ export interface Profile {
   interests: string[];
   country: string;
   plan: Plan;
+  account_type: AccountType;
   is_admin: boolean;
   /** Opted out of the new-opportunities digest email. */
   digest_opt_out: boolean;

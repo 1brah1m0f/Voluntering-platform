@@ -1,4 +1,4 @@
-import type { AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
+import type { AccountType, AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap' | 'student_prefs'>>;
 
@@ -37,7 +37,7 @@ export interface Backend {
 
   getUserId(): Promise<string | null>;
   onAuthChange(cb: (userId: string | null) => void): () => void;
-  signUp(email: string, password: string, fullName: string): Promise<SignUpResult>;
+  signUp(email: string, password: string, fullName: string, accountType: AccountType): Promise<SignUpResult>;
   signIn(email: string, password: string): Promise<void>;
   /** Redirects to Google; the browser comes back to `nextPath` signed in. */
   signInWithGoogle(nextPath: string): Promise<void>;
@@ -67,6 +67,8 @@ export interface Backend {
   /** Admin only. */
   listUsers(): Promise<UserRow[]>;
   setUserPlan(userId: string, plan: Plan): Promise<void>;
+  /** Also resets a plan the new type doesn't have (premium ↔ student) to basic. */
+  setAccountType(userId: string, type: AccountType): Promise<void>;
 
   /** Premium AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
