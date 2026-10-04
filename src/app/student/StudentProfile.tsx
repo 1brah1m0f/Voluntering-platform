@@ -1,6 +1,7 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, GraduationCap, KeyRound, Loader2, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, GraduationCap, KeyRound, Loader2, Lock, MessageCircle } from 'lucide-react';
+import { whatsappLink } from '../../config';
 import { useAuth } from '../AuthContext';
 import { backend } from '../backend';
 import { NewPasswordForm } from '../pages/AuthPages';
@@ -144,10 +145,21 @@ function StudentPlanCard() {
         <p className="relative mt-2 max-w-lg text-brand-100">{active ? s.planActiveSub : s.planLockedSub}</p>
         {!active && (
           <>
-            <Link to="/student" className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-800">
-              {s.planSeeInside}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            <div className="relative mt-4 flex flex-wrap gap-2">
+              <a
+                href={whatsappLink(s.waMessage(profile.email))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-800"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                {s.lockCta}
+              </a>
+              <Link to="/student" className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
+                {s.planSeeInside}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
             <p className="relative mt-3 text-sm text-brand-100">{s.lockNote}</p>
           </>
         )}
