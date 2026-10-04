@@ -49,10 +49,10 @@ export default function TrackerPage() {
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="font-semibold text-slate-800">{tx.tracker.usage(rows.length)}</span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-coral-700">
+            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-coral-700 hover:underline">
               <Crown className="h-4 w-4" aria-hidden="true" />
               {tx.tracker.upgrade}
-            </span>
+            </Link>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
@@ -140,7 +140,7 @@ export default function TrackerPage() {
                   </select>
                   <button
                     type="button"
-                    onClick={() => run(() => unsave(o.id))}
+                    onClick={() => confirm(tx.tracker.confirmRemove(o.title)) && run(() => unsave(o.id))}
                     aria-label={tx.detail.remove}
                     title={tx.detail.remove}
                     className="rounded-full p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"

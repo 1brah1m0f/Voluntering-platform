@@ -393,6 +393,23 @@ const az = {
     notePh: 'Məs.: "Bazar ertəsi təşkilata yazdım, cavab gözləyirəm"',
     noteSaved: 'Yadda saxlanıldı ✓',
   },
+  trip: {
+    title: 'Səfərə hazırlıq',
+    items: {
+      infopack: 'İnfo-paket oxunub, təşkilatçıya cavab verilib',
+      visa: 'Viza üçün sənədlər verilib / viza alınıb',
+      insurance: 'Səyahət sığortası alınıb',
+      tickets: 'Biletlər alınıb, qəbzlər saxlanılıb (geri ödəniş üçün)',
+      youthpass: 'Sonda Youthpass sertifikatı alınacaq',
+    },
+  },
+  age: {
+    ok: (range: string) => `Yaşın bu növ proqrama uyğundur (adətən ${range}).`,
+    young: (range: string) => `Diqqət: bu növ proqramlar adətən ${range} yaş üçündür — şərtləri yoxla.`,
+    old: (range: string) => `Diqqət: bu növ proqramlar adətən ${range} yaş üçündür — şərtləri yoxla.`,
+    unknown: (range: string) => `Bu növ proqramlar adətən ${range} yaş üçündür. Profildə doğum ilini yaz ki, avtomatik yoxlayaq.`,
+    plus: (min: number) => `${min}+`,
+  },
   similar: {
     title: 'Oxşar fürsətlər',
   },
@@ -460,6 +477,7 @@ const az = {
     emptyCta: 'Fürsətlərə bax',
     usage: (n: number) => `Pulsuz plan: ${n} / ${FREE_EVENT_LIMIT} fürsət`,
     upgrade: 'Limitsiz izləmə üçün Premium — 3 ₼ / ay',
+    confirmRemove: (title: string) => `"${title}" siyahıdan çıxarılsın? Hazırlıq qeydləri və checklist də silinəcək.`,
   },
   limit: {
     title: 'Pulsuz plan limiti',
@@ -1189,6 +1207,23 @@ const en: AppText = {
     notePh: 'E.g. "Emailed the organisation on Monday, waiting for a reply"',
     noteSaved: 'Saved ✓',
   },
+  trip: {
+    title: 'Getting ready for the trip',
+    items: {
+      infopack: 'Info pack read, replied to the organiser',
+      visa: 'Visa documents submitted / visa received',
+      insurance: 'Travel insurance bought',
+      tickets: 'Tickets bought, receipts kept (for the refund)',
+      youthpass: 'Get the Youthpass certificate at the end',
+    },
+  },
+  age: {
+    ok: (range: string) => `Your age fits this kind of programme (usually ${range}).`,
+    young: (range: string) => `Heads-up: this kind of programme is usually for ages ${range} — check the call.`,
+    old: (range: string) => `Heads-up: this kind of programme is usually for ages ${range} — check the call.`,
+    unknown: (range: string) => `This kind of programme is usually for ages ${range}. Add your year of birth to your profile and we’ll check it for you.`,
+    plus: (min: number) => `${min}+`,
+  },
   similar: {
     title: 'Similar opportunities',
   },
@@ -1251,6 +1286,7 @@ const en: AppText = {
     emptyCta: 'Browse opportunities',
     usage: (n: number) => `Free plan: ${n} / ${FREE_EVENT_LIMIT} opportunities`,
     upgrade: 'Unlimited tracking with Premium — 3 ₼ / mo',
+    confirmRemove: (title: string) => `Remove “${title}” from your list? Its prep checklist and notes will be deleted too.`,
   },
   limit: {
     title: 'Free plan limit',

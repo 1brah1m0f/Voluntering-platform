@@ -10,7 +10,8 @@ import { useData } from '../DataContext';
 import { COSTS, INTERESTS, KINDS, STATUSES, STATUS_ORDER, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
 import type { Opportunity, Peer, Status } from '../types';
-import { prepItems, type PrepItem } from '../checklist';
+import { prepItems, tripItems, type PrepItem, type TripItem } from '../checklist';
+import { ageFit, ageRange } from '../personal';
 import { Avatar, DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner, inputClass, statusClass } from '../ui';
 import { backend } from '../backend';
 import { daysUntil, formatDate, formatRange } from '../util';
@@ -237,6 +238,7 @@ export default function DetailPage() {
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
             </a>
             <p className="text-xs leading-relaxed text-slate-500">{tx.detail.applyHint}</p>
+            {userId && <AgeHint o={o} birthYear={profile?.prefs?.birth_year} />}
             {showApplied && (
               <div role="status" className="animate-[row-in_0.3s_ease] rounded-2xl border border-brand-200 bg-brand-50 p-4">
                 <p className="font-bold text-brand-900">{tx.applied.question}</p>
@@ -276,7 +278,7 @@ export default function DetailPage() {
                   </div>
                 </fieldset>
               )}
-              {item && <PrepChecklist o={o} checklist={item.checklist ?? []} note={item.note ?? ''} />}
+              {item && <PrepChecklist o={o} checklist={item.checklist ?? []} note={item.note ?? ''} trip={item.status === 'accepted'} />}
             </div>
             {item?.status === 'accepted' && <AcceptedPeers opportunityId={o.id} sharing={item.share_contact === true} />}
             <ShareCard o={o} />
@@ -358,6 +360,22 @@ function AcceptedPeers({ opportunityId, sharing }: { opportunityId: string; shar
   );
 }
 
+/** The usual age limits for this kind of programme, checked against the profile's year of birth. */
+function AgeHint({ o, birthYear }: { o: Opportunity; birthYear?: number }) {
+  const { tx } = useAppText();
+  const range = ageRange(o);
+  if (!range) return null;
+  const label = range[1] === null ? tx.age.plus(range[0]) : `${range[0]}–${range[1]}`;
+  const fit = ageFit(o, birthYear);
+  if (fit === 'ok') return <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">✓ {tx.age.ok(label)}</p>;
+  if (fit === 'young' || fit === 'old') return <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{tx.age[fit](label)}</p>;
+  return (
+    <Link to="/app/profile" className="block rounded-xl bg-paper px-3 py-2 text-xs font-medium text-slate-600 hover:text-brand-700">
+      {tx.age.unknown(label)}
+    </Link>
+  );
+}
+
 /** Youth exchanges: who in Azerbaijan the application goes through, and how to reach them. */
 function SendingOrg({ name, contact }: { name: string; contact: string }) {
   const { tx } = useAppText();
@@ -394,16 +412,20 @@ function SendingOrg({ name, contact }: { name: string; contact: string }) {
   );
 }
 
-/** Application prep for a tracked opportunity: tick the steps, keep a private note. */
-function PrepChecklist({ o, checklist, note }: { o: Opportunity; checklist: string[]; note: string }) {
+/**
+ * Application prep for a tracked opportunity: tick the steps, keep a private note.
+ * Once accepted (`trip`), the steps become getting ready for the trip.
+ */
+function PrepChecklist({ o, checklist, note, trip }: { o: Opportunity; checklist: string[]; note: string; trip: boolean }) {
   const { tx } = useAppText();
   const { updateTracking } = useData();
   const [draft, setDraft] = useState(note);
   const [noteSaved, setNoteSaved] = useState(false);
-  const items = prepItems(o);
+  const items: (PrepItem | TripItem)[] = trip ? tripItems(o) : prepItems(o);
+  const label = (i: PrepItem | TripItem) => (trip ? tx.trip.items[i as TripItem] : tx.prep.items[i as PrepItem]);
   const done = items.filter((i) => checklist.includes(i)).length;
 
-  const toggle = async (i: PrepItem) => {
+  const toggle = async (i: PrepItem | TripItem) => {
     const next = checklist.includes(i) ? checklist.filter((x) => x !== i) : [...checklist, i];
     try {
       await updateTracking(o.id, { checklist: next });
@@ -428,7 +450,7 @@ function PrepChecklist({ o, checklist, note }: { o: Opportunity; checklist: stri
   return (
     <div className="mt-4 border-t border-slate-100 pt-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tx.prep.title}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{trip ? tx.trip.title : tx.prep.title}</p>
         <span className="text-xs font-bold text-brand-700">
           {done}/{items.length}
         </span>
@@ -441,7 +463,7 @@ function PrepChecklist({ o, checklist, note }: { o: Opportunity; checklist: stri
           <li key={i}>
             <label className="flex cursor-pointer items-start gap-2.5 text-sm">
               <input type="checkbox" checked={checklist.includes(i)} onChange={() => toggle(i)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-              <span className={checklist.includes(i) ? 'text-slate-400 line-through' : 'text-slate-800'}>{tx.prep.items[i]}</span>
+              <span className={checklist.includes(i) ? 'text-slate-400 line-through' : 'text-slate-800'}>{label(i)}</span>
             </label>
           </li>
         ))}
