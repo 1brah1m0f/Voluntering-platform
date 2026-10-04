@@ -41,6 +41,8 @@ export interface Backend {
   signIn(email: string, password: string): Promise<void>;
   /** Redirects to Google; the browser comes back to `nextPath` signed in. */
   signInWithGoogle(nextPath: string): Promise<void>;
+  /** After Google sign-up on the Student tab: makes the brand-new account a student account. False if it isn't new. */
+  claimStudentAccount(): Promise<boolean>;
   signOut(): Promise<void>;
   /** Emails a link to /reset-password. Resolves even if the address is unknown. */
   requestPasswordReset(email: string): Promise<void>;

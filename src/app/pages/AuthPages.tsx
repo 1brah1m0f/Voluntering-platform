@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Loader2, MailCheck, Shield, UserRound } from 'lucide-react';
 import { BRAND } from '../../config';
@@ -59,6 +59,12 @@ function AccountTypeSwitch({ value, onChange }: { value: AccountType; onChange: 
 }
 
 const withType = (path: string, type: AccountType) => (type === 'student' ? `${path}?as=student` : path);
+
+/**
+ * Where Google sends the browser back to from the Student tab. Google can't pass the
+ * account type, so the login page then calls claimStudentAccount() for a new account.
+ */
+const GOOGLE_STUDENT_RETURN = '/login?as=student&claim=student';
 
 function LangToggle() {
   const { lang, setLang } = useLang();
@@ -198,6 +204,25 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() => (oauthErrorInUrl() ? tx.auth.oauthError : null));
   const from = (location.state as { from?: string } | null)?.from;
+  const [params] = useSearchParams();
+  const claiming = params.get('claim') === 'student';
+  const [claimDone, setClaimDone] = useState(false);
+
+  // Back from Google on the Student tab: a brand-new account becomes a student account
+  // (the server only allows it for new, free, regular accounts), then the redirect below runs.
+  useEffect(() => {
+    if (!claiming || claimDone || !userId || !profile) return;
+    if (!isRegularOnly(profile)) return setClaimDone(true);
+    let alive = true;
+    backend
+      .claimStudentAccount()
+      .then((changed) => (changed ? refresh() : undefined))
+      .catch((err) => console.error('[auth] student claim failed', err))
+      .finally(() => alive && setClaimDone(true));
+    return () => {
+      alive = false;
+    };
+  }, [claiming, claimDone, userId, profile, refresh]);
 
   // Each account goes to its own part of the app, whichever tab was picked.
   const destination = (p: Profile | null) => {
@@ -206,7 +231,10 @@ export function LoginPage() {
     return from ?? (type === 'student' ? '/student' : '/app/home'); // admins see both
   };
 
-  if (!loading && userId) return <Navigate to={destination(profile)} replace />;
+  if (!loading && userId) {
+    if (claiming && !claimDone && profile) return <Spinner />;
+    return <Navigate to={destination(profile)} replace />;
+  }
 
   async function signIn(mail: string, pw: string) {
     setBusy(true);
@@ -255,8 +283,7 @@ export function LoginPage() {
           </div>
         </div>
       )}
-      {/* Google sign-up always creates a regular account, so students use email. */}
-      {type === 'regular' && <GoogleSignIn nextPath={from ?? '/app/home'} onError={setError} />}
+      <GoogleSignIn nextPath={type === 'student' ? GOOGLE_STUDENT_RETURN : (from ?? '/app/home')} onError={setError} />
       <form onSubmit={submit} noValidate className="space-y-4">
         <Field label={tx.auth.email} htmlFor={`${uid}-email`}>
           <input
@@ -350,8 +377,7 @@ export function RegisterPage() {
   return (
     <AuthLayout title={tx.auth.registerTitle} sub={type === 'student' ? tx.auth.studentRegisterSub : tx.auth.registerSub}>
       <AccountTypeSwitch value={type} onChange={setType} />
-      {/* Google sign-up always creates a regular account, so students use email. */}
-      {type === 'regular' && <GoogleSignIn nextPath={welcome} onError={setError} />}
+      <GoogleSignIn nextPath={type === 'student' ? GOOGLE_STUDENT_RETURN : welcome} onError={setError} />
       <form onSubmit={submit} noValidate className="space-y-4">
         <Field label={tx.auth.name} htmlFor={`${uid}-name`}>
           <input

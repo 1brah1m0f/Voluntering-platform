@@ -305,6 +305,10 @@ export function createDemoBackend(): Backend {
       throw new BackendError('not_allowed');
     },
 
+    async claimStudentAccount() {
+      return false; // no Google sign-in in demo mode
+    },
+
     async requestPasswordReset() {
       await wait(); // Demo mode has no email; the reset link can't be sent.
     },

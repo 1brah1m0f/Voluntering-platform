@@ -66,6 +66,12 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       if (error) throw authError(error);
     },
 
+    async claimStudentAccount() {
+      const { data, error } = await sb.rpc('claim_student_account');
+      if (error) throw dbError(error);
+      return data === true;
+    },
+
     async requestPasswordReset(email) {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
       if (error) throw authError(error);

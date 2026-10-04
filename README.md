@@ -76,8 +76,10 @@ the **Regular | Student** switch on `/login` and `/register` (`?as=student`; the
 `/student/login` and `/student/register` links redirect there). The type is fixed at sign-up;
 only an admin can change it (Admin → Users). A student account only sees `/student` and is
 redirected there from every regular page; a regular account is redirected away from `/student`.
-Admins see both. Google sign-in is offered on the Regular tab only (it always creates a regular
-account). Plans follow the type: regular → basic/premium, student → basic/student (the student
+Admins see both. Google sign-in works on both tabs; Google can't pass the account type, so from the
+Student tab it returns to `/login?as=student&claim=student` and the app calls
+`claim_student_account()`, which turns a brand-new (15 min), free, regular account into a student
+account. Existing accounts keep their type. Plans follow the type: regular → basic/premium, student → basic/student (the student
 section is locked until the Student plan). The student section has its own shell. It includes
 scholarships, universities (fields, tuition, application fees, requirements), a 16-step
 study-abroad roadmap (progress saved in `profiles.roadmap`) and a planner that matches

@@ -573,7 +573,8 @@ alter table public.profiles add column if not exists account_type text not null 
 -- Existing Student-plan users become student accounts.
 update public.profiles set account_type = 'student' where plan = 'student' and account_type <> 'student';
 
--- The sign-up form sends account_type in the user metadata; Google sign-up is always regular.
+-- The sign-up form sends account_type in the user metadata. Google can't send it,
+-- so Google sign-ups start regular and the app calls claim_student_account() (below).
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -662,3 +663,23 @@ end;
 $$;
 revoke all on function public.set_account_type(uuid, text) from public, anon;
 grant execute on function public.set_account_type(uuid, text) to authenticated;
+
+-- "Continue with Google" on the Student tab: the new account turns itself into a
+-- student account right after signing in. Only a brand-new (15 minutes), free,
+-- regular account can do this, so existing accounts keep their type.
+create or replace function public.claim_student_account()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.profiles set account_type = 'student'
+  where id = auth.uid()
+    and account_type = 'regular' and plan = 'basic' and not is_admin
+    and created_at > now() - interval '15 minutes';
+  return found;
+end;
+$$;
+revoke all on function public.claim_student_account() from public, anon;
+grant execute on function public.claim_student_account() to authenticated;
