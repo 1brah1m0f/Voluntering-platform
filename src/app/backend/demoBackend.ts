@@ -1,5 +1,5 @@
 import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
+import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
@@ -29,6 +29,7 @@ const K = {
   opps: 'openly_demo_opportunities',
   saved: 'openly_demo_saved',
   letters: 'openly_demo_letters',
+  notes: 'openly_demo_notes',
   searches: 'openly_demo_searches',
   shortlist: 'openly_demo_shortlist',
   savedScholarships: 'openly_demo_saved_scholarships',
@@ -591,6 +592,38 @@ export function createDemoBackend(): Backend {
       const u = requireUser();
       const all = read<Record<string, SavedSearch[]>>(K.searches, {});
       write(K.searches, { ...all, [u.id]: (all[u.id] ?? []).filter((s) => s.id !== id) });
+    },
+
+    async listNotes() {
+      const u = requireUser();
+      return [...(read<Record<string, Note[]>>(K.notes, {})[u.id] ?? [])].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updated_at.localeCompare(a.updated_at));
+    },
+
+    async addNote(body, color) {
+      const u = requireUser();
+      const all = read<Record<string, Note[]>>(K.notes, {});
+      const mine = all[u.id] ?? [];
+      if (mine.length >= 100) throw new BackendError('notes_limit');
+      const now = new Date().toISOString();
+      const note: Note = { id: uuid(), body, color, pinned: false, created_at: now, updated_at: now };
+      write(K.notes, { ...all, [u.id]: [note, ...mine] });
+      return note;
+    },
+
+    async updateNote(id, patch) {
+      const u = requireUser();
+      const all = read<Record<string, Note[]>>(K.notes, {});
+      let updated: Note | null = null;
+      const mine = (all[u.id] ?? []).map((n) => (n.id === id ? (updated = { ...n, ...patch, updated_at: new Date().toISOString() }) : n));
+      if (!updated) throw new BackendError('unknown', 'not found');
+      write(K.notes, { ...all, [u.id]: mine });
+      return updated;
+    },
+
+    async deleteNote(id) {
+      const u = requireUser();
+      const all = read<Record<string, Note[]>>(K.notes, {});
+      write(K.notes, { ...all, [u.id]: (all[u.id] ?? []).filter((n) => n.id !== id) });
     },
 
     async getLetter(opportunityId) {

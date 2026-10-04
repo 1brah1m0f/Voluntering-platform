@@ -1,11 +1,12 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
+import { FreeLimitError, type Note, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 const PROFILE_COLS = 'id, email, full_name, interests, country, plan, account_type, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs, prefs';
 // Used if supabase/app.sql hasn't been re-run yet and the newer columns are missing.
 const PROFILE_COLS_BASE = 'id, email, full_name, interests, country, plan, is_admin';
 const UNDEFINED_COLUMN = '42703';
+const NOTE_COLS = 'id, body, color, pinned, created_at, updated_at';
 
 function authError(e: AuthError): BackendError {
   const code = (e as AuthError & { code?: string }).code ?? '';
@@ -19,6 +20,7 @@ function authError(e: AuthError): BackendError {
 
 function dbError(e: PostgrestError): Error {
   if (e.message.includes('FREE_LIMIT_REACHED')) return new FreeLimitError();
+  if (e.message.includes('NOTES_LIMIT')) return new BackendError('notes_limit', e.message);
   if (e.code === '42501') return new BackendError('not_allowed', e.message); // RLS / privilege
   return new BackendError('unknown', e.message);
 }
@@ -346,6 +348,29 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
 
     async deleteSearch(id) {
       const { error } = await sb.from('saved_searches').delete().eq('id', id);
+      if (error) throw dbError(error);
+    },
+
+    async listNotes() {
+      const { data, error } = await sb.from('notes').select(NOTE_COLS).order('pinned', { ascending: false }).order('updated_at', { ascending: false });
+      if (error) throw dbError(error);
+      return data as Note[];
+    },
+
+    async addNote(body, color) {
+      const { data, error } = await sb.from('notes').insert({ body, color }).select(NOTE_COLS).single();
+      if (error) throw dbError(error);
+      return data as Note;
+    },
+
+    async updateNote(id, patch) {
+      const { data, error } = await sb.from('notes').update(patch).eq('id', id).select(NOTE_COLS).single();
+      if (error) throw dbError(error);
+      return data as Note;
+    },
+
+    async deleteNote(id) {
+      const { error } = await sb.from('notes').delete().eq('id', id);
       if (error) throw dbError(error);
     },
 

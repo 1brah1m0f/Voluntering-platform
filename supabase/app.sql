@@ -693,3 +693,47 @@ grant execute on function public.claim_student_account() to authenticated;
 alter table public.profiles add column if not exists prefs jsonb not null default '{}'
   check (jsonb_typeof(prefs) = 'object' and pg_column_size(prefs) <= 8000);
 grant update (prefs) on public.profiles to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Personal notes: private sticky notes on the profile (and the home page).
+-- Only the owner can read or change them; at most 100 per user.
+-- ---------------------------------------------------------------------------
+create table if not exists public.notes (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade default auth.uid(),
+  body        text not null check (char_length(body) between 1 and 2000),
+  color       text not null default 'yellow' check (color in ('yellow', 'mint', 'sky', 'pink', 'lilac')),
+  pinned      boolean not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists notes_user_idx on public.notes (user_id);
+
+drop trigger if exists notes_touch on public.notes;
+create trigger notes_touch before update on public.notes
+  for each row execute function public.touch_updated_at();
+
+alter table public.notes enable row level security;
+
+drop policy if exists "own notes" on public.notes;
+create policy "own notes" on public.notes
+  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+create or replace function public.enforce_notes_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if (select count(*) from public.notes where user_id = new.user_id) >= 100 then
+    raise exception 'NOTES_LIMIT' using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists notes_limit on public.notes;
+create trigger notes_limit before insert on public.notes
+  for each row execute function public.enforce_notes_limit();

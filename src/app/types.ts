@@ -274,6 +274,18 @@ export interface SavedSearch {
   created_at: string;
 }
 
+export type NoteColor = 'yellow' | 'mint' | 'sky' | 'pink' | 'lilac';
+
+/** A private sticky note (profile → Notes, and the home page). */
+export interface Note {
+  id: string;
+  body: string;
+  color: NoteColor;
+  pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SavedLetter {
   content: string;
   updated_at: string;

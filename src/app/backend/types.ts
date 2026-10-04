@@ -1,4 +1,4 @@
-import type { AccountType, AiRequest, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
+import type { AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap' | 'student_prefs' | 'prefs'>>;
 
@@ -19,7 +19,8 @@ export type ErrorCode =
   | 'daily_limit'
   | 'ai_unavailable'
   | 'not_configured'
-  | 'refused';
+  | 'refused'
+  | 'notes_limit';
 
 export class BackendError extends Error {
   constructor(
@@ -99,6 +100,12 @@ export interface Backend {
   /** Marks a search as opened now, so its "new" count resets. */
   markSearchSeen(id: string): Promise<void>;
   deleteSearch(id: string): Promise<void>;
+
+  /** Private notes, pinned first then newest. Max 100 (NOTES_LIMIT). */
+  listNotes(): Promise<Note[]>;
+  addNote(body: string, color: NoteColor): Promise<Note>;
+  updateNote(id: string, patch: Partial<Pick<Note, 'body' | 'color' | 'pinned'>>): Promise<Note>;
+  deleteNote(id: string): Promise<void>;
 
   /** The user's saved motivation letter for an opportunity, if any. */
   getLetter(opportunityId: string): Promise<SavedLetter | null>;

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bell, Briefcase, Camera, Crown, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, UserRound, Wrench } from 'lucide-react';
+import { Bell, Briefcase, Camera, Crown, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, StickyNote, UserRound, Wrench } from 'lucide-react';
+import { NotesBoard } from '../Notes';
 import { NewPasswordForm } from './AuthPages';
 import PremiumPlan from './PremiumPage';
 import { ExperienceEditor, JourneyTab, LanguagesEditor, PrefsTab, Section, SkillsEditor, ThemeButton, cleanPrefs } from './ProfileParts';
@@ -17,8 +18,8 @@ import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
 import { squareImage } from '../util';
 import { isPaidPlan } from '../plans';
 
-type Tab = 'profile' | 'journey' | 'match' | 'premium' | 'settings';
-const TABS: Tab[] = ['profile', 'journey', 'match', 'premium', 'settings'];
+type Tab = 'profile' | 'notes' | 'journey' | 'match' | 'premium' | 'settings';
+const TABS: Tab[] = ['profile', 'notes', 'journey', 'match', 'premium', 'settings'];
 const OCCUPATIONS: Occupation[] = ['school', 'student', 'graduate', 'working', 'other'];
 // Prefs edited on the profile tab (the rest are saved from the Preferences tab or the cover).
 const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -117,6 +118,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           {(
             [
               { id: 'profile', label: tx.profile.tabProfile, Icon: UserRound },
+              { id: 'notes', label: tx.notes.title, Icon: StickyNote },
               { id: 'journey', label: tx.profile.tabJourney, Icon: Route },
               { id: 'match', label: tx.profile.tabMatch, Icon: SlidersHorizontal },
               { id: 'premium', label: tx.profile.tabPremium, Icon: Sparkles },
@@ -145,6 +147,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           <PremiumPlan />
         </div>
       )}
+      {tab === 'notes' && <NotesBoard />}
       {tab === 'journey' && <JourneyTab />}
       {tab === 'match' && <PrefsTab />}
 
