@@ -1,38 +1,27 @@
-import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bell, Camera, Crown, Globe, Heart, IdCard, KeyRound, Loader2, LogOut, Plus, Settings, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Camera, Crown, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, UserRound, Wrench } from 'lucide-react';
 import { NewPasswordForm } from './AuthPages';
 import PremiumPlan from './PremiumPage';
+import { ExperienceEditor, JourneyTab, LanguagesEditor, PrefsTab, Section, SkillsEditor, ThemeButton, cleanPrefs } from './ProfileParts';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
 import { useLang } from '../../i18n';
+import { THEMES } from '../personal';
 import { completeness } from '../profileProgress';
 import { COUNTRIES, INTERESTS, INTEREST_IDS } from '../taxonomy';
 import { useAppText } from '../text';
+import type { Occupation, UserPrefs } from '../types';
 import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
 import { squareImage } from '../util';
 import { isPaidPlan } from '../plans';
 
-/** A titled card that groups related fields or settings. */
-function Section({ Icon, title, sub, children }: { Icon: LucideIcon; title: string; sub?: string; children: ReactNode }) {
-  return (
-    <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
-      <div className="mb-5 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-lg font-bold">{title}</h2>
-          {sub && <p className="mt-0.5 text-sm text-slate-500">{sub}</p>}
-        </div>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-type Tab = 'profile' | 'premium' | 'settings';
+type Tab = 'profile' | 'journey' | 'match' | 'premium' | 'settings';
+const TABS: Tab[] = ['profile', 'journey', 'match', 'premium', 'settings'];
+const OCCUPATIONS: Occupation[] = ['school', 'student', 'graduate', 'working', 'other'];
+// Prefs edited on the profile tab (the rest are saved from the Preferences tab or the cover).
+const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /**
  * Account page: profile, plan and settings as tabs (?tab=premium / ?tab=settings).
@@ -49,12 +38,13 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   const [interests, setInterests] = useState<string[]>([]);
   const [about, setAbout] = useState('');
   const [headline, setHeadline] = useState('');
+  const [prefs, setPrefs] = useState<UserPrefs>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pwMsg, setPwMsg] = useState(false);
   const [params, setParams] = useSearchParams();
-  const tabParam = params.get('tab');
-  const tab: Tab = !onboarding && (tabParam === 'premium' || tabParam === 'settings') ? tabParam : 'profile';
+  const tabParam = params.get('tab') as Tab | null;
+  const tab: Tab = !onboarding && tabParam && TABS.includes(tabParam) ? tabParam : 'profile';
 
   useEffect(() => {
     if (!profile) return;
@@ -63,18 +53,22 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setInterests(profile.interests);
     setAbout(profile.about ?? '');
     setHeadline(profile.headline ?? '');
+    setPrefs(profile.prefs ?? {});
   }, [profile]);
 
   if (!profile) return <Spinner label={tx.loading} />;
 
   const toggle = (id: string) => setInterests((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const patchPrefs = (patch: Partial<UserPrefs>) => setPrefs((cur) => ({ ...cur, ...patch }));
   const dirty =
     name !== profile.full_name ||
     country !== profile.country ||
     headline !== (profile.headline ?? '') ||
     about !== (profile.about ?? '') ||
     interests.length !== profile.interests.length ||
-    interests.some((i) => !profile.interests.includes(i));
+    interests.some((i) => !profile.interests.includes(i)) ||
+    !sameJson(prefs, profile.prefs ?? {});
+  const thisYear = new Date().getFullYear();
   // "Add: Studies" etc. start a new line in "About me" that the user then completes.
   const addTip = (text: string) => setAbout((cur) => (cur.trim() ? `${cur.trimEnd()}\n${text}` : text).slice(0, 2000));
   const items = [...saved.values()];
@@ -90,7 +84,10 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
     setBusy(true);
     setMsg(null);
     try {
-      const updated = await backend.updateProfile({ full_name: name.trim(), headline: headline.trim(), country, interests, about: about.trim() });
+      // This form owns these prefs; the colour and the Preferences tab save theirs on their own.
+      const { birth_year, occupation, school, field, linkedin, languages, skills, experiences } = prefs;
+      const nextPrefs = cleanPrefs({ ...(profile?.prefs ?? {}), birth_year, occupation, school, field, linkedin, languages, skills, experiences });
+      const updated = await backend.updateProfile({ full_name: name.trim(), headline: headline.trim(), country, interests, about: about.trim(), prefs: nextPrefs });
       setProfile(updated);
       if (onboarding) {
         const next = params.get('next') ?? '';
@@ -120,6 +117,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           {(
             [
               { id: 'profile', label: tx.profile.tabProfile, Icon: UserRound },
+              { id: 'journey', label: tx.profile.tabJourney, Icon: Route },
+              { id: 'match', label: tx.profile.tabMatch, Icon: SlidersHorizontal },
               { id: 'premium', label: tx.profile.tabPremium, Icon: Sparkles },
               { id: 'settings', label: tx.profile.tabSettings, Icon: Settings },
             ] as const
@@ -146,6 +145,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
           <PremiumPlan />
         </div>
       )}
+      {tab === 'journey' && <JourneyTab />}
+      {tab === 'match' && <PrefsTab />}
 
       {tab === 'profile' && (
         <form onSubmit={submit} className="mt-6 space-y-5">
@@ -188,8 +189,77 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
                   />
                 </Field>
               )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={tx.profile.birthYear} htmlFor={`${uid}-birth`} hint={tx.profile.birthYearHint}>
+                  <select
+                    id={`${uid}-birth`}
+                    value={prefs.birth_year ?? ''}
+                    onChange={(e) => patchPrefs({ birth_year: Number(e.target.value) || undefined })}
+                    className={inputClass}
+                  >
+                    <option value="">{tx.profile.birthYearPh}</option>
+                    {Array.from({ length: 50 }, (_, k) => thisYear - 12 - k).map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={tx.profile.occupation} htmlFor={`${uid}-occ`}>
+                  <select
+                    id={`${uid}-occ`}
+                    value={prefs.occupation ?? ''}
+                    onChange={(e) => patchPrefs({ occupation: (e.target.value || undefined) as Occupation | undefined })}
+                    className={inputClass}
+                  >
+                    <option value="">{tx.profile.countryPh}</option>
+                    {OCCUPATIONS.map((o) => (
+                      <option key={o} value={o}>
+                        {tx.profile.occupations[o]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+              {!onboarding && (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label={tx.profile.school} htmlFor={`${uid}-school`}>
+                      <input id={`${uid}-school`} value={prefs.school ?? ''} maxLength={100} onChange={(e) => patchPrefs({ school: e.target.value })} placeholder={tx.profile.schoolPh} className={inputClass} />
+                    </Field>
+                    <Field label={tx.profile.field} htmlFor={`${uid}-field`}>
+                      <input id={`${uid}-field`} value={prefs.field ?? ''} maxLength={100} onChange={(e) => patchPrefs({ field: e.target.value })} placeholder={tx.profile.fieldPh} className={inputClass} />
+                    </Field>
+                  </div>
+                  <Field label={tx.profile.linkedin} htmlFor={`${uid}-linkedin`}>
+                    <input
+                      id={`${uid}-linkedin`}
+                      type="url"
+                      value={prefs.linkedin ?? ''}
+                      maxLength={200}
+                      onChange={(e) => patchPrefs({ linkedin: e.target.value })}
+                      placeholder="https://linkedin.com/in/…"
+                      className={inputClass}
+                    />
+                  </Field>
+                </>
+              )}
             </div>
           </Section>
+
+          {!onboarding && (
+            <>
+              <Section Icon={Languages} title={tx.profile.sectionLanguages} sub={tx.profile.sectionLanguagesSub}>
+                <LanguagesEditor value={prefs.languages ?? []} onChange={(languages) => patchPrefs({ languages })} />
+              </Section>
+              <Section Icon={Wrench} title={tx.profile.sectionSkills} sub={tx.profile.sectionSkillsSub}>
+                <SkillsEditor value={prefs.skills ?? []} onChange={(skills) => patchPrefs({ skills })} />
+              </Section>
+              <Section Icon={Briefcase} title={tx.profile.sectionExperience} sub={tx.profile.sectionExperienceSub}>
+                <ExperienceEditor value={prefs.experiences ?? []} onChange={(experiences) => patchPrefs({ experiences })} />
+              </Section>
+            </>
+          )}
 
           <Section Icon={Sparkles} title={tx.profile.sectionAbout} sub={tx.profile.sectionAboutSub}>
             <label htmlFor={`${uid}-about`} className="sr-only">
@@ -297,10 +367,22 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
     }
   };
 
+  const theme = THEMES[profile.prefs?.theme ?? 'teal'] ?? THEMES.teal;
+  const p = profile.prefs ?? {};
+  // A line about what they do, from the structured profile, when there's no headline.
+  const studyLine = [p.occupation ? tx.profile.occupations[p.occupation] : '', p.school, p.field].filter(Boolean).join(' · ');
+
   return (
-    <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-5 sm:p-6">
-      <div className="relative shrink-0">
-        <Avatar profile={profile} className="h-20 w-20 text-2xl sm:h-24 sm:w-24" />
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      {/* Cover in the colour the user picked. */}
+      <div className={`relative h-24 bg-gradient-to-br sm:h-28 ${theme.cover}`}>
+        <span className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-white/15" aria-hidden="true" />
+        <span className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full border-[16px] border-white/10" aria-hidden="true" />
+        <ThemeButton />
+      </div>
+    <div className="flex items-start gap-4 px-5 pb-5 sm:gap-5 sm:px-6 sm:pb-6">
+      <div className="relative -mt-10 shrink-0 sm:-mt-12">
+        <Avatar profile={profile} className="h-20 w-20 text-2xl ring-4 ring-white sm:h-24 sm:w-24" />
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
@@ -313,9 +395,9 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
         </button>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={pick} className="hidden" />
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 pt-3">
         <h1 className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">{profile.full_name || profile.email}</h1>
-        {profile.headline && <p className="mt-0.5 text-sm font-medium text-slate-600">{profile.headline}</p>}
+        {(profile.headline || studyLine) && <p className="mt-0.5 text-sm font-medium text-slate-600">{profile.headline || studyLine}</p>}
         <p className="mt-0.5 truncate text-sm text-slate-500">{profile.email}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span
@@ -345,7 +427,7 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
         )}
       </div>
       {stats && (
-        <dl className="hidden shrink-0 grid-cols-3 gap-2 text-center md:grid">
+        <dl className="mt-3 hidden shrink-0 grid-cols-3 gap-2 text-center md:grid">
           {(
             [
               [stats.saved, tx.profile.statSaved, 'text-coral-700'],
@@ -361,6 +443,7 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
           ))}
         </dl>
       )}
+    </div>
     </div>
   );
 }
