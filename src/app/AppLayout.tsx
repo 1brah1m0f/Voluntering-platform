@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, House, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -8,7 +8,7 @@ import { useAuth } from './AuthContext';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
-import { isPaidPlan } from './plans';
+import { isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
 
 /** Renders children only for signed-in users; otherwise redirects to /login. */
 export function RequireAuth() {
@@ -27,13 +27,26 @@ export function RequireAdmin() {
   return <Outlet />;
 }
 
-/** Student accounts use their own shell and must enter through the student login. */
+/** The student section: student accounts (and admins). Regular accounts go back to their dashboard. */
 export function RequireStudentAuth() {
-  const { loading, userId } = useAuth();
-  const location = useLocation();
+  const { loading, userId, profile } = useAuth();
   if (loading) return <Spinner />;
-  if (!userId) return <Navigate to={`/student/login${location.search}${location.hash}`} replace />;
+  if (!userId) return <Navigate to="/login?as=student" replace />;
+  if (isRegularOnly(profile)) return <Navigate to="/app/home" replace />;
   return <Outlet />;
+}
+
+/** Shell of the student section; the page draws its own header (StudentShell). */
+export function StudentLayout() {
+  const { tx } = useAppText();
+  return (
+    <div className="app-surface min-h-screen">
+      {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
+        <Outlet />
+      </main>
+    </div>
+  );
 }
 
 /** /app/o/:id moved to /o/:id; keeps links in already-sent emails working. */
@@ -68,7 +81,13 @@ export default function AppLayout() {
         { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
-        ...(profile?.is_admin ? [{ to: '/admin', end: false, label: tx.nav.admin, Icon: Shield }] : []),
+        ...(profile?.is_admin
+          ? [
+              { to: '/admin', end: false, label: tx.nav.admin, Icon: Shield },
+              // Admins can open the student section too (students never see this app).
+              { to: '/student', end: false, label: tx.nav.student, Icon: GraduationCap },
+            ]
+          : []),
       ];
   const groups = [
     { label: tx.navGroups.explore, items: explore },
@@ -87,6 +106,8 @@ export default function AppLayout() {
   };
 
   if (loading) return <Spinner />;
+  // Student accounts don't see the regular app, its public pages included.
+  if (isStudentOnly(profile)) return <Navigate to="/student" replace />;
 
   return (
     <DataProvider>
@@ -203,7 +224,7 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
 
-          <main className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-10 lg:py-12 ${location.pathname.startsWith('/student') ? 'max-w-7xl' : 'max-w-6xl'}`}>
+          <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
             <Outlet />
           </main>
         </div>

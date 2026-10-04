@@ -5,6 +5,7 @@ import { useAuth } from '../AuthContext';
 import { backend } from '../backend';
 import { BRAND } from '../../config';
 import { Logo } from '../../components/Icons';
+import { useLang } from '../../i18n';
 import { hasStudent } from '../plans';
 import { useAppText } from '../text';
 import { ErrorState, Spinner } from '../ui';
@@ -39,6 +40,7 @@ const LIST_PARAMS = ['q', 'level', 'field', 'country', 'open', 'fit', 'sort', 'm
  */
 export default function StudentPage() {
   const { tx, lang } = useAppText();
+  const { setLang } = useLang();
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -106,7 +108,7 @@ export default function StudentPage() {
   const needPrefs = () => goTab('plan');
   const logout = async () => {
     await backend.signOut();
-    navigate('/student/login', { replace: true });
+    navigate('/login?as=student', { replace: true });
   };
 
   return (
@@ -116,10 +118,25 @@ export default function StudentPage() {
           <Logo className="h-7 w-7" />
           {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
         </Link>
-        <button type="button" onClick={logout} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          {tx.nav.logout}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Admins also use the regular app; students only have this section. */}
+          {profile?.is_admin && (
+            <Link to="/app/home" className="hidden rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-paper hover:text-ink sm:inline-flex">
+              {tx.nav.admin}
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'az' ? 'en' : 'az')}
+            className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-bold uppercase text-slate-700"
+          >
+            {lang === 'az' ? 'en' : 'az'}
+          </button>
+          <button type="button" onClick={logout} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            {tx.nav.logout}
+          </button>
+        </div>
       </div>
       {tab === 'roadmap' ? (
         <header className="relative overflow-hidden rounded-[2rem] bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">

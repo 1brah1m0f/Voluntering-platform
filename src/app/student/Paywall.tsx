@@ -45,7 +45,7 @@ export function Paywall() {
                 <p className="text-sm text-brand-100">{tx.student.lockNote}</p>
               </>
             ) : (
-              <Link to="/student/register" state={{ from: location.pathname }} className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-brand-800">
+              <Link to="/register?as=student" state={{ from: location.pathname }} className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-brand-800">
                 {tx.student.lockGuest}
               </Link>
             )}

@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App';
 import { LangProvider } from './LangProvider';
 import { AuthProvider } from './app/AuthContext';
-import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth, RequireStudentAuth } from './app/AppLayout';
+import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth, RequireStudentAuth, StudentLayout } from './app/AppLayout';
 import { Spinner } from './app/ui';
 
 // App pages load on demand so the landing page stays light.
@@ -12,8 +12,6 @@ const LoginPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ defa
 const RegisterPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./app/pages/AuthPages').then((m) => ({ default: m.ResetPasswordPage })));
-const StudentLoginPage = lazy(() => import('./app/pages/StudentAuthPages').then((m) => ({ default: m.StudentLoginPage })));
-const StudentRegisterPage = lazy(() => import('./app/pages/StudentAuthPages').then((m) => ({ default: m.StudentRegisterPage })));
 const OpportunitiesPage = lazy(() => import('./app/pages/OpportunitiesPage'));
 const HomePage = lazy(() => import('./app/pages/HomePage'));
 const DetailPage = lazy(() => import('./app/pages/DetailPage'));
@@ -41,10 +39,18 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/student/login" element={<StudentLoginPage />} />
-              <Route path="/student/register" element={<StudentRegisterPage />} />
+              {/* Student accounts sign in on the same pages, with the Student tab picked. */}
+              <Route path="/student/login" element={<Navigate to="/login?as=student" replace />} />
+              <Route path="/student/register" element={<Navigate to="/register?as=student" replace />} />
+              {/* The student section: its own shell, only for student accounts (and admins). */}
+              <Route element={<RequireStudentAuth />}>
+                <Route element={<StudentLayout />}>
+                  <Route path="/student" element={<StudentPage />} />
+                </Route>
+              </Route>
               {/* The opportunity list and pages are public (shareable, indexable);
-                  saving, tracking, the AI tools and the account need an account. */}
+                  saving, tracking, the AI tools and the account need an account.
+                  Student accounts are sent to /student. */}
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<OpportunitiesPage />} />
                 <Route path="/o/:id" element={<DetailPage />} />
@@ -64,9 +70,6 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="/admin/new" element={<AdminEditPage />} />
                     <Route path="/admin/:id" element={<AdminEditPage />} />
                   </Route>
-                </Route>
-                <Route element={<RequireStudentAuth />}>
-                  <Route path="/student" element={<StudentPage />} />
                 </Route>
               </Route>
               {/* Old links (emails sent before the move). */}
