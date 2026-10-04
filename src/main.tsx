@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App';
 import { LangProvider } from './LangProvider';
 import { AuthProvider } from './app/AuthContext';
-import AppLayout, { OldDetailRedirect, RequireAdmin, RequireAuth, RequireStudentAuth, StudentLayout } from './app/AppLayout';
+import AppLayout, { LandingRoute, OldDetailRedirect, RequireAdmin, RequireAuth, RequireStudentAuth, StudentLayout } from './app/AppLayout';
 import { Spinner } from './app/ui';
 
 // App pages load on demand so the landing page stays light.
@@ -37,7 +37,14 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <Suspense fallback={<Spinner />}>
             <Routes>
-              <Route path="/" element={<App />} />
+              <Route
+                path="/"
+                element={
+                  <LandingRoute>
+                    <App />
+                  </LandingRoute>
+                }
+              />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />

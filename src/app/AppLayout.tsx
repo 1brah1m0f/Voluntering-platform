@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
@@ -8,7 +9,15 @@ import { useAuth } from './AuthContext';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
-import { hasPremium, isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
+import { hasPremium, homeFor, isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
+
+/** The landing page is for guests; signed-in users go straight to their own home. */
+export function LandingRoute({ children }: { children: ReactNode }) {
+  const { loading, userId, profile } = useAuth();
+  if (loading) return <Spinner />;
+  if (userId) return <Navigate to={homeFor(profile)} replace />;
+  return <>{children}</>;
+}
 
 /** Renders children only for signed-in users; otherwise redirects to /login. */
 export function RequireAuth() {
@@ -164,7 +173,8 @@ export default function AppLayout() {
       <div className="app-surface min-h-screen lg:flex">
         {/* desktop sidebar */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur lg:flex print:!hidden">
-          <Link to="/" className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
+          {/* Signed-in users never go back to the landing page from the logo. */}
+          <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
@@ -243,7 +253,7 @@ export default function AppLayout() {
         <div className="min-w-0 flex-1 pb-20 lg:pb-0 print:pb-0">
           {/* mobile top bar */}
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden print:hidden">
-            <Link to="/" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
+            <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
               <Logo className="h-7 w-7" />
               {BRAND}
             </Link>
