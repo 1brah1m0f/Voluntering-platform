@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -128,6 +128,7 @@ export default function AppLayout() {
     // The dashboard is a page of its own; /app is the search.
     ...(guest ? [] : [{ to: '/app/home', end: false, label: tx.nav.home, Icon: House }]),
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
+    { to: '/app/map', end: false, label: tx.nav.map, Icon: MapIcon },
     { to: '/app/calendar', end: false, label: tx.nav.calendar, Icon: CalendarDays },
     // Programme pages belong to the guides section.
     { to: '/guides', end: false, label: tx.nav.guides, Icon: BookOpen, also: '/programs/' },
@@ -155,7 +156,7 @@ export default function AppLayout() {
   // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
   // Guides are linked from the dashboard; admin pages are for desktop.
   const pick = (...paths: string[]) => paths.flatMap((p) => [...explore, ...mine].filter((i) => i.to === p));
-  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : pick('/app/home', '/app', '/app/tracker', '/app/profile');
+  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
   const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
   const isPremium = isPaidPlan(profile?.plan);
 

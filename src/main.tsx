@@ -19,6 +19,7 @@ const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const AiPage = lazy(() => import('./app/pages/AiPage'));
 const CvPage = lazy(() => import('./app/pages/CvPage'));
 const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
+const MapPage = lazy(() => import('./app/pages/MapPage'));
 const StudentPage = lazy(() => import('./app/pages/StudentPage'));
 const StudentProfilePage = lazy(() => import('./app/student/StudentProfile'));
 const GuidesPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidesPage })));
@@ -66,6 +67,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/app" element={<OpportunitiesPage />} />
                 <Route path="/o/:id" element={<DetailPage />} />
                 <Route path="/app/calendar" element={<CalendarPage />} />
+                <Route path="/app/map" element={<MapPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/guides/:slug" element={<GuidePage />} />
                 <Route path="/programs/:slug" element={<ProgramPage />} />
