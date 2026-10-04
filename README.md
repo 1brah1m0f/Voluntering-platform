@@ -93,6 +93,26 @@ Student-plan users and admins through RLS (`is_student()`); other users see a pr
 Admin → Users. Fees and deadlines are estimates researched in September 2026 — review them each
 year.
 
+## Personalisation
+
+`profiles.prefs` (jsonb, see `UserPrefs` in `src/app/types.ts`) holds year of birth, occupation,
+school, field, LinkedIn, languages with CEFR level, skills, past experience, preferred types,
+duration, funded only, passport, destination countries and the profile colour. Re-run
+`supabase/app.sql` to add the column.
+
+- **Profile** (`/app/profile`): colour picker on the cover; tabs Profile (details, languages,
+  skills, experience, about me), My journey (application numbers, achievements, travel passport
+  stamps), Preferences (saved instantly) and Plan / Settings.
+- **Matching** (`src/app/match.ts`) and the home picks use the preferences and the usual age
+  limits (`src/app/personal.ts`: youth exchanges 13–30, ESC 18–30, courses 18+); the opportunity
+  page shows the age hint.
+- **CV** (`/app/cv`): a one-page volunteer CV from the profile; "Save as PDF" prints it.
+- **Home** (`/app/home`): next-deadline countdown, next 14 days, this week's prep plan, AI card,
+  achievements, picks, programmes, closing soon, guides.
+- **AI** (`/app/ai`): status and quick access to the letter / review tools; the edge function
+  also reads `prefs`.
+- Accepted opportunities get a trip checklist (info pack, visa, insurance, tickets, Youthpass).
+
 ## Email notifications
 
 `jobs/notify.mjs` runs daily from GitHub Actions (`.github/workflows/notify.yml`, 08:00 Baku):
