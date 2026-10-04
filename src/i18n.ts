@@ -145,7 +145,7 @@ const az = {
     items: [
       {
         q: `${BRAND} pulsuzdur?`,
-        a: `Bəli. Fürsətlər siyahısı, filtrlər, ${FREE_EVENT_LIMIT} fürsətə qədər izləmə və həftəlik xülasə pulsuzdur. Premium (ayda 3 ₼) limitsiz izləmə, gündəlik xülasə, son tarix xatırlatmaları, erkən giriş və AI müraciət köməkçisi əlavə edir.`,
+        a: `Bəli. Fürsətlər siyahısı, filtrlər, ${FREE_EVENT_LIMIT} fürsətə qədər izləmə və həftəlik xülasə pulsuzdur. Premium (ayda 3 ₼) limitsiz izləmə, gündəlik xülasə, son tarix xatırlatmaları, erkən giriş əlavə edir, AI köməkçi isə pulsuz planda gündə 1, Premium-da 15 dəfə istifadə olunur.`,
       },
       {
         q: 'Müraciəti özüm edə bilərəm? Siz mənim adımdan müraciət edirsiniz?',
@@ -179,6 +179,7 @@ const az = {
         'Həftəlik xülasə e-poçtu',
         'Maraq sahələri və ölkə seçimi',
         `Eyni anda ${FREE_EVENT_LIMIT} fürsətə qədər saxlama və izləmə`,
+        'AI köməkçi: gündə 1 istifadə',
       ],
     },
     premium: {
@@ -186,7 +187,7 @@ const az = {
       price: '3 ₼',
       desc: 'Aktiv müraciət edən və heç nəyi qaçırmaq istəməyənlər üçün.',
       features: [
-        'AI motivasiya məktubu köməkçisi və müraciət yoxlanışı',
+        'AI məktub köməkçisi və müraciət yoxlanışı: gündə 15 istifadə',
         'Ağıllı uyğunlaşdırma: hər fürsət üçün uyğunluq faizi',
         'Gündəlik xülasə e-poçtu',
         'Limitsiz saxlama və müraciət izləmə',
@@ -382,7 +383,7 @@ const en: Dict = {
     items: [
       {
         q: `Is ${BRAND} free?`,
-        a: `Yes. The opportunity list, filters, tracking up to ${FREE_EVENT_LIMIT} opportunities and the weekly digest are free. Premium (3 ₼ a month) adds unlimited tracking, a daily digest, deadline reminders, early access and the AI application assistant.`,
+        a: `Yes. The opportunity list, filters, tracking up to ${FREE_EVENT_LIMIT} opportunities and the weekly digest are free. Premium (3 ₼ a month) adds unlimited tracking, a daily digest, deadline reminders, and early access; the AI assistant gives you 1 use a day on the free plan and 15 with Premium.`,
       },
       {
         q: 'Can I apply myself? Do you apply on my behalf?',
@@ -416,6 +417,7 @@ const en: Dict = {
         'Weekly digest email',
         'Interest areas and country selection',
         `Save and track up to ${FREE_EVENT_LIMIT} opportunities at a time`,
+        'AI assistant: 1 use a day',
       ],
     },
     premium: {
@@ -423,7 +425,7 @@ const en: Dict = {
       price: '3 ₼',
       desc: 'For active applicants who don’t want to miss anything.',
       features: [
-        'AI motivation letter assistant and application review',
+        'AI letter assistant and application review: 15 uses a day',
         'Smart matching: a fit score for every opportunity',
         'Daily digest email',
         'Unlimited saved & tracked opportunities',
