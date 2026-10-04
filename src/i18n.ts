@@ -202,7 +202,7 @@ const az = {
       price: '7 ₼',
       desc: 'Xaricdə bakalavr və ya magistr oxumaq istəyənlər üçün.',
       features: [
-        'Premium-un bütün imkanları',
+        'Ayrıca tələbə hesabı və bölməsi',
         'Təqaüdlər: kim üçündür, nəyi qarşılayır, son tarixlər',
         'Universitetlər: ixtisaslar, təhsil və müraciət haqları, tələblər',
         '16 addımlıq müraciət yol xəritəsi',
@@ -439,7 +439,7 @@ const en: Dict = {
       price: '7 ₼',
       desc: 'For anyone who wants a bachelor’s or master’s abroad.',
       features: [
-        'Everything in Premium',
+        'A separate student account and section',
         'Scholarships: who they’re for, what they cover, deadlines',
         'Universities: fields, tuition and application fees, requirements',
         'A 16-step application roadmap',

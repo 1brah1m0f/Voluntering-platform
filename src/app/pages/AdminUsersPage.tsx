@@ -3,7 +3,10 @@ import { Crown, Search, Shield } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
-import type { Plan, UserRow } from '../types';
+import type { AccountType, Plan, UserRow } from '../types';
+
+/** Plans each account type can have (mirrors set_user_plan in app.sql). */
+const PLANS_FOR: Record<AccountType, Plan[]> = { regular: ['basic', 'premium'], student: ['basic', 'student'] };
 import { ErrorState, Spinner, inputClass } from '../ui';
 import { formatDate } from '../util';
 import { AdminTabs } from './AdminPages';
@@ -44,6 +47,24 @@ export default function AdminUsersPage() {
       if (row.id === profile?.id) await refresh(); // admin changed their own plan
     } catch (err) {
       console.error('[admin] set plan failed', err);
+      alert(tx.saveError);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const typeName = (t: AccountType) => (t === 'student' ? u.typeStudent : u.typeRegular);
+  const setType = async (row: UserRow, type: AccountType) => {
+    if (!confirm(u.confirmType(row.email, typeName(type)))) return;
+    setBusyId(row.id);
+    try {
+      await backend.setAccountType(row.id, type);
+      // Same rule as the server: a plan the new type doesn't have goes back to basic.
+      const plan = PLANS_FOR[type].includes(row.plan) ? row.plan : 'basic';
+      setUsers((list) => (list ?? []).map((x) => (x.id === row.id ? { ...x, account_type: type, plan } : x)));
+      if (row.id === profile?.id) await refresh();
+    } catch (err) {
+      console.error('[admin] set account type failed', err);
       alert(tx.saveError);
     } finally {
       setBusyId(null);
@@ -108,6 +129,21 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:shrink-0">
+                  <select
+                    value={x.account_type}
+                    disabled={busyId === x.id}
+                    onChange={(e) => setType(x, e.target.value as AccountType)}
+                    aria-label={u.typeLabel}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-bold ${
+                      x.account_type === 'student' ? 'border-violet-200 bg-violet-50 text-violet-800' : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    {(['regular', 'student'] as const).map((t) => (
+                      <option key={t} value={t}>
+                        {typeName(t)}
+                      </option>
+                    ))}
+                  </select>
                   {premium && <Crown className={`h-4 w-4 ${x.plan === 'student' ? 'text-violet-600' : 'text-amber-500'}`} aria-hidden="true" />}
                   <select
                     value={x.plan}
@@ -118,7 +154,7 @@ export default function AdminUsersPage() {
                       x.plan === 'student' ? 'border-violet-200 bg-violet-50 text-violet-800' : premium ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-white text-slate-700'
                     }`}
                   >
-                    {(['basic', 'premium', 'student'] as const).map((pl) => (
+                    {PLANS_FOR[x.account_type].map((pl) => (
                       <option key={pl} value={pl}>
                         {planName(pl)}
                       </option>
