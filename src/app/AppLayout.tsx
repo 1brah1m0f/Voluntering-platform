@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, UserRound, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import { useLang } from '../i18n';
@@ -8,7 +8,7 @@ import { useAuth } from './AuthContext';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
-import { isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
+import { hasPremium, isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
 
 /** Renders children only for signed-in users; otherwise redirects to /login. */
 export function RequireAuth() {
@@ -127,6 +127,8 @@ export default function AppLayout() {
     ? []
     : [
         { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
+        // The AI tools live on each opportunity page; this is their visible home.
+        { to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : 'Premium' },
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin
