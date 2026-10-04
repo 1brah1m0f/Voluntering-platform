@@ -36,13 +36,61 @@ export function RequireStudentAuth() {
   return <Outlet />;
 }
 
-/** Shell of the student section; the page draws its own header (StudentShell). */
+/** Shell of the student section (/student, /student/profile): a top bar with the account menu. */
 export function StudentLayout() {
   const { tx } = useAppText();
+  const { lang, setLang } = useLang();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const logout = async () => {
+    await backend.signOut();
+    navigate('/login?as=student', { replace: true });
+  };
   return (
     <div className="app-surface min-h-screen">
       {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm sm:px-5">
+          <Link to="/student" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
+            <Logo className="h-7 w-7" />
+            {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
+          </Link>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Admins also use the regular app; students only have this section. */}
+            {profile?.is_admin && (
+              <Link to="/app/home" className="hidden rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-paper hover:text-ink sm:inline-flex">
+                {tx.nav.admin}
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'az' ? 'en' : 'az')}
+              className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-bold uppercase text-slate-700"
+            >
+              {lang === 'az' ? 'en' : 'az'}
+            </button>
+            <NavLink
+              to="/student/profile"
+              title={tx.nav.profile}
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-full py-1 pl-1 pr-1 text-sm font-bold transition sm:pr-3 ${isActive ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-paper hover:text-ink'}`
+              }
+            >
+              <Avatar profile={profile} className="h-8 w-8 text-[11px]" />
+              <span className="hidden sm:inline">{tx.nav.profile}</span>
+            </NavLink>
+            <button
+              type="button"
+              onClick={logout}
+              title={tx.nav.logout}
+              aria-label={tx.nav.logout}
+              className="inline-flex items-center gap-2 rounded-full p-2 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 sm:px-3"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{tx.nav.logout}</span>
+            </button>
+          </div>
+        </div>
         <Outlet />
       </main>
     </div>

@@ -201,8 +201,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
   );
 }
 
-/** Photo, name, headline and plan at the top of the account page. The photo saves immediately. */
-function ProfileHeader() {
+/** Photo, name, headline and plan at the top of the account page. The photo saves immediately. Also used on /student/profile. */
+export function ProfileHeader() {
   const { tx } = useAppText();
   const { profile, setProfile } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);

@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Calculator, GraduationCap, Landmark, LogOut, Map as MapIcon, School, Sparkles, type LucideIcon } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Calculator, GraduationCap, Landmark, Map as MapIcon, School, Sparkles, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../AuthContext';
-import { backend } from '../backend';
-import { BRAND } from '../../config';
-import { Logo } from '../../components/Icons';
-import { useLang } from '../../i18n';
 import { hasStudent } from '../plans';
 import { useAppText } from '../text';
 import { ErrorState, Spinner } from '../ui';
@@ -40,7 +36,6 @@ const LIST_PARAMS = ['q', 'level', 'field', 'country', 'open', 'fit', 'sort', 'm
  */
 export default function StudentPage() {
   const { tx, lang } = useAppText();
-  const { setLang } = useLang();
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -106,38 +101,9 @@ export default function StudentPage() {
   const openUni = data.universities?.find((u) => u.id === params.get('uni')) ?? null;
   const compareUnis = compare.map((id) => data.universities?.find((u) => u.id === id)).filter((u) => !!u);
   const needPrefs = () => goTab('plan');
-  const logout = async () => {
-    await backend.signOut();
-    navigate('/login?as=student', { replace: true });
-  };
 
   return (
     <div className="min-h-screen">
-      <div className="mb-5 flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 shadow-sm sm:px-5">
-        <Link to="/student" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
-          <Logo className="h-7 w-7" />
-          {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          {/* Admins also use the regular app; students only have this section. */}
-          {profile?.is_admin && (
-            <Link to="/app/home" className="hidden rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-paper hover:text-ink sm:inline-flex">
-              {tx.nav.admin}
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={() => setLang(lang === 'az' ? 'en' : 'az')}
-            className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-bold uppercase text-slate-700"
-          >
-            {lang === 'az' ? 'en' : 'az'}
-          </button>
-          <button type="button" onClick={logout} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            {tx.nav.logout}
-          </button>
-        </div>
-      </div>
       {tab === 'roadmap' ? (
         <header className="relative overflow-hidden rounded-[2rem] bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
           {/* The sun and ring from the logo. Decorative. */}
@@ -201,7 +167,7 @@ export default function StudentPage() {
         </header>
       )}
 
-      <div role="tablist" aria-label={tx.student.hubTitle} className="sticky top-[3.6rem] z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 p-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:shadow-none">
+      <div role="tablist" aria-label={tx.student.hubTitle} className="sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 p-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:shadow-none">
         {TABS.map(({ id, Icon }) => (
           <button
             key={id}

@@ -18,6 +18,7 @@ const DetailPage = lazy(() => import('./app/pages/DetailPage'));
 const TrackerPage = lazy(() => import('./app/pages/TrackerPage'));
 const CalendarPage = lazy(() => import('./app/pages/CalendarPage'));
 const StudentPage = lazy(() => import('./app/pages/StudentPage'));
+const StudentProfilePage = lazy(() => import('./app/student/StudentProfile'));
 const GuidesPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidesPage })));
 const GuidePage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.GuidePage })));
 const ProgramPage = lazy(() => import('./app/pages/LearnPages').then((m) => ({ default: m.ProgramPage })));
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')!).render(
               <Route element={<RequireStudentAuth />}>
                 <Route element={<StudentLayout />}>
                   <Route path="/student" element={<StudentPage />} />
+                  <Route path="/student/profile" element={<StudentProfilePage />} />
                 </Route>
               </Route>
               {/* The opportunity list and pages are public (shareable, indexable);
