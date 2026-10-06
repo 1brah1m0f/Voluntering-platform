@@ -4,7 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Instrument Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        // DM Sans: Instrument Sans has no ə/Ə, so those letters fell back to another font.
+        sans: ['"DM Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         // Headings and big numbers.
         display: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
