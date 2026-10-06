@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProgramStrip from './components/ProgramStrip';
 import BackToTop from './components/BackToTop';
+import InstallPrompt from './components/InstallPrompt';
 import LiveOpportunities from './components/LiveOpportunities';
 import HowItWorks from './components/HowItWorks';
 import Explainer from './components/Explainer';
@@ -30,6 +31,7 @@ export default function App() {
       </main>
       <Footer />
       <BackToTop />
+      <InstallPrompt />
     </>
   );
 }

@@ -94,6 +94,15 @@ const az = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Yuxarı qalx',
+  installApp: {
+    titlePhone: 'Openly-ni telefonuna yüklə',
+    titleDesktop: 'Openly-ni kompüterinə yüklə',
+    text: 'Tətbiq kimi bir toxunuşla aç: son tarixlər və fürsətlər həmişə əlinin altında.',
+    install: 'Yüklə',
+    later: 'Sonra',
+    close: 'Bağla',
+    iosHint: 'Safari-də aşağıdakı «Paylaş» düyməsinə, sonra «Ana ekrana əlavə et» seçiminə toxun.',
+  },
   explain: {
     eyebrow: 'Sadə dillə',
     title: 'Bu fürsətlər nədir?',
@@ -332,6 +341,15 @@ const en: Dict = {
     acceptedSub: 'ESC · Tartu',
   },
   backToTop: 'Back to top',
+  installApp: {
+    titlePhone: 'Install Openly on your phone',
+    titleDesktop: 'Install Openly on your computer',
+    text: 'Open it like an app in one tap: deadlines and opportunities always at hand.',
+    install: 'Install',
+    later: 'Later',
+    close: 'Close',
+    iosHint: 'In Safari, tap the “Share” button below, then “Add to Home Screen”.',
+  },
   explain: {
     eyebrow: 'In plain words',
     title: 'What are these opportunities?',
