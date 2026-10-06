@@ -189,7 +189,7 @@ export function GuidePage() {
               ))}
               {sec.install && (
                 <div className="mt-5">
-                  <InstallLink directOnly />
+                  <InstallLink hint={sec.installHint} />
                 </div>
               )}
               {sec.images && (

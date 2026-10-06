@@ -208,14 +208,14 @@ export function InstallCard({ className = '' }: { className?: string }) {
 /**
  * Always-visible install link under the landing hero buttons, for every browser.
  * Installs directly where the browser allows it; everywhere else it opens the guide
- * (`directOnly`: render nothing there instead).
+ * (with `hint`, as on the guide itself: shows the browser's menu steps instead).
  */
-export function InstallLink({ directOnly = false }: { directOnly?: boolean }) {
+export function InstallLink({ hint }: { hint?: string }) {
   const { t } = useLang();
   const { installed, canPrompt, mobile, install } = useInstall();
   const [done, setDone] = useState(false);
-  // On the guide itself, linking to the guide would go nowhere.
-  if (installed || done || (directOnly && !canPrompt)) return null;
+  const [showHint, setShowHint] = useState(false);
+  if (installed || done) return null;
 
   const Icon = mobile ? Smartphone : Monitor;
   const body = (
@@ -236,11 +236,25 @@ export function InstallLink({ directOnly = false }: { directOnly?: boolean }) {
   );
   const cls = 'group inline-flex items-center gap-3 rounded-full border border-brand-200 bg-white/80 py-1.5 pl-1.5 pr-4 shadow-sm backdrop-blur transition hover:border-brand-400 hover:bg-white';
 
-  return canPrompt ? (
-    <button type="button" onClick={() => install().then((outcome) => setDone(outcome === 'accepted'))} className={cls}>
-      {body}
-    </button>
-  ) : (
+  if (canPrompt) {
+    return (
+      <button type="button" onClick={() => install().then((outcome) => setDone(outcome === 'accepted'))} className={cls}>
+        {body}
+      </button>
+    );
+  }
+  // On the guide itself the browser's menu steps replace the link back to the guide.
+  if (hint) {
+    return (
+      <div>
+        <button type="button" onClick={() => setShowHint(true)} aria-expanded={showHint} className={cls}>
+          {body}
+        </button>
+        {showHint && <p className="mt-3 rounded-2xl bg-brand-50 px-4 py-3 text-sm leading-6 text-brand-900">{hint}</p>}
+      </div>
+    );
+  }
+  return (
     <Link to={GUIDE} className={cls}>
       {body}
     </Link>

@@ -12,6 +12,8 @@ export interface GuideSection {
   platform?: Platform;
   /** Shows the "install" button under the text (browsers that can install directly). */
   install?: boolean;
+  /** Shown by that button where the browser can't install directly (menu steps). */
+  installHint?: string;
 }
 
 export type Platform = 'ios-safari' | 'ios-chrome' | 'android' | 'desktop';
@@ -390,19 +392,15 @@ export const GUIDES: Guide[] = [
             h: 'Android',
             platform: 'android',
             install: true,
-            p: [
-              'Saytı Chrome-da aç və aşağıdakı düyməyə toxun, sonra «Quraşdır» ilə təsdiqlə. Openly ana ekranında və tətbiqlər siyahısında görünəcək.',
-              'Düymə işləmirsə: Chrome-un sağ yuxarısındakı «⋮» menyusunu aç və «Tətbiqi quraşdır» və ya «Ana ekrana əlavə et» seç.',
-            ],
+            p: ['Aşağıdakı düyməyə toxun və «Quraşdır» ilə təsdiqlə — Openly ana ekranında görünəcək.'],
+            installHint: 'Chrome-un sağ yuxarısındakı «⋮» menyusunu aç və «Tətbiqi quraşdır» və ya «Ana ekrana əlavə et» seç.',
           },
           {
             h: 'Kompüter',
             platform: 'desktop',
             install: true,
-            p: [
-              'Chrome və ya Edge-də aşağıdakı düyməyə klik et və təsdiqlə. Openly ayrıca pəncərədə açılacaq və onu masaüstündən və ya tapşırıq panelindən aça biləcəksən.',
-              'Düymə işləmirsə: ünvan sətrinin sağındakı quraşdırma ikonuna klik et və ya brauzer menyusundan «Openly-ni quraşdır» seç.',
-            ],
+            p: ['Aşağıdakı düyməyə klik et və təsdiqlə — Openly ayrıca pəncərədə tətbiq kimi açılacaq.'],
+            installHint: 'Chrome və ya Edge-də ünvan sətrinin sağındakı quraşdırma ikonuna klik et və ya brauzer menyusundan «Openly-ni quraşdır» seç.',
           },
           {
             h: 'Silmək istəsən',
@@ -456,19 +454,15 @@ export const GUIDES: Guide[] = [
             h: 'Android',
             platform: 'android',
             install: true,
-            p: [
-              'Open the site in Chrome, tap the button below and confirm with “Install”. Openly appears on your home screen and in your app list.',
-              'Button not working? Open Chrome’s “⋮” menu in the top right and choose “Install app” or “Add to Home screen”.',
-            ],
+            p: ['Tap the button below and confirm with “Install” — Openly appears on your home screen.'],
+            installHint: 'Open Chrome’s “⋮” menu in the top right and choose “Install app” or “Add to Home screen”.',
           },
           {
             h: 'Computer',
             platform: 'desktop',
             install: true,
-            p: [
-              'In Chrome or Edge, click the button below and confirm. Openly opens in its own window and you can launch it from your desktop or taskbar.',
-              'Button not working? Click the install icon at the right of the address bar, or choose “Install Openly” from the browser menu.',
-            ],
+            p: ['Click the button below and confirm — Openly opens in its own window, like an app.'],
+            installHint: 'In Chrome or Edge, click the install icon at the right of the address bar, or choose “Install Openly” from the browser menu.',
           },
           {
             h: 'To remove it',
