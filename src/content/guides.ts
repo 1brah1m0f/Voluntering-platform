@@ -328,6 +328,79 @@ export const GUIDES: Guide[] = [
       },
     },
   },
+  {
+    // Linked from the install banner on the landing page (iPhone has no install button).
+    slug: 'install-app',
+    minutes: 1,
+    kinds: [],
+    links: [{ label: 'Google Chrome: Use progressive web apps', href: 'https://support.google.com/chrome/answer/9658361' }],
+    text: {
+      az: {
+        title: 'Openly-ni telefonuna necə yükləmək olar',
+        summary: 'Openly-ni App Store və ya Play Market olmadan, bir dəqiqəyə ana ekranına əlavə et: tətbiq kimi açılır, son tarixlər həmişə əlinin altında olur.',
+        sections: [
+          {
+            h: 'iPhone və iPad',
+            p: [
+              '1. openlyapply.com saytını Safari-də aç.',
+              '2. Ekranın aşağısındakı «Paylaş» düyməsinə toxun (yuxarı oxu olan kvadrat). Görmürsənsə, əvvəlcə ünvan sətrinin yanındakı «⋯» düyməsinə toxun.',
+              '3. Siyahını aşağı sürüşdür və «Ana ekrana əlavə et» (Add to Home Screen) seç.',
+              '4. Sağ yuxarıda «Əlavə et» düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
+            ],
+          },
+          {
+            h: 'Android',
+            p: [
+              'Saytı Chrome-da açanda yuxarıda çıxan bildirişdə «Yüklə» düyməsinə toxun və təsdiqlə.',
+              'Bildiriş görünmürsə: Chrome-un sağ yuxarısındakı «⋮» menyusunu aç və «Tətbiqi quraşdır» və ya «Ana ekrana əlavə et» seç.',
+            ],
+          },
+          {
+            h: 'Kompüter (Chrome, Edge)',
+            p: [
+              'Ünvan sətrinin sağındakı quraşdırma ikonuna klik et və ya brauzer menyusundan «Openly-ni quraşdır» seç. Openly ayrıca pəncərədə açılacaq və ondan masaüstündən istifadə edə biləcəksən.',
+            ],
+          },
+          {
+            h: 'Silmək istəsən',
+            p: ['Hər hansı tətbiq kimi: ikonu basıb saxla və «Sil» seç. Hesabın və məlumatların itmir, sayt brauzerdə də işləməyə davam edir.'],
+          },
+        ],
+      },
+      en: {
+        title: 'How to install Openly on your phone',
+        summary: 'Add Openly to your home screen in a minute, no App Store or Play Store needed: it opens like an app and keeps deadlines at hand.',
+        sections: [
+          {
+            h: 'iPhone and iPad',
+            p: [
+              '1. Open openlyapply.com in Safari.',
+              '2. Tap the “Share” button at the bottom of the screen (the square with an arrow pointing up). If you don’t see it, tap the “⋯” button next to the address bar first.',
+              '3. Scroll down and choose “Add to Home Screen”.',
+              '4. Tap “Add” in the top right. The Openly icon appears on your home screen — open it from there.',
+            ],
+          },
+          {
+            h: 'Android',
+            p: [
+              'When you open the site in Chrome, tap “Install” in the banner at the top and confirm.',
+              'No banner? Open Chrome’s “⋮” menu in the top right and choose “Install app” or “Add to Home screen”.',
+            ],
+          },
+          {
+            h: 'Computer (Chrome, Edge)',
+            p: [
+              'Click the install icon at the right of the address bar, or choose “Install Openly” from the browser menu. Openly opens in its own window and you can launch it from your desktop.',
+            ],
+          },
+          {
+            h: 'To remove it',
+            p: ['Like any app: press and hold the icon and choose “Remove”. Your account and data stay, and the site keeps working in the browser.'],
+          },
+        ],
+      },
+    },
+  },
 ];
 
 export const guideBySlug = (slug: string) => GUIDES.find((g) => g.slug === slug);

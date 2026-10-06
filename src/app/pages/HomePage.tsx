@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bookmark, CalendarDays, ChevronRight, Map as MapIcon, PartyPopper, Search, Send, Sparkles, type LucideIcon } from 'lucide-react';
+import { InstallCard } from '../../components/InstallPrompt';
 import { useAiInfo } from '../AiTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
@@ -126,6 +127,9 @@ export default function HomePage() {
         ))}
       </Link>
 
+      {/* Phones: right under the numbers; on wide screens it sits in the side column. */}
+      <InstallCard className="lg:hidden" />
+
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-5">
           <Card title={tx.dash.upcoming} action={mine.length > 0 ? <SeeAll to="/app/tracker" label={tx.dash.allTracked} /> : undefined}>
@@ -168,6 +172,7 @@ export default function HomePage() {
               </Link>
             ))}
           </nav>
+          <InstallCard className="hidden lg:block" />
           <NotesMini />
         </div>
       </div>

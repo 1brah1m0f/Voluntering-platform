@@ -101,7 +101,8 @@ const az = {
     install: 'Yüklə',
     later: 'Sonra',
     close: 'Bağla',
-    iosHint: 'Safari-də aşağıdakı «Paylaş» düyməsinə, sonra «Ana ekrana əlavə et» seçiminə toxun.',
+    iosText: 'App Store lazım deyil: Openly-ni bir dəqiqəyə ana ekranına əlavə et və tətbiq kimi aç.',
+    iosHow: 'Necə yükləmək olar?',
   },
   explain: {
     eyebrow: 'Sadə dillə',
@@ -348,7 +349,8 @@ const en: Dict = {
     install: 'Install',
     later: 'Later',
     close: 'Close',
-    iosHint: 'In Safari, tap the “Share” button below, then “Add to Home Screen”.',
+    iosText: 'No App Store needed: add Openly to your home screen in a minute and open it like an app.',
+    iosHow: 'How to install',
   },
   explain: {
     eyebrow: 'In plain words',
