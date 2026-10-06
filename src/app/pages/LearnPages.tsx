@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clock, ExternalLink, Globe2, GraduationCap, HeartHandshake, Info, Users, UsersRound, Wallet } from 'lucide-react';
 import { useLang } from '../../i18n';
-import { GUIDES, guideBySlug } from '../../content/guides';
+import { GUIDES, guideBySlug, type Platform } from '../../content/guides';
+import { InstallLink, detectPlatform } from '../../components/InstallPrompt';
 import { PROGRAM_PAGES, programPageBySlug } from '../../content/programs';
 import { programLogo } from '../../lib/programs';
 import { useData } from '../DataContext';
@@ -129,6 +131,7 @@ export function GuidePage() {
   const { slug = '' } = useParams();
   const { tx, lang } = useAppText();
   const guide = guideBySlug(slug);
+  const [platform, setPlatform] = useState<Platform>(detectPlatform);
 
   if (!guide) {
     return (
@@ -153,8 +156,30 @@ export function GuidePage() {
         </p>
         <h1 className="mt-2 text-balance text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">{g.title}</h1>
         <p className="mt-3 text-lg leading-8 text-slate-600">{g.summary}</p>
+        {/* Device picker: sections tied to a platform show one at a time. */}
+        {g.sections.some((sec) => sec.platform) && (
+          <div role="tablist" className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {g.sections.map(
+              (sec) =>
+                sec.platform && (
+                  <button
+                    key={sec.platform}
+                    type="button"
+                    role="tab"
+                    aria-selected={platform === sec.platform}
+                    onClick={() => setPlatform(sec.platform!)}
+                    className={`rounded-2xl border px-3 py-2.5 text-sm font-bold transition ${
+                      platform === sec.platform ? 'border-brand-700 bg-brand-700 text-white shadow-sm' : 'border-line bg-white text-slate-700 hover:border-brand-300'
+                    }`}
+                  >
+                    {sec.h}
+                  </button>
+                ),
+            )}
+          </div>
+        )}
         <div className="mt-8 space-y-8">
-          {g.sections.map((sec) => (
+          {g.sections.filter((sec) => !sec.platform || sec.platform === platform).map((sec) => (
             <section key={sec.h}>
               <h2 className="text-xl font-bold">{sec.h}</h2>
               {sec.p.map((para) => (
@@ -162,8 +187,13 @@ export function GuidePage() {
                   {para}
                 </p>
               ))}
+              {sec.install && (
+                <div className="mt-5">
+                  <InstallLink directOnly />
+                </div>
+              )}
               {sec.images && (
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {sec.images.map((img) => (
                     <figure key={img.src}>
                       <img src={img.src} alt={img.alt} loading="lazy" width={739} height={900} className="h-auto w-full rounded-2xl border border-line shadow-sm" />

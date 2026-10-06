@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, Download, Monitor, Smartphone, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Platform } from '../content/guides';
 import { useLang } from '../i18n';
 
 // Chrome, Edge and Android browsers fire this when the PWA can be installed.
@@ -33,6 +34,12 @@ const isStandalone = () =>
 // iPadOS reports itself as a Mac; touch support tells them apart.
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isMobile = () => isIos() || /android|mobile/i.test(navigator.userAgent);
+
+/** The visitor's device, to open the matching tab of the install guide. */
+export function detectPlatform(): Platform {
+  if (isIos()) return /CriOS/i.test(navigator.userAgent) ? 'ios-chrome' : 'ios-safari';
+  return /android/i.test(navigator.userAgent) ? 'android' : 'desktop';
+}
 
 function recentlyDismissed(key: string) {
   try {
@@ -200,13 +207,15 @@ export function InstallCard({ className = '' }: { className?: string }) {
 
 /**
  * Always-visible install link under the landing hero buttons, for every browser.
- * Installs directly where the browser allows it; everywhere else it opens the guide.
+ * Installs directly where the browser allows it; everywhere else it opens the guide
+ * (`directOnly`: render nothing there instead).
  */
-export function InstallLink() {
+export function InstallLink({ directOnly = false }: { directOnly?: boolean }) {
   const { t } = useLang();
   const { installed, canPrompt, mobile, install } = useInstall();
   const [done, setDone] = useState(false);
-  if (installed || done) return null;
+  // On the guide itself, linking to the guide would go nowhere.
+  if (installed || done || (directOnly && !canPrompt)) return null;
 
   const Icon = mobile ? Smartphone : Monitor;
   const body = (

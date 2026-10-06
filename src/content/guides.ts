@@ -8,7 +8,13 @@ export interface GuideSection {
   p: string[];
   /** Annotated screenshots shown under the text (files in /public/guides). */
   images?: { src: string; alt: string }[];
+  /** Sections for one device become a picker on the guide page (see the install guide). */
+  platform?: Platform;
+  /** Shows the "install" button under the text (browsers that can install directly). */
+  install?: boolean;
 }
+
+export type Platform = 'ios-safari' | 'ios-chrome' | 'android' | 'desktop';
 
 export interface GuideText {
   title: string;
@@ -331,7 +337,8 @@ export const GUIDES: Guide[] = [
     },
   },
   {
-    // Linked from the install banner on the landing page (iPhone has no install button).
+    // Linked from the install banner on the landing page. Sections with a `platform`
+    // become a picker on the page (the visitor's own device is picked first).
     slug: 'install-app',
     minutes: 1,
     kinds: [],
@@ -339,36 +346,62 @@ export const GUIDES: Guide[] = [
     text: {
       az: {
         title: 'Openly-ni telefonuna necə yükləmək olar',
-        summary: 'Openly-ni App Store və ya Play Market olmadan, bir dəqiqəyə ana ekranına əlavə et: tətbiq kimi açılır, son tarixlər həmişə əlinin altında olur.',
+        summary: 'Openly-ni App Store və ya Play Market olmadan, bir dəqiqəyə ana ekranına əlavə et: tətbiq kimi açılır, son tarixlər həmişə əlinin altında olur. Aşağıdan cihazını seç.',
         sections: [
           {
-            h: 'iPhone və iPad (Safari)',
+            h: 'iPhone · Safari',
+            platform: 'ios-safari',
             p: [
-              'iPhone-da menyular telefonun dilində olur. Aşağıda adlar türkcə və ingiliscə verilib.',
+              'iPhone-da menyular telefonun dilində olur. Şəkillər türkcədir, adların ingiliscəsi mötərizədə verilib.',
               '1. openlyapply.com saytını Safari-də aç və aşağı sağdakı «•••» düyməsinə toxun.',
               '2. Açılan menyuda «Paylaş» (Share) seç.',
               '3. Paylaşma pəncərəsində «Daha Fazla» (More) düyməsinə toxun.',
-              '4. Siyahıdan «Ana Ekrana Ekle» (Add to Home Screen) seç, sonra sağ yuxarıda «Ekle» (Add) düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
+              '4. Siyahıdan «Ana Ekrana Ekle» (Add to Home Screen) seç.',
+              '5. «Web Uygulaması Olarak Aç» (Open as Web App) açıq qalsın və sağ yuxarıda «Ekle» (Add) düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
               'Köhnə iOS versiyalarında «Paylaş» düyməsi birbaşa ekranın aşağısında olur (yuxarı oxu olan kvadrat). Ona toxun və 4-cü addıma keç.',
             ],
             images: [
-              { src: '/guides/ios-step-1.webp', alt: '1. Aşağı sağdakı «•••» düyməsi' },
-              { src: '/guides/ios-step-2.webp', alt: '2. «Paylaş» (Share)' },
-              { src: '/guides/ios-step-3.webp', alt: '3. «Daha Fazla» (More)' },
-              { src: '/guides/ios-step-4.webp', alt: '4. «Ana Ekrana Ekle» (Add to Home Screen)' },
+              { src: '/guides/ios-safari-step-1.webp', alt: '1. Aşağı sağdakı «•••» düyməsi' },
+              { src: '/guides/ios-safari-step-2.webp', alt: '2. «Paylaş» (Share)' },
+              { src: '/guides/ios-safari-step-3.webp', alt: '3. «Daha Fazla» (More)' },
+              { src: '/guides/ios-safari-step-4.webp', alt: '4. «Ana Ekrana Ekle»' },
+              { src: '/guides/ios-safari-step-5.webp', alt: '5. «Ekle» (Add)' },
+              { src: '/guides/ios-done.webp', alt: 'Hazırdır: Openly ana ekranda' },
+            ],
+          },
+          {
+            h: 'iPhone · Chrome',
+            platform: 'ios-chrome',
+            p: [
+              '1. openlyapply.com saytını Chrome-da aç və ünvan sətrinin sağındakı paylaş ikonuna (yuxarı oxu olan kvadrat) toxun.',
+              '2. Paylaşma pəncərəsində «Daha Fazla» (More) düyməsinə toxun.',
+              '3. Siyahıdan «Ana Ekrana Ekle» (Add to Home Screen) seç.',
+              '4. «Web Uygulaması Olarak Aç» (Open as Web App) açıq qalsın və sağ yuxarıda «Ekle» (Add) düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
+            ],
+            images: [
+              { src: '/guides/ios-chrome-step-1.webp', alt: '1. Ünvan sətrindəki paylaş ikonu' },
+              { src: '/guides/ios-chrome-step-2.webp', alt: '2. «Daha Fazla» (More)' },
+              { src: '/guides/ios-chrome-step-3.webp', alt: '3. «Ana Ekrana Ekle»' },
+              { src: '/guides/ios-chrome-step-4.webp', alt: '4. «Ekle» (Add)' },
+              { src: '/guides/ios-done.webp', alt: 'Hazırdır: Openly ana ekranda' },
             ],
           },
           {
             h: 'Android',
+            platform: 'android',
+            install: true,
             p: [
-              'Saytı Chrome-da açanda yuxarıda çıxan bildirişdə «Yüklə» düyməsinə toxun və təsdiqlə.',
-              'Bildiriş görünmürsə: Chrome-un sağ yuxarısındakı «⋮» menyusunu aç və «Tətbiqi quraşdır» və ya «Ana ekrana əlavə et» seç.',
+              'Saytı Chrome-da aç və aşağıdakı düyməyə toxun, sonra «Quraşdır» ilə təsdiqlə. Openly ana ekranında və tətbiqlər siyahısında görünəcək.',
+              'Düymə işləmirsə: Chrome-un sağ yuxarısındakı «⋮» menyusunu aç və «Tətbiqi quraşdır» və ya «Ana ekrana əlavə et» seç.',
             ],
           },
           {
-            h: 'Kompüter (Chrome, Edge)',
+            h: 'Kompüter',
+            platform: 'desktop',
+            install: true,
             p: [
-              'Ünvan sətrinin sağındakı quraşdırma ikonuna klik et və ya brauzer menyusundan «Openly-ni quraşdır» seç. Openly ayrıca pəncərədə açılacaq və ondan masaüstündən istifadə edə biləcəksən.',
+              'Chrome və ya Edge-də aşağıdakı düyməyə klik et və təsdiqlə. Openly ayrıca pəncərədə açılacaq və onu masaüstündən və ya tapşırıq panelindən aça biləcəksən.',
+              'Düymə işləmirsə: ünvan sətrinin sağındakı quraşdırma ikonuna klik et və ya brauzer menyusundan «Openly-ni quraşdır» seç.',
             ],
           },
           {
@@ -379,36 +412,62 @@ export const GUIDES: Guide[] = [
       },
       en: {
         title: 'How to install Openly on your phone',
-        summary: 'Add Openly to your home screen in a minute, no App Store or Play Store needed: it opens like an app and keeps deadlines at hand.',
+        summary: 'Add Openly to your home screen in a minute, no App Store or Play Store needed: it opens like an app and keeps deadlines at hand. Pick your device below.',
         sections: [
           {
-            h: 'iPhone and iPad (Safari)',
+            h: 'iPhone · Safari',
+            platform: 'ios-safari',
             p: [
-              'iPhone menus follow the phone’s language; the screenshots below are in Turkish, with the English names given.',
+              'iPhone menus follow the phone’s language; the screenshots are in Turkish, with the English names given.',
               '1. Open openlyapply.com in Safari and tap the “•••” button at the bottom right.',
               '2. In the menu, choose “Share” (Paylaş).',
               '3. In the share sheet, tap “More” (Daha Fazla).',
-              '4. Choose “Add to Home Screen” (Ana Ekrana Ekle), then tap “Add” in the top right. The Openly icon appears on your home screen — open it from there.',
+              '4. Choose “Add to Home Screen” (Ana Ekrana Ekle).',
+              '5. Leave “Open as Web App” (Web Uygulaması Olarak Aç) on and tap “Add” (Ekle) in the top right. The Openly icon appears on your home screen — open it from there.',
               'On older iOS versions the Share button (a square with an arrow pointing up) sits right at the bottom of the screen: tap it and go to step 4.',
             ],
             images: [
-              { src: '/guides/ios-step-1.webp', alt: '1. The “•••” button at the bottom right' },
-              { src: '/guides/ios-step-2.webp', alt: '2. “Share” (Paylaş)' },
-              { src: '/guides/ios-step-3.webp', alt: '3. “More” (Daha Fazla)' },
-              { src: '/guides/ios-step-4.webp', alt: '4. “Add to Home Screen” (Ana Ekrana Ekle)' },
+              { src: '/guides/ios-safari-step-1.webp', alt: '1. The “•••” button at the bottom right' },
+              { src: '/guides/ios-safari-step-2.webp', alt: '2. “Share” (Paylaş)' },
+              { src: '/guides/ios-safari-step-3.webp', alt: '3. “More” (Daha Fazla)' },
+              { src: '/guides/ios-safari-step-4.webp', alt: '4. “Add to Home Screen”' },
+              { src: '/guides/ios-safari-step-5.webp', alt: '5. “Add” (Ekle)' },
+              { src: '/guides/ios-done.webp', alt: 'Done: Openly on the home screen' },
+            ],
+          },
+          {
+            h: 'iPhone · Chrome',
+            platform: 'ios-chrome',
+            p: [
+              '1. Open openlyapply.com in Chrome and tap the share icon (a square with an arrow pointing up) at the right of the address bar.',
+              '2. In the share sheet, tap “More” (Daha Fazla).',
+              '3. Choose “Add to Home Screen” (Ana Ekrana Ekle).',
+              '4. Leave “Open as Web App” (Web Uygulaması Olarak Aç) on and tap “Add” (Ekle) in the top right. The Openly icon appears on your home screen — open it from there.',
+            ],
+            images: [
+              { src: '/guides/ios-chrome-step-1.webp', alt: '1. The share icon in the address bar' },
+              { src: '/guides/ios-chrome-step-2.webp', alt: '2. “More” (Daha Fazla)' },
+              { src: '/guides/ios-chrome-step-3.webp', alt: '3. “Add to Home Screen”' },
+              { src: '/guides/ios-chrome-step-4.webp', alt: '4. “Add” (Ekle)' },
+              { src: '/guides/ios-done.webp', alt: 'Done: Openly on the home screen' },
             ],
           },
           {
             h: 'Android',
+            platform: 'android',
+            install: true,
             p: [
-              'When you open the site in Chrome, tap “Install” in the banner at the top and confirm.',
-              'No banner? Open Chrome’s “⋮” menu in the top right and choose “Install app” or “Add to Home screen”.',
+              'Open the site in Chrome, tap the button below and confirm with “Install”. Openly appears on your home screen and in your app list.',
+              'Button not working? Open Chrome’s “⋮” menu in the top right and choose “Install app” or “Add to Home screen”.',
             ],
           },
           {
-            h: 'Computer (Chrome, Edge)',
+            h: 'Computer',
+            platform: 'desktop',
+            install: true,
             p: [
-              'Click the install icon at the right of the address bar, or choose “Install Openly” from the browser menu. Openly opens in its own window and you can launch it from your desktop.',
+              'In Chrome or Edge, click the button below and confirm. Openly opens in its own window and you can launch it from your desktop or taskbar.',
+              'Button not working? Click the install icon at the right of the address bar, or choose “Install Openly” from the browser menu.',
             ],
           },
           {
