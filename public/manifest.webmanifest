@@ -1,0 +1,27 @@
+{
+  "id": "/app",
+  "name": "Openly — Könüllülük fürsətləri",
+  "short_name": "Openly",
+  "description": "Erasmus+, SALTO-Youth, ESC və BMT Könüllüləri fürsətləri bir yerdə: gündəlik xülasə, son tarix xatırlatmaları və müraciət izləmə.",
+  "lang": "az",
+  "dir": "ltr",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#1b626c",
+  "background_color": "#ffffff",
+  "categories": ["education", "lifestyle", "social"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Fürsətlər", "short_name": "Fürsətlər", "url": "/app", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Müraciətlərim", "short_name": "İzləmə", "url": "/app/tracker", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Təqvim", "short_name": "Təqvim", "url": "/app/calendar", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

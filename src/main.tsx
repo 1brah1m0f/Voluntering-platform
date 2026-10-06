@@ -31,6 +31,13 @@ const AdminUsersPage = lazy(() => import('./app/pages/AdminUsersPage'));
 const AdminEditPage = lazy(() => import('./app/pages/AdminPages').then((m) => ({ default: m.AdminEditPage })));
 import './index.css';
 
+// PWA: installable app + offline shell. Production only, so it never caches Vite's dev server.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => console.error('Service worker registration failed', err));
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LangProvider>
