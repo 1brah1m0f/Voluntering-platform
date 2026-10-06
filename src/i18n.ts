@@ -103,6 +103,7 @@ const az = {
     close: 'Bağla',
     iosText: 'App Store lazım deyil: Openly-ni bir dəqiqəyə ana ekranına əlavə et və tətbiq kimi aç.',
     iosHow: 'Necə yükləmək olar?',
+    free: 'Pulsuz · App Store və Play Market lazım deyil',
   },
   explain: {
     eyebrow: 'Sadə dillə',
@@ -351,6 +352,7 @@ const en: Dict = {
     close: 'Close',
     iosText: 'No App Store needed: add Openly to your home screen in a minute and open it like an app.',
     iosHow: 'How to install',
+    free: 'Free · no App Store or Play Store needed',
   },
   explain: {
     eyebrow: 'In plain words',

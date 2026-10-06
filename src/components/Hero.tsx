@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { useLang } from '../i18n';
+import { InstallLink } from './InstallPrompt';
 import { Reveal } from './Section';
 
 /** A date `days` from today, as { day, month index }. The passes always show upcoming dates. */
@@ -37,6 +38,9 @@ export default function Hero() {
               <Link to="/register" className="btn-secondary w-full sm:w-auto">
                 {t.hero.secondary}
               </Link>
+            </div>
+            <div className="mt-4 flex justify-center lg:justify-start">
+              <InstallLink />
             </div>
           </Reveal>
           <Reveal delay={360} className="sm:hidden">

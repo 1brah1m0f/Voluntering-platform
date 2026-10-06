@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Download, X } from 'lucide-react';
+import { ArrowRight, Download, Monitor, Smartphone, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../i18n';
 
@@ -44,13 +44,13 @@ function recentlyDismissed(key: string) {
 }
 
 /**
- * Install state shared by the landing banner and the home card. `dismissKey` keeps
- * each place's "Later" separate. iOS has no install event, so there `show` means
- * "point to the install guide".
+ * Install state shared by the landing banner, the hero link and the home card. `dismissKey`
+ * keeps each place's "Later" separate (none: it can't be dismissed). iOS has no install
+ * event, so there `show` means "point to the install guide".
  */
-function useInstall(dismissKey: string) {
+function useInstall(dismissKey?: string) {
   const [canPrompt, setCanPrompt] = useState(!!deferred);
-  const [hidden, setHidden] = useState(() => isStandalone() || recentlyDismissed(dismissKey));
+  const [hidden, setHidden] = useState(() => isStandalone() || (!!dismissKey && recentlyDismissed(dismissKey)));
   const [ios] = useState(isIos);
   const [mobile] = useState(isMobile);
 
@@ -64,23 +64,26 @@ function useInstall(dismissKey: string) {
 
   const dismiss = () => {
     try {
-      localStorage.setItem(dismissKey, String(Date.now()));
+      if (dismissKey) localStorage.setItem(dismissKey, String(Date.now()));
     } catch {
       // Private mode: it just shows again next visit.
     }
     setHidden(true);
   };
 
+  // The browser allows one prompt per event; afterwards the guide is the fallback.
   const install = async () => {
-    if (!deferred) return;
+    if (!deferred) return 'dismissed';
     await deferred.prompt();
     const { outcome } = await deferred.userChoice;
     deferred = null;
+    setCanPrompt(false);
     if (outcome === 'dismissed') dismiss();
     else setHidden(true);
+    return outcome;
   };
 
-  return { show: !hidden && (canPrompt || ios), iosGuide: ios && !canPrompt, mobile, install, dismiss };
+  return { show: !hidden && (canPrompt || ios), installed: hidden && isStandalone(), canPrompt, iosGuide: ios && !canPrompt, mobile, install, dismiss };
 }
 
 const GUIDE = '/guides/install-app';
@@ -192,5 +195,45 @@ export function InstallCard({ className = '' }: { className?: string }) {
         </button>
       )}
     </section>
+  );
+}
+
+/**
+ * Always-visible install link under the landing hero buttons, for every browser.
+ * Installs directly where the browser allows it; everywhere else it opens the guide.
+ */
+export function InstallLink() {
+  const { t } = useLang();
+  const { installed, canPrompt, mobile, install } = useInstall();
+  const [done, setDone] = useState(false);
+  if (installed || done) return null;
+
+  const Icon = mobile ? Smartphone : Monitor;
+  const body = (
+    <>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white">
+        <Icon className="h-4 w-4" aria-hidden="true" />
+      </span>
+      <span className="text-left leading-tight">
+        <span className="block text-sm font-bold text-ink">{mobile ? t.installApp.titlePhone : t.installApp.titleDesktop}</span>
+        <span className="block text-xs text-slate-500">{t.installApp.free}</span>
+      </span>
+      {canPrompt ? (
+        <Download className="ml-1 h-4 w-4 text-brand-700" aria-hidden="true" />
+      ) : (
+        <ArrowRight className="ml-1 h-4 w-4 text-brand-700 transition group-hover:translate-x-0.5" aria-hidden="true" />
+      )}
+    </>
+  );
+  const cls = 'group inline-flex items-center gap-3 rounded-full border border-brand-200 bg-white/80 py-1.5 pl-1.5 pr-4 shadow-sm backdrop-blur transition hover:border-brand-400 hover:bg-white';
+
+  return canPrompt ? (
+    <button type="button" onClick={() => install().then((outcome) => setDone(outcome === 'accepted'))} className={cls}>
+      {body}
+    </button>
+  ) : (
+    <Link to={GUIDE} className={cls}>
+      {body}
+    </Link>
   );
 }
