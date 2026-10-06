@@ -162,6 +162,16 @@ export function GuidePage() {
                   {para}
                 </p>
               ))}
+              {sec.images && (
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {sec.images.map((img) => (
+                    <figure key={img.src}>
+                      <img src={img.src} alt={img.alt} loading="lazy" width={739} height={900} className="h-auto w-full rounded-2xl border border-line shadow-sm" />
+                      <figcaption className="mt-1.5 text-xs leading-snug text-slate-500">{img.alt}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
             </section>
           ))}
         </div>

@@ -6,6 +6,8 @@ import type { Lang } from '../i18n';
 export interface GuideSection {
   h: string;
   p: string[];
+  /** Annotated screenshots shown under the text (files in /public/guides). */
+  images?: { src: string; alt: string }[];
 }
 
 export interface GuideText {
@@ -340,12 +342,20 @@ export const GUIDES: Guide[] = [
         summary: 'Openly-ni App Store və ya Play Market olmadan, bir dəqiqəyə ana ekranına əlavə et: tətbiq kimi açılır, son tarixlər həmişə əlinin altında olur.',
         sections: [
           {
-            h: 'iPhone və iPad',
+            h: 'iPhone və iPad (Safari)',
             p: [
-              '1. openlyapply.com saytını Safari-də aç.',
-              '2. Ekranın aşağısındakı «Paylaş» düyməsinə toxun (yuxarı oxu olan kvadrat). Görmürsənsə, əvvəlcə ünvan sətrinin yanındakı «⋯» düyməsinə toxun.',
-              '3. Siyahını aşağı sürüşdür və «Ana ekrana əlavə et» (Add to Home Screen) seç.',
-              '4. Sağ yuxarıda «Əlavə et» düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
+              'iPhone-da menyular telefonun dilində olur. Aşağıda adlar türkcə və ingiliscə verilib.',
+              '1. openlyapply.com saytını Safari-də aç və aşağı sağdakı «•••» düyməsinə toxun.',
+              '2. Açılan menyuda «Paylaş» (Share) seç.',
+              '3. Paylaşma pəncərəsində «Daha Fazla» (More) düyməsinə toxun.',
+              '4. Siyahıdan «Ana Ekrana Ekle» (Add to Home Screen) seç, sonra sağ yuxarıda «Ekle» (Add) düyməsinə toxun. Openly ikonu ana ekranında görünəcək — oradan aç.',
+              'Köhnə iOS versiyalarında «Paylaş» düyməsi birbaşa ekranın aşağısında olur (yuxarı oxu olan kvadrat). Ona toxun və 4-cü addıma keç.',
+            ],
+            images: [
+              { src: '/guides/ios-step-1.webp', alt: '1. Aşağı sağdakı «•••» düyməsi' },
+              { src: '/guides/ios-step-2.webp', alt: '2. «Paylaş» (Share)' },
+              { src: '/guides/ios-step-3.webp', alt: '3. «Daha Fazla» (More)' },
+              { src: '/guides/ios-step-4.webp', alt: '4. «Ana Ekrana Ekle» (Add to Home Screen)' },
             ],
           },
           {
@@ -372,12 +382,20 @@ export const GUIDES: Guide[] = [
         summary: 'Add Openly to your home screen in a minute, no App Store or Play Store needed: it opens like an app and keeps deadlines at hand.',
         sections: [
           {
-            h: 'iPhone and iPad',
+            h: 'iPhone and iPad (Safari)',
             p: [
-              '1. Open openlyapply.com in Safari.',
-              '2. Tap the “Share” button at the bottom of the screen (the square with an arrow pointing up). If you don’t see it, tap the “⋯” button next to the address bar first.',
-              '3. Scroll down and choose “Add to Home Screen”.',
-              '4. Tap “Add” in the top right. The Openly icon appears on your home screen — open it from there.',
+              'iPhone menus follow the phone’s language; the screenshots below are in Turkish, with the English names given.',
+              '1. Open openlyapply.com in Safari and tap the “•••” button at the bottom right.',
+              '2. In the menu, choose “Share” (Paylaş).',
+              '3. In the share sheet, tap “More” (Daha Fazla).',
+              '4. Choose “Add to Home Screen” (Ana Ekrana Ekle), then tap “Add” in the top right. The Openly icon appears on your home screen — open it from there.',
+              'On older iOS versions the Share button (a square with an arrow pointing up) sits right at the bottom of the screen: tap it and go to step 4.',
+            ],
+            images: [
+              { src: '/guides/ios-step-1.webp', alt: '1. The “•••” button at the bottom right' },
+              { src: '/guides/ios-step-2.webp', alt: '2. “Share” (Paylaş)' },
+              { src: '/guides/ios-step-3.webp', alt: '3. “More” (Daha Fazla)' },
+              { src: '/guides/ios-step-4.webp', alt: '4. “Add to Home Screen” (Ana Ekrana Ekle)' },
             ],
           },
           {
