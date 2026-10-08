@@ -8,18 +8,18 @@ const socials = [
   { href: SOCIAL_LINKS.telegram, label: 'Telegram', Icon: TelegramIcon },
 ].filter((s) => s.href);
 
-export default function Footer() {
+export default function Footer({ className = '' }: { className?: string }) {
   const { t } = useLang();
   const product = [
     { to: '/app', label: t.nav.opportunities },
     { to: '/app/calendar', label: t.nav.calendar },
     { to: '/guides', label: t.nav.guides },
-    { to: '#how', label: t.nav.how },
-    { to: '#pricing', label: t.nav.pricing },
-    { to: '#faq', label: t.faq.eyebrow },
+    { to: '/#how', label: t.nav.how },
+    { to: '/#pricing', label: t.nav.pricing },
+    { to: '/#faq', label: t.faq.eyebrow },
   ];
   return (
-    <footer className="border-t border-line bg-paper/45 py-12">
+    <footer className={`border-t border-line bg-paper/45 py-12 ${className}`}>
       <div className="container-x">
         <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
           <div className="max-w-sm">

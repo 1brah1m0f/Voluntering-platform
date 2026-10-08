@@ -11,6 +11,7 @@ import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import FinalCta from './components/FinalCta';
 import Footer from './components/Footer';
+import MobileNav from './components/MobileNav';
 
 /** The marketing landing page at "/". */
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
   return (
     <>
       <Navbar />
-      <main id="main">
+      <main id="main" className="pb-20 lg:pb-0">
         <Hero />
         <ProgramStrip />
         <Explainer />
@@ -29,7 +30,8 @@ export default function App() {
         <FAQ />
         <FinalCta />
       </main>
-      <Footer />
+      <Footer className="pb-20 lg:pb-0" />
+      <MobileNav />
       <BackToTop />
       <InstallPrompt />
     </>

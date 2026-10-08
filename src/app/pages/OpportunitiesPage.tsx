@@ -9,7 +9,7 @@ import { COSTS, INTERESTS, KINDS, type InterestId } from '../taxonomy';
 import { useAppText } from '../text';
 import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity, type SavedSearch } from '../types';
 import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
-import { Chip, DeadlineChip, ErrorState, Notice, ProgramBadge, SaveButton, Spinner, inputClass, useDismissed } from '../ui';
+import { Chip, DeadlineChip, ErrorState, Notice, ProgramBadge, SaveButton, Skeleton, Spinner, inputClass, useDismissed } from '../ui';
 import { daysUntil } from '../util';
 import { hasPremium } from '../plans';
 
@@ -223,7 +223,18 @@ export default function OpportunitiesPage() {
   const activeFilters = [program, kind, country, soon, funded, showClosed].filter(Boolean).length;
 
   if (error) return <ErrorState onRetry={reload} />;
-  if (!opportunities) return <Spinner label={tx.loading} />;
+  if (!opportunities)
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-32 w-full rounded-[2rem]" />
+        <Skeleton className="h-24 w-full rounded-3xl" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-3xl" />
+          ))}
+        </div>
+      </div>
+    );
 
   return (
     <div>

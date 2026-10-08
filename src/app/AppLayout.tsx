@@ -123,10 +123,10 @@ export default function AppLayout() {
   // After signing in, come back to the page the guest was looking at.
   const back = { from: location.pathname + location.search };
 
-  type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string; badge?: string };
+  type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string; badge?: string; state?: any };
   const explore: NavItem[] = [
     // The dashboard is a page of its own; /app is the search.
-    ...(guest ? [] : [{ to: '/app/home', end: false, label: tx.nav.home, Icon: House }]),
+    { to: guest ? '/' : '/app/home', end: guest, label: tx.nav.home, Icon: House },
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
     { to: '/app/map', end: false, label: tx.nav.map, Icon: MapIcon },
     { to: '/app/calendar', end: false, label: tx.nav.calendar, Icon: CalendarDays },
@@ -156,7 +156,9 @@ export default function AppLayout() {
   // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
   // Guides are linked from the dashboard; admin pages are for desktop.
   const pick = (...paths: string[]) => paths.flatMap((p) => [...explore, ...mine].filter((i) => i.to === p));
-  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
+  const links = guest
+    ? [...explore.filter((i) => i.to !== '/app/calendar'), { to: '/login', end: false, label: tx.guest.logIn, Icon: UserRound, state: back }]
+    : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
   const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
   const isPremium = isPaidPlan(profile?.plan);
 

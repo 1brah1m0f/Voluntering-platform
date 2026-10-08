@@ -20,6 +20,12 @@ export function Spinner({ label }: { label?: string }) {
   );
 }
 
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded bg-slate-200 ${className}`} aria-hidden="true" />
+  );
+}
+
 export function ErrorState({ onRetry }: { onRetry: () => void }) {
   const { tx } = useAppText();
   return (
