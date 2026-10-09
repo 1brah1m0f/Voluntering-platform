@@ -7,14 +7,9 @@
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
     -webkit-text-size-adjust: 100%;
-    /* Phones: everything (text, spacing, radii are in rem) a notch smaller than on a computer. */
-    font-size: 14.5px;
-  }
-  @media (min-width: 640px) {
-    html { font-size: 15.5px; }
-  }
-  @media (min-width: 1024px) {
-    html { font-size: 16px; }
+    /* The same 16px everywhere: a smaller root on phones shrank the 13px labels
+       (tailwind.config.js fontSize.xs) to under 12px, which was hard to read. */
+    font-size: 16px;
   }
   /* iOS zooms into fields with text under 16px when they get focus; keep them at 16px on phones. */
   @media (max-width: 639px) {

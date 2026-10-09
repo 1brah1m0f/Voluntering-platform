@@ -26,7 +26,7 @@ export default function Hero() {
             </h1>
           </Reveal>
           <Reveal delay={200}>
-            <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-slate-700 lg:mx-0">{t.hero.subtitle}</p>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8 lg:mx-0">{t.hero.subtitle}</p>
           </Reveal>
 
           <Reveal delay={300}>
