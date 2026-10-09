@@ -99,6 +99,7 @@ export function PlanTab({
               {tx.student.budget}
               <span className={prefs.budget ? 'font-display text-lg font-bold text-brand-800' : 'font-medium text-slate-500'}>{prefs.budget ? eur(prefs.budget) : tx.student.notSet}</span>
             </span>
+            {/* Until a budget is picked the slider is grey, so its starting position doesn't look like a choice. */}
             <input
               type="range"
               min={2000}
@@ -106,7 +107,7 @@ export function PlanTab({
               step={1000}
               value={prefs.budget ?? 12000}
               onChange={(e) => setPrefs({ budget: Number(e.target.value) })}
-              className="mt-3 w-full accent-brand-700"
+              className={`mt-3 w-full ${prefs.budget ? 'accent-brand-700' : 'accent-slate-400'}`}
             />
           </label>
         </div>
@@ -125,7 +126,7 @@ export function PlanTab({
               {tx.student.forMeHint}
             </p>
           )}
-          <Tile value={fees === 0 ? eur(0) : `~${eur(fees)}`} label={tx.student.feesTotal} />
+          <Tile value={listedUni.length === 0 ? '—' : fees === 0 ? eur(0) : `~${eur(fees)}`} label={tx.student.feesTotal} />
           <Tile value={firstYear ? (firstYear.min === firstYear.max ? `~${eur(firstYear.min)}` : `${eur(firstYear.min)} – ${eur(firstYear.max)}`) : '—'} label={tx.student.firstYear} />
         </div>
 

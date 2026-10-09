@@ -70,12 +70,12 @@ export function AdminListPage() {
   return (
     <div>
       <AdminTabs />
-      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:flex sm:items-end sm:justify-between sm:p-7">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.admin.title}</h1>
-          <p className="mt-1 text-slate-600">{tx.admin.sub}</p>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.admin.title}</h1>
+          <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.admin.sub}</p>
         </div>
-        <Link to="/admin/new" className="btn-primary !py-2.5">
+        <Link to="/admin/new" className="btn-primary shrink-0 self-start !py-2.5 sm:self-auto">
           <Plus className="h-5 w-5" aria-hidden="true" />
           {tx.admin.add}
         </Link>

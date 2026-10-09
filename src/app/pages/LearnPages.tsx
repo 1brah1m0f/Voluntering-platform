@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Clock, ExternalLink, Globe2, GraduationCap, HeartHandshake, Info, Users, UsersRound, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, ExternalLink, Globe2, GraduationCap, HeartHandshake, Info, Smartphone, Users, UsersRound, Wallet } from 'lucide-react';
 import { useLang } from '../../i18n';
 import { GUIDES, guideBySlug, type Platform } from '../../content/guides';
 import { InstallLink, detectPlatform } from '../../components/InstallPrompt';
@@ -31,6 +31,9 @@ export function GuidesPage() {
   const { t } = useLang();
   const { opportunities } = useData();
   const openIn = (name: string) => (opportunities ?? []).filter((o) => o.published && o.program === name && daysUntil(o.deadline) >= 0).length;
+  // The numbered path is about applying; installing the app is linked under it instead.
+  const path = GUIDES.filter((g) => g.slug !== 'install-app');
+  const installGuide = guideBySlug('install-app');
 
   return (
     <div>
@@ -41,7 +44,7 @@ export function GuidesPage() {
       <div className="relative mt-4">
         <span className="pointer-events-none absolute inset-x-6 top-[1.3rem] hidden border-t-2 border-dashed border-line lg:block" aria-hidden="true" />
         <ol className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-          {GUIDES.map((g, i) => {
+          {path.map((g, i) => {
             const first = i === 0;
             return (
               <li key={g.slug} className="flex flex-col gap-3">
@@ -73,6 +76,13 @@ export function GuidesPage() {
           })}
         </ol>
       </div>
+      {installGuide && (
+        <Link to={`/guides/${installGuide.slug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:underline">
+          <Smartphone className="h-4 w-4" aria-hidden="true" />
+          {installGuide.text[lang].title}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      )}
 
       <h2 className="mt-12 text-2xl font-extrabold tracking-tight">{t.explain.title}</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -182,7 +182,7 @@ export default function AppLayout() {
           <nav className="mt-8 space-y-6" aria-label="App">
             {groups.map((g) => (
               <div key={g.label}>
-                <p className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-400">{g.label}</p>
+                <p className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">{g.label}</p>
                 <div className="space-y-1">
                   {g.items.map((item) => (
                     <NavLink
@@ -233,7 +233,7 @@ export default function AppLayout() {
                 <Avatar profile={profile} />
                 <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
-                  <span className={`block text-xs ${isPremium ? 'font-bold text-amber-600' : 'text-slate-500 hover:text-brand-700'}`}>
+                  <span className={`block text-xs ${isPremium ? 'font-bold text-amber-800' : 'text-slate-500 hover:text-brand-700'}`}>
                     {profile?.plan === 'student' ? `🎓 ${tx.profile.student}` : isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
                   </span>
                 </Link>
@@ -271,14 +271,11 @@ export default function AppLayout() {
               >
                 {lang === 'az' ? 'en' : 'az'}
               </button>
-              {guest ? (
+              {/* Signed-in users log out from Profile → Settings; an icon here was easy to tap by mistake. */}
+              {guest && (
                 <Link to="/register" state={back} className="btn-primary !px-4 !py-1.5 text-sm">
                   {tx.guest.signUp}
                 </Link>
-              ) : (
-                <button type="button" onClick={logout} aria-label={tx.nav.logout} className="rounded-lg p-2 text-slate-500 hover:text-rose-600">
-                  <LogOut className="h-5 w-5" aria-hidden="true" />
-                </button>
               )}
             </div>
           </header>

@@ -39,17 +39,14 @@ export default function TrackerPage() {
 
   return (
     <div>
-      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-700">{tx.nav.tracker}</p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.tracker.title}</h1>
-        <p className="mt-1 text-slate-600">{tx.tracker.sub}</p>
-      </div>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.tracker.title}</h1>
+      <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.tracker.sub}</p>
 
       {isFree && (
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="font-semibold text-slate-800">{tx.tracker.usage(rows.length)}</span>
-            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-coral-700 hover:underline">
+            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:underline">
               <Crown className="h-4 w-4" aria-hidden="true" />
               {tx.tracker.upgrade}
             </Link>
@@ -63,7 +60,8 @@ export default function TrackerPage() {
         </div>
       )}
 
-      <div role="tablist" className="mt-6 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+      {/* Phones: the five tabs wrap onto a second row instead of scrolling out of sight. */}
+      <div role="tablist" className="mt-6 flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200 sm:rounded-full">
         {(['all', ...STATUS_ORDER] as const).map((s) => {
           const n = s === 'all' ? rows.length : rows.filter((r) => r.item.status === s).length;
           return (

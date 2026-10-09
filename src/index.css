@@ -7,14 +7,9 @@
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
     -webkit-text-size-adjust: 100%;
-    /* Phones: everything (text, spacing, radii are in rem) a notch smaller than on a computer. */
-    font-size: 14.5px;
-  }
-  @media (min-width: 640px) {
-    html { font-size: 15.5px; }
-  }
-  @media (min-width: 1024px) {
-    html { font-size: 16px; }
+    /* The same 16px everywhere: a smaller root on phones shrank the 13px labels
+       (tailwind.config.js fontSize.xs) to under 12px, which was hard to read. */
+    font-size: 16px;
   }
   /* iOS zooms into fields with text under 16px when they get focus; keep them at 16px on phones. */
   @media (max-width: 639px) {
@@ -46,13 +41,20 @@
     @apply rounded-3xl border border-line bg-white shadow-card;
   }
   .btn-primary {
-    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed;
+  }
+  /* Disabled: neutral grey, so it reads as "not available" rather than as a faded, broken red. */
+  .btn-primary:disabled {
+    @apply translate-y-0 bg-slate-200 text-slate-500 shadow-none;
+  }
+  .btn-primary:disabled::after {
+    display: none;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;
   }
   .field-surface {
-    @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+    @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
   }
   .eyebrow {
     @apply mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider;
@@ -76,6 +78,13 @@
   }
   .mask-fade-x {
     mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+  /* Scrolling tab rows on phones: faded ends hint that there is more. */
+  .mask-fade-edges {
+    mask-image: linear-gradient(to right, transparent, black 1.25rem, black calc(100% - 1.25rem), transparent);
+  }
+  @media (min-width: 640px) {
+    .mask-fade-edges { mask-image: none; }
   }
   .text-gradient {
     @apply bg-clip-text text-transparent;

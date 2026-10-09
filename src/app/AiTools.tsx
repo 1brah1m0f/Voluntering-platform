@@ -162,7 +162,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
 
       {!editing && !questions && !ai.busy && (
         <div className="flex flex-col gap-2 sm:flex-row">
-          <button type="button" onClick={ask} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={ask} disabled={!ready} className="btn-primary">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
             {tx.ai.start}
           </button>
@@ -418,7 +418,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         </>
       )}
       {!ai.busy && (
-        <button type="button" onClick={submit} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="button" onClick={submit} disabled={!ready} className="btn-primary">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
           {tx.ai.reviewBtn}
         </button>
@@ -473,7 +473,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
           )}
         </div>
       )}
-      {ai.remaining !== null && <p className="text-xs text-slate-400">{tx.ai.remaining(ai.remaining)}</p>}
+      {ai.remaining !== null && <p className="text-xs text-slate-500">{tx.ai.remaining(ai.remaining)}</p>}
     </div>
   );
 }
@@ -575,8 +575,9 @@ export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: 
           {tx.ai.comingSoon}
         </p>
       )}
+      {/* A plain link, not another tinted box: the tab already opens with an info box. */}
       {!profile?.about.trim() && (
-        <Link to="/app/profile" className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800 hover:bg-brand-100">
+        <Link to="/app/profile" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:underline">
           <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
           {tx.profile.aboutHint}
         </Link>

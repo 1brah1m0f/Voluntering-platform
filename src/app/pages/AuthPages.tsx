@@ -92,7 +92,7 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-12 text-white lg:flex lg:flex-col">
         <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-30" />
-        <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-coral-500/30 blur-3xl" />
+        <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-300/25 blur-3xl" />
         <div className="animate-blob pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-brand-400/30 blur-3xl [animation-delay:-6s]" />
         <Link to="/" className="relative inline-flex items-center gap-2 text-xl font-extrabold">
           <Logo className="h-9 w-9" />
@@ -174,7 +174,7 @@ function GoogleSignIn({ nextPath, onError }: { nextPath: string; onError: (msg: 
         {busy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <GoogleIcon />}
         {tx.auth.google}
       </button>
-      <div className="my-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="my-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
         <span className="h-px flex-1 bg-slate-200" />
         {tx.auth.or}
         <span className="h-px flex-1 bg-slate-200" />

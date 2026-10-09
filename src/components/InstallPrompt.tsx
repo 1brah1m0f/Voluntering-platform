@@ -122,7 +122,7 @@ export default function InstallPrompt() {
       }`}
     >
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-2xl shadow-brand-900/40 ring-1 ring-white/10">
-        <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-coral-500/30 blur-2xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
         <button
           type="button"
           onClick={dismiss}
@@ -142,12 +142,12 @@ export default function InstallPrompt() {
         </div>
         <div className="relative mt-4 flex gap-2">
           {iosGuide ? (
-            <Link to={GUIDE} onClick={dismiss} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-600 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-700`}>
+            <Link to={GUIDE} onClick={dismiss} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-700 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-800`}>
               {t.installApp.iosHow}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           ) : (
-            <button type="button" onClick={install} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-600 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-700`}>
+            <button type="button" onClick={install} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-700 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-800`}>
               <Download className="h-4 w-4" aria-hidden="true" />
               {t.installApp.install}
             </button>
@@ -172,7 +172,7 @@ export function InstallCard({ className = '' }: { className?: string }) {
       aria-labelledby="install-card-title"
       className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-sm ${className}`}
     >
-      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-coral-500/30 blur-2xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
       <button
         type="button"
         onClick={dismiss}
@@ -191,12 +191,12 @@ export function InstallCard({ className = '' }: { className?: string }) {
         </div>
       </div>
       {iosGuide ? (
-        <Link to={GUIDE} className={`${button} relative mt-3 w-full bg-coral-600 px-4 py-2 text-sm text-white hover:bg-coral-700`}>
+        <Link to={GUIDE} className={`${button} relative mt-3 w-full bg-coral-700 px-4 py-2 text-sm text-white hover:bg-coral-800`}>
           {t.installApp.iosHow}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       ) : (
-        <button type="button" onClick={install} className={`${button} relative mt-3 w-full bg-coral-600 px-4 py-2 text-sm text-white hover:bg-coral-700`}>
+        <button type="button" onClick={install} className={`${button} relative mt-3 w-full bg-coral-700 px-4 py-2 text-sm text-white hover:bg-coral-800`}>
           <Download className="h-4 w-4" aria-hidden="true" />
           {t.installApp.install}
         </button>

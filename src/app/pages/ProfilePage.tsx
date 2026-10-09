@@ -93,7 +93,11 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       if (onboarding) {
         const next = params.get('next') ?? '';
         navigate(next.startsWith('/') && !next.startsWith('//') ? next : '/app/home', { replace: true }); // same-site paths only
-      } else setMsg({ ok: true, text: tx.profile.saved });
+      } else {
+        setMsg({ ok: true, text: tx.profile.saved });
+        // The save bar hides again once the "saved" note has been read.
+        window.setTimeout(() => setMsg((m) => (m?.ok ? null : m)), 3000);
+      }
     } catch (err) {
       console.error('[profile] save failed', err);
       setMsg({ ok: false, text: tx.saveError });
@@ -114,7 +118,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       )}
 
       {!onboarding && (
-        <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+        // Six tabs don't fit in one row on any screen: two rows of three.
+        <div role="tablist" className="mt-5 grid grid-cols-3 gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
           {(
             [
               { id: 'profile', label: tx.profile.tabProfile, Icon: UserRound },
@@ -131,12 +136,12 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
               role="tab"
               aria-selected={tab === id}
               onClick={() => setParams(id === 'profile' ? {} : { tab: id }, { replace: true })}
-              className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition ${
-                tab === id ? 'bg-brand-700 text-white' : 'text-slate-600 hover:text-slate-900'
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-sm font-semibold transition ${
+                tab === id ? 'bg-brand-700 text-white' : 'text-slate-600 hover:bg-paper hover:text-slate-900'
               }`}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              <Icon className="hidden h-4 w-4 shrink-0 sm:block" aria-hidden="true" />
+              <span className="truncate">{label}</span>
             </button>
           ))}
         </div>
@@ -290,27 +295,29 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
                   {tip.label}
                 </button>
               ))}
-              <span className={`ml-auto text-xs font-medium ${about.length > 1800 ? 'text-amber-700' : 'text-slate-400'}`}>{tx.profile.aboutCount(about.length)}</span>
+              <span className={`ml-auto text-xs font-medium ${about.length > 1800 ? 'text-amber-700' : 'text-slate-500'}`}>{tx.profile.aboutCount(about.length)}</span>
             </div>
           </Section>
 
-          {/* Save bar: stays in view on long forms and says when there's something to save. */}
-          <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
-            <div className="min-w-0 flex-1">
-              {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
-              {msg && (!msg.ok || !dirty) ? (
-                <p role={msg.ok ? 'status' : 'alert'} className={`text-sm font-semibold ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {msg.text}
-                </p>
-              ) : (
-                dirty && <p className="text-sm font-semibold text-amber-700">{tx.profile.unsaved}</p>
-              )}
+          {/* Save bar: stays in view on long forms, only while there's something to save (or a result to show). */}
+          {(dirty || onboarding || busy || msg) && (
+            <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
+              <div className="min-w-0 flex-1">
+                {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
+                {msg && (!msg.ok || !dirty) ? (
+                  <p role={msg.ok ? 'status' : 'alert'} className={`text-sm font-semibold ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {msg.text}
+                  </p>
+                ) : (
+                  dirty && <p className="text-sm font-semibold text-amber-700">{tx.profile.unsaved}</p>
+                )}
+              </div>
+              <button type="submit" disabled={busy || (!dirty && !onboarding)} className="btn-primary w-full sm:w-auto">
+                {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+                {onboarding ? tx.profile.continue : tx.profile.save}
+              </button>
             </div>
-            <button type="submit" disabled={busy || (!dirty && !onboarding)} className="btn-primary w-full disabled:opacity-60 sm:w-auto">
-              {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
-              {onboarding ? tx.profile.continue : tx.profile.save}
-            </button>
-          </div>
+          )}
         </form>
       )}
 
@@ -541,7 +548,7 @@ function AccountSettings() {
               <Globe className="h-4 w-4" aria-hidden="true" />
               {tx.profile.language}
             </span>
-            <span className="block text-xs text-slate-400">{tx.profile.languageSub}</span>
+            <span className="block text-xs text-slate-500">{tx.profile.languageSub}</span>
           </dt>
           <dd className="flex rounded-full border border-line p-0.5 text-xs font-bold">
             {(['az', 'en'] as const).map((l) => (

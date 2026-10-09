@@ -36,7 +36,7 @@ export default function Pricing() {
           <Reveal className="h-full" variant="right" delay={120}>
             <article className="relative isolate flex h-full flex-col rounded-3xl bg-gradient-to-br from-brand-800 to-brand-950 p-6 text-brand-50 sm:p-8 tilt-card shadow-soft ring-1 ring-brand-900">
               <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl" aria-hidden="true">
-                <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-coral-500/25 blur-3xl" />
+                <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand-300/20 blur-3xl" />
                 <div className="bg-dots-light absolute inset-0 opacity-30" />
               </div>
               <span className="absolute -top-3 right-6 inline-flex items-center gap-1 rounded-full bg-coral-700 px-3 py-1 text-xs font-bold text-white shadow">

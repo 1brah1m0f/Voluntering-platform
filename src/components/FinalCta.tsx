@@ -13,7 +13,7 @@ export default function FinalCta() {
         <Reveal variant="scale">
           <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 px-5 py-9 text-center shadow-soft sm:px-12 sm:py-14">
             <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-30" aria-hidden="true" />
-            <div className="animate-blob pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-coral-500/30 blur-3xl" aria-hidden="true" />
+            <div className="animate-blob pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" aria-hidden="true" />
             <div className="animate-blob pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-brand-400/30 blur-3xl [animation-delay:-6s]" aria-hidden="true" />
             <div className="relative">
               <h2 className="text-balance text-2xl font-extrabold tracking-tight !text-white sm:text-4xl">{c.title}</h2>

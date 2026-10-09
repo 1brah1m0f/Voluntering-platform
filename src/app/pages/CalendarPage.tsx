@@ -130,7 +130,7 @@ export default function CalendarPage() {
                   {d && (
                     <>
                       <p
-                        className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${key === today ? 'bg-brand-900 text-white' : key < today ? 'font-medium text-slate-400' : 'text-ink'}`}
+                        className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${key === today ? 'bg-brand-900 text-white' : key < today ? 'font-medium text-slate-500' : 'text-ink'}`}
                       >
                         {d}
                       </p>
