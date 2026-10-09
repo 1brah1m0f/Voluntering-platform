@@ -200,8 +200,8 @@ export default function DetailPage() {
               </div>
             )}
             <div hidden={tab !== 'about'}>
-              <h2 className="text-lg font-bold">{tx.detail.about}</h2>
-              <p className="mt-2 whitespace-pre-line leading-7 text-slate-700">{o.description || '—'}</p>
+              <h2 className="sr-only">{tx.detail.about}</h2>
+              <p className="whitespace-pre-line leading-7 text-slate-700">{o.description || '—'}</p>
               <dl className="mt-6 grid gap-3 sm:grid-cols-2">
                 {facts.map(({ Icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">

@@ -126,7 +126,7 @@ export function PlanTab({
               {tx.student.forMeHint}
             </p>
           )}
-          <Tile value={fees === 0 ? eur(0) : `~${eur(fees)}`} label={tx.student.feesTotal} />
+          <Tile value={listedUni.length === 0 ? '—' : fees === 0 ? eur(0) : `~${eur(fees)}`} label={tx.student.feesTotal} />
           <Tile value={firstYear ? (firstYear.min === firstYear.max ? `~${eur(firstYear.min)}` : `${eur(firstYear.min)} – ${eur(firstYear.max)}`) : '—'} label={tx.student.firstYear} />
         </div>
 

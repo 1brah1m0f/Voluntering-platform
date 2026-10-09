@@ -575,8 +575,9 @@ export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: 
           {tx.ai.comingSoon}
         </p>
       )}
+      {/* A plain link, not another tinted box: the tab already opens with an info box. */}
       {!profile?.about.trim() && (
-        <Link to="/app/profile" className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800 hover:bg-brand-100">
+        <Link to="/app/profile" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:underline">
           <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
           {tx.profile.aboutHint}
         </Link>
