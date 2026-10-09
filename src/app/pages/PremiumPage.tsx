@@ -37,7 +37,7 @@ function ActivePremium() {
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-400/25 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/25 blur-3xl" aria-hidden="true" />
         <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">
           <Crown className="h-4 w-4 text-amber-300" aria-hidden="true" />
           {p.current}
@@ -79,7 +79,7 @@ export default function PremiumPlan() {
   return (
     <div>
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-coral-500/30 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/25 blur-3xl" aria-hidden="true" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">

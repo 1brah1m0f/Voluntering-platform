@@ -122,7 +122,7 @@ export default function InstallPrompt() {
       }`}
     >
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-2xl shadow-brand-900/40 ring-1 ring-white/10">
-        <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-coral-500/30 blur-2xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
         <button
           type="button"
           onClick={dismiss}
@@ -172,7 +172,7 @@ export function InstallCard({ className = '' }: { className?: string }) {
       aria-labelledby="install-card-title"
       className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-sm ${className}`}
     >
-      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-coral-500/30 blur-2xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
       <button
         type="button"
         onClick={dismiss}

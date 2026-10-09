@@ -92,7 +92,7 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-12 text-white lg:flex lg:flex-col">
         <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-30" />
-        <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-coral-500/30 blur-3xl" />
+        <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-300/25 blur-3xl" />
         <div className="animate-blob pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-brand-400/30 blur-3xl [animation-delay:-6s]" />
         <Link to="/" className="relative inline-flex items-center gap-2 text-xl font-extrabold">
           <Logo className="h-9 w-9" />
