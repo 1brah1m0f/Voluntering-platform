@@ -46,7 +46,7 @@ export default function TrackerPage() {
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="font-semibold text-slate-800">{tx.tracker.usage(rows.length)}</span>
-            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-coral-700 hover:underline">
+            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:underline">
               <Crown className="h-4 w-4" aria-hidden="true" />
               {tx.tracker.upgrade}
             </Link>

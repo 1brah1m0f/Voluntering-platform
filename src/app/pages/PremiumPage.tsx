@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Crown, Loader2, MessageCircle, Minus, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Crown, Loader2, MessageCircle, Minus } from 'lucide-react';
 import { whatsappLink } from '../../config';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
 
 function Cell({ value, strong = false }: { value: boolean | string; strong?: boolean }) {
-  if (value === true) return <Check className={`mx-auto h-5 w-5 ${strong ? 'text-coral-600' : 'text-brand-600'}`} aria-label="✓" />;
+  if (value === true) return <Check className={`mx-auto h-5 w-5 ${strong ? 'text-amber-600' : 'text-brand-600'}`} aria-label="✓" />;
   if (value === false) return <Minus className="mx-auto h-5 w-5 text-slate-300" aria-label="—" />;
-  return <span className={`font-semibold ${strong ? 'text-coral-700' : 'text-slate-700'}`}>{value}</span>;
+  return <span className={`font-semibold ${strong ? 'text-amber-800' : 'text-slate-700'}`}>{value}</span>;
 }
 
 /** Paid users see their plan and a cancel option — no sales pitch. The Student plan belongs to student accounts. */
@@ -102,9 +102,9 @@ export default function PremiumPlan() {
             <tr className="border-b border-slate-100 bg-slate-50 text-left">
               <th className="px-4 py-3 font-semibold text-slate-600 sm:px-6">{p.feature}</th>
               <th className="w-20 px-2 py-3 text-center font-semibold text-slate-600 sm:w-28">{p.free}</th>
-              <th className="w-24 px-2 py-3 text-center font-bold text-coral-700 sm:w-28">
+              <th className="w-24 px-2 py-3 text-center font-bold text-amber-800 sm:w-28">
                 <span className="inline-flex items-center gap-1">
-                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Crown className="h-3.5 w-3.5" aria-hidden="true" />
                   Premium
                 </span>
               </th>
@@ -117,7 +117,7 @@ export default function PremiumPlan() {
                 <td className="px-2 py-3 text-center">
                   <Cell value={r.free} />
                 </td>
-                <td className="bg-coral-50/40 px-2 py-3 text-center">
+                <td className="bg-amber-50/60 px-2 py-3 text-center">
                   <Cell value={r.premium} strong />
                 </td>
               </tr>
