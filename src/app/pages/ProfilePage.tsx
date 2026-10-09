@@ -114,7 +114,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       )}
 
       {!onboarding && (
-        <div role="tablist" className="mt-5 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+        // Six tabs don't fit in one row on any screen: two rows of three.
+        <div role="tablist" className="mt-5 grid grid-cols-3 gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
           {(
             [
               { id: 'profile', label: tx.profile.tabProfile, Icon: UserRound },
@@ -131,12 +132,12 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
               role="tab"
               aria-selected={tab === id}
               onClick={() => setParams(id === 'profile' ? {} : { tab: id }, { replace: true })}
-              className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition ${
-                tab === id ? 'bg-brand-700 text-white' : 'text-slate-600 hover:text-slate-900'
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-sm font-semibold transition ${
+                tab === id ? 'bg-brand-700 text-white' : 'text-slate-600 hover:bg-paper hover:text-slate-900'
               }`}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              <Icon className="hidden h-4 w-4 shrink-0 sm:block" aria-hidden="true" />
+              <span className="truncate">{label}</span>
             </button>
           ))}
         </div>

@@ -63,7 +63,8 @@ export default function TrackerPage() {
         </div>
       )}
 
-      <div role="tablist" className="mt-6 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200">
+      {/* Phones: the five tabs wrap onto a second row instead of scrolling out of sight. */}
+      <div role="tablist" className="mt-6 flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200 sm:rounded-full">
         {(['all', ...STATUS_ORDER] as const).map((s) => {
           const n = s === 'all' ? rows.length : rows.filter((r) => r.item.status === s).length;
           return (

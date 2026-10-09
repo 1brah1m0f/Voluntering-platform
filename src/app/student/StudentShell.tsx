@@ -70,6 +70,14 @@ export default function StudentPage() {
   // our close button goes back too. A panel opened from a shared link has no
   // entry to go back to, so it just drops its parameter.
   const pushed = useRef(false);
+
+  // Phones: bring the open tab into view in the scrolling tab row (horizontally only).
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = tabsRef.current;
+    const active = row?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (row && active) row.scrollTo({ left: active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2, behavior: 'smooth' });
+  }, [tab]);
   const sheetParams = ['sch', 'uni', 'view'];
   const anySheet = sheetParams.some((k) => params.get(k));
   useEffect(() => {
@@ -167,7 +175,13 @@ export default function StudentPage() {
         </header>
       )}
 
-      <div role="tablist" aria-label={tx.student.hubTitle} className="sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 p-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:shadow-none">
+      {/* Phones: the row scrolls; the faded edges show there is more, and the open tab scrolls into view. */}
+      <div
+        ref={tabsRef}
+        role="tablist"
+        aria-label={tx.student.hubTitle}
+        className="mask-fade-edges sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 px-5 py-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:p-1 sm:shadow-none"
+      >
         {TABS.map(({ id, Icon }) => (
           <button
             key={id}

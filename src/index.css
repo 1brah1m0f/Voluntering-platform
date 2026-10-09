@@ -72,6 +72,13 @@
   .mask-fade-x {
     mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
   }
+  /* Scrolling tab rows on phones: faded ends hint that there is more. */
+  .mask-fade-edges {
+    mask-image: linear-gradient(to right, transparent, black 1.25rem, black calc(100% - 1.25rem), transparent);
+  }
+  @media (min-width: 640px) {
+    .mask-fade-edges { mask-image: none; }
+  }
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(90deg, #1b626c, #1f98a1, #fb5d3b, #8b5cf6, #1b626c);
