@@ -224,12 +224,11 @@ export default function OpportunitiesPage() {
 
   return (
     <div>
-      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.list.title}</h1>
-        <p className="mt-2 max-w-2xl text-slate-600 sm:text-lg">{tx.list.sub(openCount)}</p>
-      </div>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.list.title}</h1>
+      <p className="mt-1 max-w-2xl text-slate-600 sm:mt-2 sm:text-lg">{tx.list.sub(openCount)}</p>
 
-      {notices.length > 0 && <div className="mt-5 space-y-2">{notices}</div>}
+      {/* One strip at a time, so the list starts sooner; closing one shows the next. */}
+      {notices.length > 0 && <div className="mt-4">{notices[0]}</div>}
 
       <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="flex gap-2">
@@ -356,8 +355,12 @@ export default function OpportunitiesPage() {
         </p>
       )}
 
-      {matches && results.length > 1 && (
-        <div className="mt-5 flex justify-end">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+        {/* The header counts every open opportunity; this is what the filters leave. */}
+        <p className="text-sm font-semibold text-slate-500" role="status">
+          {tx.list.results(results.length)}
+        </p>
+        {matches && results.length > 1 && (
           <div role="group" className="inline-flex rounded-full bg-white p-1 text-sm ring-1 ring-line">
             {(['best', 'deadline'] as const).map((k) => (
               <button
@@ -371,18 +374,18 @@ export default function OpportunitiesPage() {
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {results.length === 0 ? (
-        <p className="mt-10 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
+        <p className="mt-3 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {ordered.map((o) => (
             <OpportunityCard key={o.id} o={o} match={matches?.get(o.id)} />
           ))}
         </div>
-          )}
+      )}
     </div>
   );
 }
