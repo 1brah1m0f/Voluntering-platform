@@ -271,14 +271,11 @@ export default function AppLayout() {
               >
                 {lang === 'az' ? 'en' : 'az'}
               </button>
-              {guest ? (
+              {/* Signed-in users log out from Profile → Settings; an icon here was easy to tap by mistake. */}
+              {guest && (
                 <Link to="/register" state={back} className="btn-primary !px-4 !py-1.5 text-sm">
                   {tx.guest.signUp}
                 </Link>
-              ) : (
-                <button type="button" onClick={logout} aria-label={tx.nav.logout} className="rounded-lg p-2 text-slate-500 hover:text-rose-600">
-                  <LogOut className="h-5 w-5" aria-hidden="true" />
-                </button>
               )}
             </div>
           </header>

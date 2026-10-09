@@ -174,8 +174,8 @@ const az = {
     kinds: { standard: 'Standart', terrain: 'Relyef', satellite: 'Peyk', clean: 'Sadə' },
     empty: 'Bu ölkədə hazırda açıq fürsət yoxdur.',
     openList: 'Siyahıda aç',
-    noKey: 'Xəritə hələ qoşulmayıb. Ölkəni aşağıdakı siyahıdan seç.',
-    loadError: 'Xəritə yüklənmədi. Ölkəni aşağıdakı siyahıdan seç.',
+    noKey: 'Xəritə hələ qoşulmayıb. Ölkəni yuxarıdakı siyahıdan seç.',
+    loadError: 'Xəritə yüklənmədi. Ölkəni yuxarıdakı siyahıdan seç.',
     pick: 'Ölkə seç',
   },
   feed: {
@@ -1085,8 +1085,8 @@ const en: AppText = {
     kinds: { standard: 'Standard', terrain: 'Terrain', satellite: 'Satellite', clean: 'Simple' },
     empty: 'Nothing open in this country right now.',
     openList: 'Open in the list',
-    noKey: 'The map isn’t connected yet. Pick a country from the list below.',
-    loadError: 'The map couldn’t load. Pick a country from the list below.',
+    noKey: 'The map isn’t connected yet. Pick a country from the list above.',
+    loadError: 'The map couldn’t load. Pick a country from the list above.',
     pick: 'Pick a country',
   },
   feed: {
