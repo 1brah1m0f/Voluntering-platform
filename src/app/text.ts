@@ -762,6 +762,9 @@ const az = {
     locked: 'Pulsuz planda gündə 1 AI istifadəsi var. Premium ilə gündə 15.',
     tabLetter: 'Motivasiya məktubu',
     tabReview: 'Müraciəti yoxlat',
+    // Short tab labels for phones.
+    tabLetterShort: 'Məktub',
+    tabReviewShort: 'Yoxlat',
     comingSoon: 'AI köməkçi tezliklə aktiv olacaq. Hər şey hazırdır — işə düşən kimi burada istifadə edə biləcəksən.',
     letterIntro: 'AI hazır məktub yazmır. Əvvəlcə sənə bu elana uyğun suallar verir, sonra yalnız sənin cavablarından məktubun skeletini qurur. Son sözü sən yazırsan.',
     start: 'Sualları hazırla',
@@ -1654,6 +1657,8 @@ const en: AppText = {
     locked: 'Free plan: 1 AI use a day. Premium gives you 15.',
     tabLetter: 'Motivation letter',
     tabReview: 'Review my application',
+    tabLetterShort: 'Letter',
+    tabReviewShort: 'Review',
     comingSoon: 'The AI assistant is launching soon. Everything is in place — you’ll be able to use it right here.',
     letterIntro: 'The AI doesn’t write a ready-made letter. It first asks you questions tailored to this opportunity, then builds a letter outline only from your answers. You write the final words.',
     start: 'Get my questions',

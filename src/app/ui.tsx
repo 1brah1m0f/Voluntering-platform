@@ -104,7 +104,7 @@ export function statusClass(s: Status) {
 }
 
 /** Bookmark toggle that adds/removes an opportunity from the tracker. */
-export function SaveButton({ id, withLabel = false }: { id: string; withLabel?: boolean }) {
+export function SaveButton({ id, withLabel = false, className = '' }: { id: string; withLabel?: boolean; className?: string }) {
   const { tx } = useAppText();
   const { saved, save, unsave } = useData();
   const { userId } = useAuth();
@@ -137,7 +137,7 @@ export function SaveButton({ id, withLabel = false }: { id: string; withLabel?: 
       aria-label={on ? tx.card.saved : tx.card.save}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition disabled:opacity-60 ${
         on ? 'border-coral-200 bg-coral-50 text-coral-800' : 'border-line bg-white text-slate-700 hover:border-coral-200 hover:text-coral-700'
-      }`}
+      } ${className}`}
     >
       <Bookmark className={`h-4 w-4 ${on ? 'fill-coral-700 text-coral-700' : ''}`} aria-hidden="true" />
       {withLabel && (on ? tx.card.saved : tx.card.save)}

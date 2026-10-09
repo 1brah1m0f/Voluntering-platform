@@ -131,10 +131,16 @@ export default function DetailPage() {
   const guides = [...GUIDES].filter((g) => g.kinds.includes(o.kind)).sort((a, b) => a.kinds.length - b.kinds.length).slice(0, 2);
 
   const tabs = [
-    { id: 'about' as const, label: tx.detail.about, Icon: FileText, ai: false },
-    { id: 'letter' as const, label: tx.ai.tabLetter, Icon: PenLine, ai: true },
-    { id: 'review' as const, label: tx.ai.tabReview, Icon: ClipboardCheck, ai: true },
+    { id: 'about' as const, label: tx.detail.about, short: tx.detail.about, Icon: FileText, ai: false },
+    { id: 'letter' as const, label: tx.ai.tabLetter, short: tx.ai.tabLetterShort, Icon: PenLine, ai: true },
+    { id: 'review' as const, label: tx.ai.tabReview, short: tx.ai.tabReviewShort, Icon: ClipboardCheck, ai: true },
   ];
+  const applyLink = (className: string) => (
+    <a href={o.url} target="_blank" rel="noopener noreferrer" onClick={onApplyClick} className={`btn-primary !px-4 text-[15px] ${className}`}>
+      {tx.detail.apply}
+      <ExternalLink className="h-4 w-4" aria-hidden="true" />
+    </a>
+  );
 
   return (
     <div>
@@ -164,21 +170,24 @@ export default function DetailPage() {
           </div>
         </header>
 
-        <div role="tablist" aria-label={o.title} className="flex gap-1 overflow-x-auto border-b border-line px-4 sm:px-6">
-          {tabs.map(({ id: t, label, Icon, ai }) => (
+        {/* Phones: three equal tabs with short labels, so none is hidden off-screen. */}
+        <div role="tablist" aria-label={o.title} className="flex gap-1 border-b border-line px-2 sm:px-6">
+          {tabs.map(({ id: t, label, short, Icon, ai }) => (
             <button
               key={t}
               type="button"
               role="tab"
               aria-selected={tab === t}
+              aria-label={label}
               onClick={() => openTab(t)}
-              className={`-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition ${
+              className={`-mb-px flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-semibold transition sm:flex-none sm:px-3 ${
                 tab === t ? (ai ? 'border-violet-600 text-violet-700' : 'border-brand-600 text-brand-800') : 'border-transparent text-slate-500 hover:text-slate-900'
               }`}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
-              {ai && <span className="rounded-full bg-violet-100 px-1.5 text-[10px] font-bold uppercase text-violet-700">AI</span>}
+              <Icon className="hidden h-4 w-4 sm:block" aria-hidden="true" />
+              <span className="sm:hidden">{short}</span>
+              <span className="hidden sm:inline">{label}</span>
+              {ai && <span className="rounded-full bg-violet-100 px-1.5 text-[0.6875rem] font-bold uppercase text-violet-700">AI</span>}
             </button>
           ))}
         </div>
@@ -226,10 +235,8 @@ export default function DetailPage() {
           </div>
 
           <aside className="space-y-4">
-            <a href={o.url} target="_blank" rel="noopener noreferrer" onClick={onApplyClick} className="btn-primary w-full !px-4 text-[15px]">
-              {tx.detail.apply}
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
+            {/* Phones get this button in the sticky bar below instead. */}
+            {applyLink('hidden w-full lg:flex')}
             <p className="text-xs leading-relaxed text-slate-500">{tx.detail.applyHint}</p>
             {userId && <AgeHint o={o} birthYear={profile?.prefs?.birth_year} />}
             {showApplied && (
@@ -278,6 +285,11 @@ export default function DetailPage() {
           </aside>
         </div>
       </article>
+      {/* Phones: the main actions stay in reach above the tab bar instead of sitting below all the facts. */}
+      <div className="sticky bottom-20 z-30 mt-4 flex items-center gap-2 rounded-3xl border border-line bg-white/95 p-2.5 shadow-soft backdrop-blur lg:hidden">
+        {applyLink('flex-1')}
+        <SaveButton id={o.id} className="!px-4 !py-3" />
+      </div>
       <SimilarOpportunities current={o} />
     </div>
   );
