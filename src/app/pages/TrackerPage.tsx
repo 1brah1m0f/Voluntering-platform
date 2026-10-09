@@ -39,11 +39,8 @@ export default function TrackerPage() {
 
   return (
     <div>
-      <div className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-700">{tx.nav.tracker}</p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">{tx.tracker.title}</h1>
-        <p className="mt-1 text-slate-600">{tx.tracker.sub}</p>
-      </div>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.tracker.title}</h1>
+      <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.tracker.sub}</p>
 
       {isFree && (
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
