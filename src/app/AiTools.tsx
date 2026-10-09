@@ -162,7 +162,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
 
       {!editing && !questions && !ai.busy && (
         <div className="flex flex-col gap-2 sm:flex-row">
-          <button type="button" onClick={ask} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={ask} disabled={!ready} className="btn-primary">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
             {tx.ai.start}
           </button>
@@ -418,7 +418,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         </>
       )}
       {!ai.busy && (
-        <button type="button" onClick={submit} disabled={!ready} className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="button" onClick={submit} disabled={!ready} className="btn-primary">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
           {tx.ai.reviewBtn}
         </button>

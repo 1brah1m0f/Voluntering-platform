@@ -41,7 +41,14 @@
     @apply rounded-3xl border border-line bg-white shadow-card;
   }
   .btn-primary {
-    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed;
+  }
+  /* Disabled: neutral grey, so it reads as "not available" rather than as a faded, broken red. */
+  .btn-primary:disabled {
+    @apply translate-y-0 bg-slate-200 text-slate-500 shadow-none;
+  }
+  .btn-primary:disabled::after {
+    display: none;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;

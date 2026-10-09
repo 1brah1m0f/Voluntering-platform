@@ -93,7 +93,11 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       if (onboarding) {
         const next = params.get('next') ?? '';
         navigate(next.startsWith('/') && !next.startsWith('//') ? next : '/app/home', { replace: true }); // same-site paths only
-      } else setMsg({ ok: true, text: tx.profile.saved });
+      } else {
+        setMsg({ ok: true, text: tx.profile.saved });
+        // The save bar hides again once the "saved" note has been read.
+        window.setTimeout(() => setMsg((m) => (m?.ok ? null : m)), 3000);
+      }
     } catch (err) {
       console.error('[profile] save failed', err);
       setMsg({ ok: false, text: tx.saveError });
@@ -295,23 +299,25 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
             </div>
           </Section>
 
-          {/* Save bar: stays in view on long forms and says when there's something to save. */}
-          <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
-            <div className="min-w-0 flex-1">
-              {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
-              {msg && (!msg.ok || !dirty) ? (
-                <p role={msg.ok ? 'status' : 'alert'} className={`text-sm font-semibold ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {msg.text}
-                </p>
-              ) : (
-                dirty && <p className="text-sm font-semibold text-amber-700">{tx.profile.unsaved}</p>
-              )}
+          {/* Save bar: stays in view on long forms, only while there's something to save (or a result to show). */}
+          {(dirty || onboarding || busy || msg) && (
+            <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
+              <div className="min-w-0 flex-1">
+                {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
+                {msg && (!msg.ok || !dirty) ? (
+                  <p role={msg.ok ? 'status' : 'alert'} className={`text-sm font-semibold ${msg.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {msg.text}
+                  </p>
+                ) : (
+                  dirty && <p className="text-sm font-semibold text-amber-700">{tx.profile.unsaved}</p>
+                )}
+              </div>
+              <button type="submit" disabled={busy || (!dirty && !onboarding)} className="btn-primary w-full sm:w-auto">
+                {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+                {onboarding ? tx.profile.continue : tx.profile.save}
+              </button>
             </div>
-            <button type="submit" disabled={busy || (!dirty && !onboarding)} className="btn-primary w-full disabled:opacity-60 sm:w-auto">
-              {busy && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
-              {onboarding ? tx.profile.continue : tx.profile.save}
-            </button>
-          </div>
+          )}
         </form>
       )}
 
