@@ -52,7 +52,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;
   }
   .field-surface {
-    @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+    @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
   }
   .eyebrow {
     @apply mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider;

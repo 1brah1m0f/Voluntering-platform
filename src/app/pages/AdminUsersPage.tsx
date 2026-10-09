@@ -123,7 +123,7 @@ export default function AdminUsersPage() {
                       )}
                     </p>
                     <p className="truncate text-sm text-slate-500">{x.email}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500">
                       {u.joined}: {formatDate(x.created_at.slice(0, 10), lang)}
                     </p>
                   </div>

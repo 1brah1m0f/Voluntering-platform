@@ -290,7 +290,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
                   {tip.label}
                 </button>
               ))}
-              <span className={`ml-auto text-xs font-medium ${about.length > 1800 ? 'text-amber-700' : 'text-slate-400'}`}>{tx.profile.aboutCount(about.length)}</span>
+              <span className={`ml-auto text-xs font-medium ${about.length > 1800 ? 'text-amber-700' : 'text-slate-500'}`}>{tx.profile.aboutCount(about.length)}</span>
             </div>
           </Section>
 
@@ -541,7 +541,7 @@ function AccountSettings() {
               <Globe className="h-4 w-4" aria-hidden="true" />
               {tx.profile.language}
             </span>
-            <span className="block text-xs text-slate-400">{tx.profile.languageSub}</span>
+            <span className="block text-xs text-slate-500">{tx.profile.languageSub}</span>
           </dt>
           <dd className="flex rounded-full border border-line p-0.5 text-xs font-bold">
             {(['az', 'en'] as const).map((l) => (

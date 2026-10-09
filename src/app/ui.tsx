@@ -235,7 +235,7 @@ export function Notice({
           onClick={onClose}
           aria-label={tx.close}
           title={tx.close}
-          className="shrink-0 self-start rounded-full p-1 text-slate-400 hover:bg-white hover:text-slate-700 sm:self-center"
+          className="shrink-0 self-start rounded-full p-2 text-slate-400 hover:bg-white hover:text-slate-700 sm:self-center"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

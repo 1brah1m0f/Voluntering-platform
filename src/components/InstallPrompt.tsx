@@ -142,12 +142,12 @@ export default function InstallPrompt() {
         </div>
         <div className="relative mt-4 flex gap-2">
           {iosGuide ? (
-            <Link to={GUIDE} onClick={dismiss} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-600 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-700`}>
+            <Link to={GUIDE} onClick={dismiss} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-700 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-800`}>
               {t.installApp.iosHow}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           ) : (
-            <button type="button" onClick={install} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-600 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-700`}>
+            <button type="button" onClick={install} className={`${button} flex-1 px-4 py-2.5 text-sm bg-coral-700 text-white shadow-lg shadow-coral-900/30 hover:bg-coral-800`}>
               <Download className="h-4 w-4" aria-hidden="true" />
               {t.installApp.install}
             </button>
@@ -191,12 +191,12 @@ export function InstallCard({ className = '' }: { className?: string }) {
         </div>
       </div>
       {iosGuide ? (
-        <Link to={GUIDE} className={`${button} relative mt-3 w-full bg-coral-600 px-4 py-2 text-sm text-white hover:bg-coral-700`}>
+        <Link to={GUIDE} className={`${button} relative mt-3 w-full bg-coral-700 px-4 py-2 text-sm text-white hover:bg-coral-800`}>
           {t.installApp.iosHow}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       ) : (
-        <button type="button" onClick={install} className={`${button} relative mt-3 w-full bg-coral-600 px-4 py-2 text-sm text-white hover:bg-coral-700`}>
+        <button type="button" onClick={install} className={`${button} relative mt-3 w-full bg-coral-700 px-4 py-2 text-sm text-white hover:bg-coral-800`}>
           <Download className="h-4 w-4" aria-hidden="true" />
           {t.installApp.install}
         </button>

@@ -456,7 +456,7 @@ function PrepChecklist({ o, checklist, note, trip }: { o: Opportunity; checklist
           <li key={i}>
             <label className="flex cursor-pointer items-start gap-2.5 text-sm">
               <input type="checkbox" checked={checklist.includes(i)} onChange={() => toggle(i)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
-              <span className={checklist.includes(i) ? 'text-slate-400 line-through' : 'text-slate-800'}>{label(i)}</span>
+              <span className={checklist.includes(i) ? 'text-slate-500 line-through' : 'text-slate-800'}>{label(i)}</span>
             </label>
           </li>
         ))}

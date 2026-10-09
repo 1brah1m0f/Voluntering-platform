@@ -186,10 +186,7 @@ export default function OpportunitiesPage() {
         icon={<Lock className="h-4 w-4" aria-hidden="true" />}
         onClose={closeEarly}
         action={
-          <Link
-            to="/app/profile?tab=premium"
-            className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-amber-600"
-          >
+          <Link to="/app/profile?tab=premium" className={smallBtn}>
             <Crown className="h-4 w-4" aria-hidden="true" />
             {tx.list.seePremium}
           </Link>

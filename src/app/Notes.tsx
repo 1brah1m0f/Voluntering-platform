@@ -197,7 +197,7 @@ export function NotesBoard() {
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <StickyNote className="h-5 w-5 text-amber-500" aria-hidden="true" />
           {tx.notes.title}
-          {notes && notes.length > 0 && <span className="text-sm font-semibold text-slate-400">· {tx.notes.count(notes.length)}</span>}
+          {notes && notes.length > 0 && <span className="text-sm font-semibold text-slate-500">· {tx.notes.count(notes.length)}</span>}
         </h2>
         <p className="mt-0.5 text-sm text-slate-500">{tx.notes.sub}</p>
       </div>

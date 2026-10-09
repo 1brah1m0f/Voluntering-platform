@@ -473,7 +473,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
           )}
         </div>
       )}
-      {ai.remaining !== null && <p className="text-xs text-slate-400">{tx.ai.remaining(ai.remaining)}</p>}
+      {ai.remaining !== null && <p className="text-xs text-slate-500">{tx.ai.remaining(ai.remaining)}</p>}
     </div>
   );
 }

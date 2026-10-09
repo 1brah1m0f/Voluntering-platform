@@ -100,7 +100,7 @@ function createPin(maps: GoogleMaps, map: GoogleMaps, position: { lat: number; l
 function pinHtml(code: string, n: number, on: boolean) {
   return `<span class="flex flex-col items-center transition-transform duration-200 ${on ? 'scale-110' : 'hover:scale-110'}">
     <span class="flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 shadow-lg ring-1 ${on ? 'ring-2 ring-coral-500' : 'ring-black/5'}">
-      <span class="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-extrabold text-white ${on ? 'bg-coral-600' : 'bg-brand-700'}">${code}</span>
+      <span class="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-extrabold text-white ${on ? 'bg-coral-700' : 'bg-brand-700'}">${code}</span>
       <span class="font-display text-sm font-extrabold text-ink">${n}</span>
     </span>
     <span class="-mt-1.5 h-3 w-3 rotate-45 bg-white shadow-md ${on ? 'ring-2 ring-coral-500' : ''}"></span>
@@ -283,7 +283,7 @@ export default function MapPage() {
                 aria-checked={selected === c.id}
                 onClick={() => select(selected === c.id ? '' : c.id)}
                 className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-md backdrop-blur transition ${
-                  selected === c.id ? 'bg-coral-600 text-white' : 'bg-white/95 text-slate-700 hover:bg-white'
+                  selected === c.id ? 'bg-coral-700 text-white' : 'bg-white/95 text-slate-700 hover:bg-white'
                 }`}
               >
                 {c.id === ONLINE ? <Globe2 className="h-3.5 w-3.5" aria-hidden="true" /> : <span className="text-[0.6875rem] font-extrabold opacity-70">{countryCode(c.id)}</span>}
@@ -333,7 +333,7 @@ export default function MapPage() {
           >
             <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-slate-300 lg:hidden" aria-hidden="true" />
             <header className="flex items-start gap-3 px-4 pb-3 pt-3 sm:px-5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-coral-600 font-display text-sm font-extrabold text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-coral-700 font-display text-sm font-extrabold text-white">
                 {selected === ONLINE ? <Globe2 className="h-5 w-5" aria-hidden="true" /> : countryCode(selected)}
               </span>
               <div className="min-w-0 flex-1">
