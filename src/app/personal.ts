@@ -19,10 +19,10 @@ export const LANG_LEVELS: LangLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'na
 
 /** ISO codes for the stamps in the travel passport (names as in taxonomy COUNTRIES). */
 const ISO: Record<string, string> = {
-  Azərbaycan: 'AZ', Almaniya: 'DE', Avstriya: 'AT', Belçika: 'BE', Bolqarıstan: 'BG', Çexiya: 'CZ', Estoniya: 'EE',
-  Fransa: 'FR', Gürcüstan: 'GE', Xorvatiya: 'HR', İspaniya: 'ES', İtaliya: 'IT', Latviya: 'LV', Litva: 'LT',
-  Macarıstan: 'HU', Niderland: 'NL', Polşa: 'PL', Portuqaliya: 'PT', Rumıniya: 'RO', Serbiya: 'RS', Slovakiya: 'SK',
-  Sloveniya: 'SI', Türkiyə: 'TR', Ukrayna: 'UA', Yunanıstan: 'GR',
+  Azərbaycan: 'AZ', ABŞ: 'US', Almaniya: 'DE', Avstriya: 'AT', Belçika: 'BE', Bolqarıstan: 'BG', 'Böyük Britaniya': 'GB',
+  Çexiya: 'CZ', Çin: 'CN', Estoniya: 'EE', Fransa: 'FR', Gürcüstan: 'GE', Xorvatiya: 'HR', İspaniya: 'ES', İsveçrə: 'CH',
+  İtaliya: 'IT', Latviya: 'LV', Litva: 'LT', Macarıstan: 'HU', Moldova: 'MD', Niderland: 'NL', Polşa: 'PL', Portuqaliya: 'PT',
+  Rumıniya: 'RO', Rusiya: 'RU', Serbiya: 'RS', Slovakiya: 'SK', Sloveniya: 'SI', Türkiyə: 'TR', Ukrayna: 'UA', Yunanıstan: 'GR',
 };
 export const countryCode = (name: string) => ISO[name] ?? name.slice(0, 2).toUpperCase();
 
