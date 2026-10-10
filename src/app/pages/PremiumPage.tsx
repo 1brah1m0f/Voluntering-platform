@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Crown, Loader2, MessageCircle, Minus } from 'lucide-react';
-import { whatsappLink } from '../../config';
+import { instagramLink } from '../../config';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
@@ -127,8 +127,8 @@ export default function PremiumPlan() {
       </div>
 
       <div className="mt-6 flex flex-col items-center gap-2 text-center">
-        {/* Purchases go through WhatsApp for now; the message names the account to upgrade. */}
-        <a href={whatsappLink(p.waMessage(profile?.email ?? ''))} target="_blank" rel="noopener noreferrer" className="btn-primary w-full sm:w-auto">
+        {/* Purchases go through Instagram. */}
+        <a href={instagramLink(p.waMessage(profile?.email ?? ''))} target="_blank" rel="noopener noreferrer" className="btn-primary w-full sm:w-auto">
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
           {p.cta}
         </a>
