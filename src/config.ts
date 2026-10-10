@@ -4,18 +4,17 @@ export const BRAND = 'Openly';
 // Free plan limit shown in pricing copy.
 export const FREE_EVENT_LIMIT = 3;
 
-// Premium / Student plan purchases go through WhatsApp for now (070 903 40 41),
-// in international format without "+" for wa.me links.
-export const WHATSAPP_NUMBER = '994709034041';
+// Premium / Student plan purchases go through Instagram DMs for now.
+export const INSTAGRAM_HANDLE = 'openlyapply';
 
-/** A wa.me link that opens a chat with the team, with the message already typed. */
-export const whatsappLink = (text: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+/** Opens a DM with the team on Instagram (DMs can't be pre-filled, so the copy asks for the account email). */
+export const PAYMENT_LINK = `https://ig.me/m/${INSTAGRAM_HANDLE}`;
 
 // Shown in the landing footer. The address must be able to receive mail.
 export const CONTACT_EMAIL = 'info@openlyapply.com';
 
 // Social profiles for the footer; an empty value hides that icon.
 export const SOCIAL_LINKS = {
-  instagram: '',
+  instagram: `https://www.instagram.com/${INSTAGRAM_HANDLE}`,
   telegram: '',
 };

@@ -1,7 +1,7 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, GraduationCap, KeyRound, Loader2, Lock, MessageCircle } from 'lucide-react';
-import { whatsappLink } from '../../config';
+import { PAYMENT_LINK } from '../../config';
 import { useAuth } from '../AuthContext';
 import { backend } from '../backend';
 import { NewPasswordForm } from '../pages/AuthPages';
@@ -147,7 +147,7 @@ function StudentPlanCard() {
           <>
             <div className="relative mt-4 flex flex-wrap gap-2">
               <a
-                href={whatsappLink(s.waMessage(profile.email))}
+                href={PAYMENT_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-800"
