@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Check, Crown, GraduationCap, Lock } from 'lucide-react';
-import { whatsappLink } from '../../config';
+import { instagramLink } from '../../config';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
@@ -39,9 +39,9 @@ export function Paywall() {
           <div className="mt-8 flex flex-col items-start gap-2">
             {userId ? (
               <>
-                {/* Purchases go through WhatsApp for now; the message names the account to upgrade. */}
+                {/* Purchases go through Instagram. */}
                 <a
-                  href={whatsappLink(tx.student.waMessage(profile?.email ?? ''))}
+                  href={instagramLink(tx.student.waMessage(profile?.email ?? ''))}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-brand-800 transition hover:-translate-y-0.5"
