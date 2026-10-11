@@ -27,14 +27,14 @@ class OpportunityNormalizer:
 
     def _gemini_extract(self, raw: ScrapedRawItem) -> Optional[OpportunityModel]:
         """Uses Google Gemini API to extract structured fields."""
-        # We try importing google.genai or google.generativeai
+        import importlib
         try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
+            genai_mod = importlib.import_module("google.genai")
+            client = genai_mod.Client(api_key=self.api_key)
             use_new_sdk = True
         except ImportError:
             try:
-                import google.generativeai as genai_legacy
+                genai_legacy = importlib.import_module("google.generativeai")
                 genai_legacy.configure(api_key=self.api_key)
                 client = genai_legacy.GenerativeModel(self.model_name)
                 use_new_sdk = False
