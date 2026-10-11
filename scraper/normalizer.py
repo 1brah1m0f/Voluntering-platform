@@ -111,39 +111,65 @@ Respond ONLY with a JSON object in this exact schema:
         country_match = re.search(r"(?:Venue|Location|Country)[\s:]+([A-Za-z\s]+)", text, re.IGNORECASE)
         country = country_match.group(1).strip() if country_match else ""
 
-        # Detect program
-        program = "SALTO-Youth"
-        if "Erasmus" in text or "Erasmus+" in raw.raw_title:
-            program = "Erasmus+"
-        elif "Solidarity Corps" in text or "ESC" in text:
-            program = "European Solidarity Corps"
+        # Online detection
+        is_online = False
+        lower_country = country.lower()
+        lower_title = raw.raw_title.lower()
+        if any(w in lower_country for w in ("online", "zoom", "virtual", "internet")) or any(w in lower_title for w in ("webinar", "online course", "virtual")):
+            is_online = True
+            country = ""
+        elif not country:
+            if "online" in text[:600].lower() or "zoom" in text[:600].lower():
+                is_online = True
+            else:
+                country = "Beynəlxalq"
+
+        # Detect program & organizer
+        if raw.source_name == "youthop":
+            program = "Youth Opportunities"
+            organizer = "International Partner"
+            if "Fulbright" in raw.raw_title:
+                program = "Fulbright"
+            elif "Erasmus" in text:
+                program = "Erasmus+"
+        else:
+            program = "SALTO-Youth"
+            organizer = "SALTO-Youth Network"
+            if "Erasmus" in text or "Erasmus+" in raw.raw_title:
+                program = "Erasmus+"
+            elif "Solidarity Corps" in text or "ESC" in text:
+                program = "European Solidarity Corps"
 
         # Detect kind
         kind = "training"
-        lower_title = raw.raw_title.lower()
-        if "youth exchange" in lower_title or "mübadilə" in lower_title:
+        if is_online and ("webinar" in lower_title or "online" in lower_title):
+            kind = "online"
+        elif "youth exchange" in lower_title or "mübadilə" in lower_title:
             kind = "youth_exchange"
-        elif "volunteer" in lower_title:
+        elif "volunteer" in lower_title or "volunteering" in lower_title:
             kind = "volunteering"
+        elif "fellowship" in lower_title or "fellow" in lower_title:
+            kind = "youth_exchange"
         elif "seminar" in lower_title or "conference" in lower_title:
             kind = "seminar"
 
         # Detect costs
         costs = "unknown"
-        if re.search(r"(100%|fully funded|travel costs are covered|accommodation and food)", text, re.IGNORECASE):
+        if re.search(r"(100%|fully funded|travel costs are covered|accommodation and food|tam qarşılanır)", text, re.IGNORECASE):
             costs = "full"
-        elif re.search(r"(participation fee|partially funded)", text, re.IGNORECASE):
+        elif re.search(r"(participation fee|partially funded|qismən)", text, re.IGNORECASE):
             costs = "partial"
 
         # Detect relevant interests
         interests = []
         interest_keywords = {
             "environment": ["climate", "green", "environment", "ecology", "nature", "sustainability"],
-            "digital": ["digital", "ai", "media", "tech", "coding", "online tools"],
+            "digital": ["digital", "ai", "media", "tech", "coding", "online tools", "cyber"],
             "inclusion": ["inclusion", "disability", "deaf", "diversity", "minorities", "special needs"],
-            "education": ["education", "learning", "pedagogy", "training", "youth work"],
-            "human_rights": ["human rights", "equality", "democracy", "justice", "activism"],
+            "education": ["education", "learning", "pedagogy", "training", "youth work", "fellowship", "school"],
+            "human_rights": ["human rights", "equality", "democracy", "justice", "activism", "civic"],
             "sports": ["sport", "healthy", "outdoor", "fitness"],
+            "entrepreneurship": ["business", "finance", "entrepreneur", "startup", "economic autonomy"],
         }
         lower_text = text.lower()
         for cat, keywords in interest_keywords.items():
@@ -157,18 +183,22 @@ Respond ONLY with a JSON object in this exact schema:
         if len(clean_title) > 160:
             clean_title = clean_title[:157] + "..."
 
-        # Description snippet
-        desc = text[:500].replace("\n", " ")
-        clean_desc = re.sub(r"\s+", " ", desc).strip()
+        # Description cleanup: remove common breadcrumbs and navigation text
+        clean_body = re.sub(r"(SALTO-YOUTH\s*-\s*European Training Calendar.*?(?:newsletter|priorities)|About SALTO.*?Humans of SALTO)", "", text, flags=re.IGNORECASE | re.DOTALL)
+        clean_desc = re.sub(r"\s+", " ", clean_body).strip()
+        if not clean_desc or len(clean_desc) < 30:
+            clean_desc = f"{clean_title} - {program} çərçivəsində beynəlxalq gənclər imkanı."
+        else:
+            clean_desc = clean_desc[:800]
 
         return OpportunityModel(
             title=clean_title,
             program=program,
-            organizer="SALTO-Youth Network",
+            organizer=organizer,
             kind=kind,
-            country=country[:60] if country else "Avropa",
+            country=country[:60],
             city="",
-            is_online=False,
+            is_online=is_online,
             interests=interests[:4],
             deadline=deadline,
             costs=costs,

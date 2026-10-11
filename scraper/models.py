@@ -58,6 +58,21 @@ class OpportunityModel(BaseModel):
     sending_org_contact: Optional[str] = Field(default="", max_length=200)
 
     def to_supabase_dict(self) -> dict:
-        """Converts model to dictionary for Supabase insert."""
+        """Converts model to dictionary for Supabase insert with strict sanitization."""
         data = self.model_dump()
+        # Ensure optional dates are null in Postgres rather than empty strings
+        if not data.get("start_date"):
+            data["start_date"] = None
+        if not data.get("end_date"):
+            data["end_date"] = None
+
+        # Guarantee DB schema column length constraints
+        data["title"] = data["title"][:160]
+        data["program"] = data["program"][:60]
+        data["organizer"] = data["organizer"][:120]
+        data["country"] = data["country"][:60]
+        data["city"] = data["city"][:60]
+        data["description"] = data["description"][:5000]
+        data["sending_org"] = (data.get("sending_org") or "")[:120]
+        data["sending_org_contact"] = (data.get("sending_org_contact") or "")[:200]
         return data
