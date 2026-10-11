@@ -4,3 +4,10 @@ dist
 .env.local
 *.log
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+scraper/.env
+
