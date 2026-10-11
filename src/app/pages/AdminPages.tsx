@@ -37,9 +37,18 @@ export function AdminListPage() {
   const { tx, lang } = useAppText();
   const { opportunities, error, reload, upsertOpportunity, removeOpportunity } = useData();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
 
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities) return <Spinner label={tx.loading} />;
+
+  const draftCount = opportunities.filter((o) => !o.published).length;
+  const publishedCount = opportunities.filter((o) => o.published).length;
+  const filtered = opportunities.filter((o) => {
+    if (statusFilter === 'published') return o.published;
+    if (statusFilter === 'draft') return !o.published;
+    return true;
+  });
 
   const run = async (id: string, fn: () => Promise<void>) => {
     setBusyId(id);
@@ -81,11 +90,42 @@ export function AdminListPage() {
         </Link>
       </div>
 
-      {opportunities.length === 0 ? (
-        <p className="mt-10 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">{tx.admin.empty}</p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setStatusFilter('all')}
+          className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${statusFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          {lang === 'az' ? 'Hamısı' : 'All'} ({opportunities.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('published')}
+          className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${statusFilter === 'published' ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          {tx.admin.published} ({publishedCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('draft')}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${statusFilter === 'draft' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
+        >
+          {lang === 'az' ? 'Qaralamalar / Təsdiq gözləyənlər' : 'Drafts / Pending Review'}
+          {draftCount > 0 && (
+            <span className={`rounded-full px-1.5 text-[10px] font-bold ${statusFilter === 'draft' ? 'bg-white text-amber-800' : 'bg-amber-600 text-white'}`}>
+              {draftCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="mt-6 rounded-3xl border border-dashed border-slate-300 py-14 text-center text-slate-500">
+          {statusFilter === 'draft' ? (lang === 'az' ? 'Təsdiq gözləyən qaralama fürsət yoxdur.' : 'No pending drafts.') : tx.admin.empty}
+        </p>
       ) : (
-        <ul className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
-          {opportunities.map((o) => (
+        <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
+          {filtered.map((o) => (
             <li key={o.id} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center ${busyId === o.id ? 'opacity-50' : ''}`}>
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <ProgramBadge program={o.program} />
