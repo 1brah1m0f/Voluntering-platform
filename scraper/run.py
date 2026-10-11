@@ -30,24 +30,26 @@ if parent_dir not in sys.path:
 from scraper.db import DatabaseClient
 from scraper.normalizer import OpportunityNormalizer
 from scraper.sources.salto import SaltoYouthSource
+from scraper.sources.youthop import YouthOpportunitiesSource
 
 SOURCES = {
     "salto": SaltoYouthSource,
+    "youthop": YouthOpportunitiesSource,
 }
 
 def main():
     parser = argparse.ArgumentParser(description="Openly Scraper & AI Ingestion Pipeline")
     parser.add_argument(
         "--source",
-        choices=list(SOURCES.keys()),
-        default="salto",
-        help="Target opportunity provider (default: salto)",
+        choices=list(SOURCES.keys()) + ["all"],
+        default="all",
+        help="Target opportunity provider (salto, youthop, or all; default: all)",
     )
     parser.add_argument(
         "--limit",
         type=int,
         default=5,
-        help="Maximum opportunities to fetch in this batch (default: 5)",
+        help="Maximum opportunities to fetch per source (default: 5)",
     )
     parser.add_argument(
         "--dry-run",
@@ -62,19 +64,22 @@ def main():
 
     args = parser.parse_args()
 
+    active_sources = list(SOURCES.keys()) if args.source == "all" else [args.source]
+
     print(f"==================================================")
     print(f"  Openly Ingestion Pipeline Starting")
-    print(f"  Source: {args.source} | Limit: {args.limit} | Dry run: {args.dry_run}")
+    print(f"  Sources: {', '.join(active_sources)} | Limit: {args.limit} per source | Dry run: {args.dry_run}")
     print(f"==================================================")
 
     # 1. Initialize Components
-    source_cls = SOURCES[args.source]
-    collector = source_cls()
     normalizer = OpportunityNormalizer()
     db = DatabaseClient()
 
-    # 2. Fetch raw items
-    raw_items = collector.fetch_opportunities(limit=args.limit)
+    # 2. Fetch raw items from selected sources
+    raw_items = []
+    for src_name in active_sources:
+        collector = SOURCES[src_name]()
+        raw_items.extend(collector.fetch_opportunities(limit=args.limit))
     if not raw_items:
         print("[pipeline] No opportunities found.")
         return

@@ -15,8 +15,10 @@ on:
         description: 'Source to scrape'
         type: choice
         options:
+          - all
           - salto
-        default: salto
+          - youthop
+        default: all
       limit:
         description: 'Maximum opportunities to crawl'
         type: number
