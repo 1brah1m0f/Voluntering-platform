@@ -19,12 +19,21 @@ export const LANG_LEVELS: LangLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'na
 
 /** ISO codes for the stamps in the travel passport (names as in taxonomy COUNTRIES). */
 const ISO: Record<string, string> = {
-  Azərbaycan: 'AZ', Almaniya: 'DE', Avstriya: 'AT', Belçika: 'BE', Bolqarıstan: 'BG', Çexiya: 'CZ', Estoniya: 'EE',
-  Fransa: 'FR', Gürcüstan: 'GE', Xorvatiya: 'HR', İspaniya: 'ES', İtaliya: 'IT', Latviya: 'LV', Litva: 'LT',
-  Macarıstan: 'HU', Niderland: 'NL', Polşa: 'PL', Portuqaliya: 'PT', Rumıniya: 'RO', Serbiya: 'RS', Slovakiya: 'SK',
-  Sloveniya: 'SI', Türkiyə: 'TR', Ukrayna: 'UA', Yunanıstan: 'GR',
+  Azərbaycan: 'AZ', Azerbaijan: 'AZ', Almaniya: 'DE', Germany: 'DE', Avstriya: 'AT', Austria: 'AT', Belçika: 'BE', Belgium: 'BE',
+  Bolqarıstan: 'BG', Bulgaria: 'BG', Çexiya: 'CZ', Czechia: 'CZ', 'Czech Republic': 'CZ', Estoniya: 'EE', Estonia: 'EE',
+  Fransa: 'FR', France: 'FR', Gürcüstan: 'GE', Georgia: 'GE', Xorvatiya: 'HR', Croatia: 'HR', İspaniya: 'ES', Spain: 'ES',
+  İtaliya: 'IT', Italy: 'IT', Latviya: 'LV', Latvia: 'LV', Litva: 'LT', Lithuania: 'LT', Macarıstan: 'HU', Hungary: 'HU',
+  Niderland: 'NL', Netherlands: 'NL', Polşa: 'PL', Poland: 'PL', Portuqaliya: 'PT', Portugal: 'PT', Rumıniya: 'RO', Romania: 'RO',
+  Serbiya: 'RS', Serbia: 'RS', Slovakiya: 'SK', Slovakia: 'SK', Sloveniya: 'SI', Slovenia: 'SI', Türkiyə: 'TR', Turkey: 'TR',
+  Türkiye: 'TR', Ukrayna: 'UA', Ukraine: 'UA', Yunanıstan: 'GR', Greece: 'GR', İsveç: 'SE', Sweden: 'SE', Norveç: 'NO', Norway: 'NO',
+  Finlandiya: 'FI', Finland: 'FI', Danimarka: 'DK', Denmark: 'DK', İslandiya: 'IS', Iceland: 'IS', İsveçrə: 'CH', Switzerland: 'CH',
+  İrlandiya: 'IE', Ireland: 'IE', 'Böyük Britaniya': 'GB', 'United Kingdom': 'GB', UK: 'GB', Lüksemburq: 'LU', Luxembourg: 'LU',
+  Kipr: 'CY', Cyprus: 'CY', Malta: 'MT', Bosniya: 'BA', 'Bosnia and Herzegovina': 'BA', Albaniya: 'AL', Albania: 'AL',
+  Monteneqro: 'ME', Montenegro: 'ME', 'Şimali Makedoniya': 'MK', 'North Macedonia': 'MK', ABŞ: 'US', 'United States': 'US', USA: 'US',
+  Kanada: 'CA', Canada: 'CA', Yaponiya: 'JP', Japan: 'JP', 'Cənubi Koreya': 'KR', 'South Korea': 'KR', Qazaxıstan: 'KZ', Kazakhstan: 'KZ',
+  Özbəkistan: 'UZ', Uzbekistan: 'UZ',
 };
-export const countryCode = (name: string) => ISO[name] ?? name.slice(0, 2).toUpperCase();
+export const countryCode = (name: string) => ISO[name] ?? ISO[name.trim()] ?? name.slice(0, 2).toUpperCase();
 
 /** Countries for the passport: where the user was accepted (in Openly) plus past experience abroad. */
 export function visitedCountries(prefs: UserPrefs | undefined, accepted: Pick<Opportunity, 'country' | 'is_online'>[]): string[] {
