@@ -1,5 +1,5 @@
 // Map support: approximate centre of each country in taxonomy COUNTRIES (no
-// geocoding needed), and Leaflet tile layer configurations.
+// geocoding needed), and truly open, keyless tile layers.
 
 export const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   Azərbaycan: { lat: 40.14, lng: 47.58 },
@@ -38,24 +38,26 @@ export interface TileConfig {
 
 export const TILE_LAYERS: Record<string, TileConfig> = {
   clean: {
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
-    maxZoom: 19,
+    // Esri Light Gray Canvas: clean, elegant, completely free without watermark
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri &mdash; Openly',
+    maxZoom: 16,
   },
   standard: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
+    // Official OpenStreetMap: 100% open and free without watermark
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
   },
   satellite: {
+    // Esri World Imagery (satellite): free and public
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: '&copy; Esri World Imagery',
     maxZoom: 18,
   },
   terrain: {
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    // OpenStreetMap standard
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
   },
