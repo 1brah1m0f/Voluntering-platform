@@ -1,0 +1,52 @@
+name: Scrape Opportunities
+
+# Runs every day at 06:00 Baku time (02:00 UTC) to fetch new opportunities,
+# normalize them via Gemini AI, and save them as drafts in Supabase.
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (crawl & parse without inserting to DB)'
+        type: boolean
+        default: false
+      source:
+        description: 'Source to scrape'
+        type: choice
+        options:
+          - salto
+        default: salto
+      limit:
+        description: 'Maximum opportunities to crawl'
+        type: number
+        default: 15
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: 'scraper/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r scraper/requirements.txt
+
+      - name: Run Scraper Pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          ARGS="--source ${{ inputs.source || 'salto' }} --limit ${{ inputs.limit || 15 }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          python scraper/run.py $ARGS
