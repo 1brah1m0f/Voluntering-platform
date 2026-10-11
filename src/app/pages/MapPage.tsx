@@ -112,6 +112,10 @@ export default function MapPage() {
   useEffect(() => {
     if (!mapEl.current || mapRef.current) return;
     try {
+      if ((mapEl.current as any)?._leaflet_id) {
+        (mapEl.current as any)._leaflet_id = null;
+      }
+
       const tileConfig = TILE_LAYERS[kind] || TILE_LAYERS.clean;
       const map = L.map(mapEl.current, {
         center: [48.0, 16.0],
@@ -133,18 +137,28 @@ export default function MapPage() {
 
       map.on('click', () => select(''));
       mapRef.current = map;
-      setMapState('ready');
+
+      map.whenReady(() => {
+        setMapState('ready');
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 150);
+      });
+
+      const onResize = () => map.invalidateSize();
+      window.addEventListener('resize', onResize);
+
+      return () => {
+        window.removeEventListener('resize', onResize);
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
+      };
     } catch (err) {
       console.error('[map] Leaflet init failed', err);
       setMapState('failed');
     }
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tile layer switching
@@ -198,8 +212,8 @@ export default function MapPage() {
   }, [mapState, counts, selected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) return <ErrorState onRetry={reload} />;
-  if (!opportunities) return <Spinner label={tx.loading} />;
 
+  const isDataLoading = !opportunities;
   const list = (selected === ONLINE ? open.filter((o) => o.is_online) : selected ? open.filter((o) => !o.is_online && o.country === selected) : []).sort((a, b) =>
     a.deadline.localeCompare(b.deadline),
   );
@@ -221,11 +235,11 @@ export default function MapPage() {
       </div>
 
       <div className="relative -mx-3.5 h-[calc(100dvh-13rem)] min-h-[26rem] overflow-hidden border-y border-line bg-[#cdeeee] sm:mx-0 sm:rounded-[2rem] sm:border sm:shadow-card lg:h-[calc(100vh-11rem)]">
-        <div ref={mapEl} className="absolute inset-0 z-0" />
+        <div ref={mapEl} className="absolute inset-0 z-0 h-full w-full" />
 
-        {mapState === 'loading' && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f5f2ea]">
-            <Spinner />
+        {(isDataLoading || mapState === 'loading') && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f5f2ea]/80 backdrop-blur-sm">
+            <Spinner label={tx.loading} />
           </div>
         )}
         {mapState === 'failed' && (
