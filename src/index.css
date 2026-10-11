@@ -204,3 +204,10 @@
   .animate-float, .animate-float-slow, .animate-blob, .text-gradient, .btn-primary::after { animation: none; }
   .particle, .click-ring { display: none; }
 }
+
+/* Leaflet custom map pins */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+

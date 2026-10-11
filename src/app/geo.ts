@@ -1,5 +1,5 @@
 // Map support: approximate centre of each country in taxonomy COUNTRIES (no
-// geocoding needed), and the Google Maps JavaScript API loader.
+// geocoding needed), and Leaflet tile layer configurations.
 
 export const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   Azərbaycan: { lat: 40.14, lng: 47.58 },
@@ -29,32 +29,34 @@ export const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
   Yunanıstan: { lat: 39.07, lng: 21.82 },
 };
 
-/** Browser key for the Maps JavaScript API (restrict it to the site's domains in Google Cloud). */
-const MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) ?? '';
-export const hasMapsKey = MAPS_KEY !== '';
-
-// The Maps API has no bundled types here; it's used through this loose alias.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GoogleMaps = any;
-
-let loading: Promise<GoogleMaps> | null = null;
-
-/** Loads the Maps JavaScript API once; resolves with `google.maps`. */
-export function loadGoogleMaps(): Promise<GoogleMaps> {
-  const w = window as unknown as Record<string, unknown> & { google?: { maps?: GoogleMaps } };
-  if (!hasMapsKey) return Promise.reject(new Error('VITE_GOOGLE_MAPS_API_KEY is not set'));
-  if (w.google?.maps?.Map) return Promise.resolve(w.google.maps);
-  loading ??= new Promise((resolve, reject) => {
-    const callback = '__openlyMapsReady';
-    w[callback] = () => resolve(w.google!.maps);
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(MAPS_KEY)}&callback=${callback}&loading=async&v=weekly`;
-    script.async = true;
-    script.onerror = () => {
-      loading = null;
-      reject(new Error('Google Maps failed to load'));
-    };
-    document.head.appendChild(script);
-  });
-  return loading;
+export interface TileConfig {
+  url: string;
+  attribution: string;
+  subdomains?: string;
+  maxZoom: number;
 }
+
+export const TILE_LAYERS: Record<string, TileConfig> = {
+  clean: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  },
+  standard: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri World Imagery',
+    maxZoom: 18,
+  },
+  terrain: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  },
+};

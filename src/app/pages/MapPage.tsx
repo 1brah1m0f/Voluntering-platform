@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ChevronRight, Globe2, Hand, MapPin, Wallet, X } from 'lucide-react';
-import { COUNTRY_COORDS, hasMapsKey, loadGoogleMaps, type GoogleMaps } from '../geo';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { COUNTRY_COORDS, TILE_LAYERS } from '../geo';
 import { useData } from '../DataContext';
 import { countryCode } from '../personal';
 import { KINDS } from '../taxonomy';
@@ -12,88 +14,17 @@ import { daysUntil } from '../util';
 
 const ONLINE = 'online';
 
-// A calm, warm map in the site's colours: no roads, transit or points of interest.
-const MAP_STYLES = [
-  { elementType: 'geometry', stylers: [{ color: '#f5f2ea' }] },
-  { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#66767b' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#f5f2ea' }, { weight: 3 }] },
-  { featureType: 'administrative.country', elementType: 'geometry.stroke', stylers: [{ color: '#8fcbcf' }, { weight: 1.2 }] },
-  { featureType: 'administrative.country', elementType: 'labels.text.fill', stylers: [{ color: '#1c515a' }] },
-  { featureType: 'administrative.province', stylers: [{ visibility: 'off' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#97a3a6' }] },
-  { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#efebe1' }] },
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'road', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cdeeee' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#6aa9ad' }] },
-];
-
-// Google's own colourful map, just without the clutter of shops and stations.
-const STANDARD_STYLES = [
-  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-];
-
 type MapKind = 'standard' | 'terrain' | 'satellite' | 'clean';
-const MAP_KINDS: MapKind[] = ['standard', 'terrain', 'satellite', 'clean'];
+const MAP_KINDS: MapKind[] = ['clean', 'standard', 'terrain', 'satellite'];
 const KIND_KEY = 'openly_map_kind';
-
-/** Map type id and styles for each choice in the switcher. */
-function mapLook(kind: MapKind) {
-  if (kind === 'satellite') return { mapTypeId: 'hybrid', styles: [] };
-  if (kind === 'terrain') return { mapTypeId: 'terrain', styles: STANDARD_STYLES };
-  if (kind === 'clean') return { mapTypeId: 'roadmap', styles: MAP_STYLES };
-  return { mapTypeId: 'roadmap', styles: STANDARD_STYLES };
-}
 
 function readKind(): MapKind {
   try {
     const k = localStorage.getItem(KIND_KEY) as MapKind | null;
-    return k && MAP_KINDS.includes(k) ? k : 'standard';
+    return k && MAP_KINDS.includes(k) ? k : 'clean';
   } catch {
-    return 'standard';
+    return 'clean';
   }
-}
-
-/**
- * A clickable HTML pin on the map (country code + count). Built on OverlayView so
- * it can be styled with CSS and works without a map ID.
- */
-function createPin(maps: GoogleMaps, map: GoogleMaps, position: { lat: number; lng: number }, html: string, onClick: () => void) {
-  const Base = maps.OverlayView as new () => GoogleMaps;
-  class Pin extends Base {
-    el: HTMLButtonElement | null = null;
-    onAdd() {
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.className = 'absolute -translate-x-1/2 -translate-y-full cursor-pointer border-0 bg-transparent p-0 outline-none';
-      el.innerHTML = html;
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        onClick();
-      });
-      // Keep the map's own click (which closes the panel) from firing under the pin.
-      maps.OverlayView.preventMapHitsAndGesturesFrom?.(el);
-      this.el = el;
-      this.getPanes().overlayMouseTarget.appendChild(el);
-    }
-    draw() {
-      const p = this.getProjection()?.fromLatLngToDivPixel(new maps.LatLng(position.lat, position.lng));
-      if (p && this.el) {
-        this.el.style.left = `${p.x}px`;
-        this.el.style.top = `${p.y}px`;
-      }
-    }
-    onRemove() {
-      this.el?.remove();
-      this.el = null;
-    }
-  }
-  const pin = new Pin();
-  pin.setMap(map);
-  return pin;
 }
 
 /** The pin's markup; the selected one is coral and a little bigger. */
@@ -142,10 +73,8 @@ function EventCard({ o }: { o: Opportunity }) {
 }
 
 /**
- * /app/map — a full-size map with a pin per country (code + number of open
- * opportunities). Tapping a pin or a country chip opens a panel (a bottom sheet on
- * phones) with that country's opportunities; each card opens the opportunity page.
- * Without the map (no key / load error) the chips and the panel still work.
+ * /app/map — a full-size map with a pin per country using Leaflet (CartoDB / OpenStreetMap).
+ * Zero API keys or billing accounts needed, completely free and lightweight.
  */
 export default function MapPage() {
   const { tx } = useAppText();
@@ -156,16 +85,18 @@ export default function MapPage() {
   const select = (c: string) => setParams(c ? { country: c } : {}, { replace: true });
 
   const mapEl = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<GoogleMaps>(null);
-  const pinsRef = useRef<GoogleMaps[]>([]);
-  const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>(hasMapsKey ? 'loading' : 'failed');
+  const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
+  const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [kind, setKind] = useState<MapKind>(readKind);
+
   const changeKind = (k: MapKind) => {
     setKind(k);
     try {
       localStorage.setItem(KIND_KEY, k);
     } catch {
-      /* storage blocked: the choice lasts for this visit */
+      /* storage blocked */
     }
   };
 
@@ -177,60 +108,92 @@ export default function MapPage() {
   }, [open]);
   const onlineCount = open.filter((o) => o.is_online).length;
 
-  // Create the map once its container is on the page (after the data has loaded).
-  const dataReady = opportunities !== null;
+  // Initialize Leaflet map
   useEffect(() => {
-    if (!hasMapsKey || !mapEl.current || mapRef.current) return;
-    let live = true;
-    // Google calls this when the key is rejected (wrong key, domain not allowed…).
-    (window as unknown as { gm_authFailure?: () => void }).gm_authFailure = () => live && setMapState('failed');
-    loadGoogleMaps()
-      .then((maps) => {
-        if (!live || !mapEl.current) return;
-        const map = new maps.Map(mapEl.current, {
-          center: { lat: 47, lng: 22 },
-          zoom: window.innerWidth < 640 ? 3 : 4,
-          minZoom: 3,
-          disableDefaultUI: true,
-          zoomControl: true,
-          zoomControlOptions: { position: maps.ControlPosition.RIGHT_TOP },
-          gestureHandling: 'greedy',
-          clickableIcons: false,
-          backgroundColor: '#cdeeee',
-          ...mapLook(readKind()),
-        });
-        map.addListener('click', () => select('')); // tapping the sea / land closes the panel
-        mapRef.current = map;
-        setMapState('ready');
-      })
-      .catch((err) => {
-        console.error('[map] load failed', err);
-        if (live) setMapState('failed');
+    if (!mapEl.current || mapRef.current) return;
+    try {
+      const tileConfig = TILE_LAYERS[kind] || TILE_LAYERS.clean;
+      const map = L.map(mapEl.current, {
+        center: [48.0, 16.0],
+        zoom: 4,
+        minZoom: 3,
+        maxZoom: 10,
+        zoomControl: false,
       });
+
+      // Zoom control in top-right
+      L.control.zoom({ position: 'topright' }).addTo(map);
+
+      const tileLayer = L.tileLayer(tileConfig.url, {
+        attribution: tileConfig.attribution,
+        subdomains: tileConfig.subdomains || 'abc',
+        maxZoom: tileConfig.maxZoom,
+      }).addTo(map);
+      tileLayerRef.current = tileLayer;
+
+      map.on('click', () => select(''));
+      mapRef.current = map;
+      setMapState('ready');
+    } catch (err) {
+      console.error('[map] Leaflet init failed', err);
+      setMapState('failed');
+    }
+
     return () => {
-      live = false;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
-  }, [dataReady]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Switching the map type.
-  useEffect(() => {
-    if (mapState !== 'ready' || !mapRef.current) return;
-    mapRef.current.setOptions(mapLook(kind));
-  }, [mapState, kind]);
-
-  // Pins, redrawn when the data or the selection changes; the selected country comes into view.
+  // Tile layer switching
   useEffect(() => {
     const map = mapRef.current;
-    const maps = (window as unknown as { google?: { maps?: GoogleMaps } }).google?.maps;
-    if (mapState !== 'ready' || !map || !maps) return;
-    pinsRef.current.forEach((p) => p.setMap(null));
-    pinsRef.current = Object.entries(counts)
+    if (mapState !== 'ready' || !map) return;
+    const tileConfig = TILE_LAYERS[kind] || TILE_LAYERS.clean;
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+    const newLayer = L.tileLayer(tileConfig.url, {
+      attribution: tileConfig.attribution,
+      subdomains: tileConfig.subdomains || 'abc',
+      maxZoom: tileConfig.maxZoom,
+    }).addTo(map);
+    tileLayerRef.current = newLayer;
+  }, [mapState, kind]);
+
+  // Render country pins
+  useEffect(() => {
+    const map = mapRef.current;
+    if (mapState !== 'ready' || !map) return;
+
+    markersRef.current.forEach((mk) => mk.remove());
+    markersRef.current = [];
+
+    Object.entries(counts)
       .filter(([c]) => COUNTRY_COORDS[c])
-      .map(([c, n]) => createPin(maps, map, COUNTRY_COORDS[c], pinHtml(countryCode(c), n, c === selected), () => select(c === selected ? '' : c)));
+      .forEach(([c, n]) => {
+        const coords = COUNTRY_COORDS[c];
+        const isSelected = c === selected;
+        const icon = L.divIcon({
+          className: 'leaflet-div-icon',
+          html: pinHtml(countryCode(c), n, isSelected),
+          iconSize: [60, 42],
+          iconAnchor: [30, 42],
+        });
+        const marker = L.marker([coords.lat, coords.lng], { icon });
+        marker.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          select(isSelected ? '' : c);
+        });
+        marker.addTo(map);
+        markersRef.current.push(marker);
+      });
+
     if (selected && COUNTRY_COORDS[selected]) {
-      map.panTo(COUNTRY_COORDS[selected]);
-      // On phones the bottom sheet covers the lower half; keep the pin above it.
-      if (window.innerWidth < 1024) map.panBy(0, Math.round((mapEl.current?.clientHeight ?? 0) * 0.22));
+      const coords = COUNTRY_COORDS[selected];
+      map.panTo([coords.lat, coords.lng], { animate: true });
     }
   }, [mapState, counts, selected]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -258,22 +221,22 @@ export default function MapPage() {
       </div>
 
       <div className="relative -mx-3.5 h-[calc(100dvh-13rem)] min-h-[26rem] overflow-hidden border-y border-line bg-[#cdeeee] sm:mx-0 sm:rounded-[2rem] sm:border sm:shadow-card lg:h-[calc(100vh-11rem)]">
-        <div ref={mapEl} className="absolute inset-0" />
+        <div ref={mapEl} className="absolute inset-0 z-0" />
 
         {mapState === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#f5f2ea]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f5f2ea]">
             <Spinner />
           </div>
         )}
         {mapState === 'failed' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-50 via-[#f5f2ea] to-coral-50 p-6 text-center">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-50 via-[#f5f2ea] to-coral-50 p-6 text-center">
             <Globe2 className="h-12 w-12 text-brand-300" aria-hidden="true" />
-            <p className="max-w-xs text-sm font-medium text-brand-900">{hasMapsKey ? m.loadError : m.noKey}</p>
+            <p className="max-w-xs text-sm font-medium text-brand-900">{m.loadError}</p>
           </div>
         )}
 
         {/* Country chips over the top of the map. */}
-        <div className="absolute inset-x-0 top-0 p-3 sm:right-16">
+        <div className="absolute inset-x-0 top-0 z-10 p-3 sm:right-16">
           <div className="flex gap-2 overflow-x-auto pb-1" role="radiogroup" aria-label={m.pick}>
             {chips.map((c) => (
               <button
@@ -296,18 +259,18 @@ export default function MapPage() {
 
         {/* Hint until something is picked. */}
         {!selected && mapState === 'ready' && (
-          <p className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-ink shadow-lg sm:flex">
+          <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-ink shadow-lg sm:flex">
             <Hand className="h-4 w-4 text-coral-600" aria-hidden="true" />
             {m.hint}
           </p>
         )}
 
-        {/* Map type switcher (hidden under the bottom sheet on phones). */}
+        {/* Map type switcher */}
         {mapState === 'ready' && (
           <div
             role="radiogroup"
             aria-label={m.kindLabel}
-            className={`absolute bottom-3 left-3 gap-0.5 rounded-full bg-white/95 p-1 shadow-lg ${selected ? 'hidden lg:flex' : 'flex'}`}
+            className={`absolute bottom-3 left-3 z-10 gap-0.5 rounded-full bg-white/95 p-1 shadow-lg ${selected ? 'hidden lg:flex' : 'flex'}`}
           >
             {MAP_KINDS.map((k) => (
               <button
@@ -329,7 +292,7 @@ export default function MapPage() {
           <section
             key={selected}
             aria-label={selected === ONLINE ? m.online : selected}
-            className="absolute inset-x-0 bottom-0 flex max-h-[62%] animate-[sheet-up_0.25s_ease] flex-col rounded-t-[1.75rem] bg-paper/95 shadow-[0_-12px_40px_-12px_rgba(15,58,66,0.35)] backdrop-blur lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-16 lg:max-h-none lg:w-[24rem] lg:rounded-[1.75rem]"
+            className="absolute inset-x-0 bottom-0 z-20 flex max-h-[62%] animate-[sheet-up_0.25s_ease] flex-col rounded-t-[1.75rem] bg-paper/95 shadow-[0_-12px_40px_-12px_rgba(15,58,66,0.35)] backdrop-blur lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-16 lg:max-h-none lg:w-[24rem] lg:rounded-[1.75rem]"
           >
             <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-slate-300 lg:hidden" aria-hidden="true" />
             <header className="flex items-start gap-3 px-4 pb-3 pt-3 sm:px-5">
