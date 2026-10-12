@@ -175,6 +175,15 @@ export interface SavedItem {
 }
 
 /** Another participant accepted to the same opportunity who shares their contact. */
+export interface AcceptanceRequest {
+  user_id: string;
+  opportunity_id: string;
+  title: string;
+  full_name: string;
+  email: string;
+  verified: boolean;
+}
+
 export interface Peer {
   full_name: string;
   email: string;

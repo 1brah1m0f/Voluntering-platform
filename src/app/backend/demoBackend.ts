@@ -25,6 +25,7 @@ export const DEMO_ACCOUNTS = {
 
 const K = {
   users: 'openly_demo_users',
+  verifications: 'openly_demo_verifications',
   session: 'openly_demo_session',
   opps: 'openly_demo_opportunities',
   saved: 'openly_demo_saved',
@@ -427,6 +428,24 @@ export function createDemoBackend(): Backend {
       return users().map((u) => ({ ...toProfile(u), created_at: u.created_at ?? new Date().toISOString() }) as UserRow);
     },
 
+    async listAcceptanceRequests() {
+      requireAdmin();
+      const approvals = read<string[]>(K.verifications, []);
+      return Object.entries(allSaved()).flatMap(([user_id, rows]) => rows.filter((s) => s.status === 'accepted').map((s) => {
+        const user = users().find((u) => u.id === user_id);
+        return { user_id, opportunity_id: s.opportunity_id, title: opps().find((o) => o.id === s.opportunity_id)?.title ?? '',
+          full_name: user?.full_name ?? '', email: user?.email ?? '', verified: approvals.includes(`${user_id}/${s.opportunity_id}`) };
+      }));
+    },
+
+    async setAcceptanceVerified(userId, opportunityId, verified) {
+      requireAdmin();
+      if (!allSaved()[userId]?.some((s) => s.opportunity_id === opportunityId && s.status === 'accepted')) throw new BackendError('not_allowed');
+      const key = `${userId}/${opportunityId}`;
+      const approvals = read<string[]>(K.verifications, []).filter((x) => x !== key);
+      write(K.verifications, verified ? [...approvals, key] : approvals);
+    },
+
     async setUserPlan(userId, plan) {
       requireAdmin();
       write(
@@ -475,12 +494,15 @@ export function createDemoBackend(): Backend {
     },
 
     async setStatus(opportunityId, status) {
-      requireUser();
-      writeMySaved(mySaved().map((s) => (s.opportunity_id === opportunityId ? { ...s, status, updated_at: new Date().toISOString() } : s)));
+      const user = requireUser();
+      const previous = mySaved().find((s) => s.opportunity_id === opportunityId);
+      if (previous && previous.status !== status) write(K.verifications, read<string[]>(K.verifications, []).filter((x) => x !== `${user.id}/${opportunityId}`));
+      writeMySaved(mySaved().map((s) => (s.opportunity_id === opportunityId ? { ...s, status, share_contact: previous?.status === status ? s.share_contact : false, updated_at: new Date().toISOString() } : s)));
     },
 
     async unsave(opportunityId) {
-      requireUser();
+      const user = requireUser();
+      write(K.verifications, read<string[]>(K.verifications, []).filter((x) => x !== `${user.id}/${opportunityId}`));
       writeMySaved(mySaved().filter((s) => s.opportunity_id !== opportunityId));
     },
 
@@ -496,11 +518,12 @@ export function createDemoBackend(): Backend {
 
     async acceptedPeers(opportunityId) {
       const u = requireUser();
-      const sharing = (s: SavedItem | undefined) => s?.status === 'accepted' && s.share_contact === true;
+      const approvals = read<string[]>(K.verifications, []);
+      const sharing = (s: SavedItem | undefined, userId: string) => s?.status === 'accepted' && s.share_contact === true && approvals.includes(`${userId}/${opportunityId}`);
       const all = allSaved();
-      if (!sharing(all[u.id]?.find((s) => s.opportunity_id === opportunityId))) return [];
+      if (!sharing(all[u.id]?.find((s) => s.opportunity_id === opportunityId), u.id)) return [];
       return users()
-        .filter((x) => x.id !== u.id && sharing(all[x.id]?.find((s) => s.opportunity_id === opportunityId)))
+        .filter((x) => x.id !== u.id && sharing(all[x.id]?.find((s) => s.opportunity_id === opportunityId), x.id))
         .map((x) => ({ full_name: x.full_name, email: x.email, avatar_url: x.avatar_url ?? '', headline: x.headline ?? '', country: x.country }));
     },
 

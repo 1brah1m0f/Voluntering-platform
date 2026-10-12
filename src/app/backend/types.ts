@@ -1,4 +1,4 @@
-import type { AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
+import type { AcceptanceRequest, AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap' | 'student_prefs' | 'prefs'>>;
 
@@ -17,6 +17,8 @@ export type ErrorCode =
   | 'premium_required'
   | 'student_required'
   | 'daily_limit'
+  | 'question_limit'
+  | 'rate_limited'
   | 'ai_unavailable'
   | 'not_configured'
   | 'refused'
@@ -69,6 +71,8 @@ export interface Backend {
 
   /** Admin only. */
   listUsers(): Promise<UserRow[]>;
+  listAcceptanceRequests(): Promise<AcceptanceRequest[]>;
+  setAcceptanceVerified(userId: string, opportunityId: string, verified: boolean): Promise<void>;
   setUserPlan(userId: string, plan: Plan): Promise<void>;
   /** Also resets a plan the new type doesn't have (premium ↔ student) to basic. */
   setAccountType(userId: string, type: AccountType): Promise<void>;

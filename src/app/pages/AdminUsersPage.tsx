@@ -9,6 +9,7 @@ import type { AccountType, Plan, UserRow } from '../types';
 const PLANS_FOR: Record<AccountType, Plan[]> = { regular: ['basic', 'premium'], student: ['basic', 'student'] };
 import { ErrorState, Spinner, inputClass } from '../ui';
 import { formatDate } from '../util';
+import AdminAcceptanceRequests from './AdminAcceptanceRequests';
 import { AdminTabs } from './AdminPages';
 
 export default function AdminUsersPage() {
@@ -163,6 +164,7 @@ export default function AdminUsersPage() {
           })}
         </ul>
       )}
+      <AdminAcceptanceRequests />
     </div>
   );
 }

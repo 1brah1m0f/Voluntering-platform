@@ -749,9 +749,14 @@ const az = {
     yes: 'Bəli, müraciət etdim',
     no: 'Hələ yox',
   },
+  acceptance: {
+    title: 'Qəbul təsdiqləri', sub: 'Proqrama qəbulu təsdiqləyən sənədi yoxladıqdan sonra təsdiq et.',
+    empty: 'Təsdiq gözləyən qəbul yoxdur.', verify: 'Təsdiq et', revoke: 'Təsdiqi ləğv et',
+    confirm: 'Bu iştirakçının qəbul təsdiqini dəyişmək istəyirsən?',
+  },
   peers: {
     title: 'Qəbul olunan digər iştirakçılar',
-    sub: 'Eyni proqrama qəbul olunanlarla tanış ol: yol, viza və yaşayış üçün birlikdə planlaşdırın.',
+    sub: 'Əlaqə paylaşımı yalnız hər iki iştirakçının qəbulu admin tərəfindən təsdiqlənəndən sonra açılır.',
     share: 'Adımı və e-poçtumu bu proqrama qəbul olunan digərləri ilə paylaş',
     none: 'Hələ ki əlaqəsini paylaşan başqa iştirakçı yoxdur. Kimsə qoşulan kimi burada görünəcək.',
   },
@@ -812,6 +817,8 @@ const az = {
     errors: {
       premium_required: 'AI köməkçi bu hesab üçün əlçatan deyil.',
       student_required: 'AI məsləhətçi Tələbə planına daxildir.',
+      question_limit: 'Bu gün sual yaratma limitinə çatdın. Sabah yenidən cəhd et.',
+      rate_limited: 'Çox tez sorğu göndərdin. Bir dəqiqə sonra yenidən cəhd et.',
       daily_limit: 'Bu günkü AI limitinə çatdın (pulsuz: gündə 1, Premium: 15). Sabah yenidən cəhd et.',
       refused: 'AI bu sorğunu emal edə bilmədi. Mətni dəyişib yenidən cəhd et.',
       ai_unavailable: 'AI köməkçi hazırda əlçatan deyil. Bir az sonra yenidən cəhd et.',
@@ -1643,9 +1650,14 @@ const en: AppText = {
     yes: 'Yes, I applied',
     no: 'Not yet',
   },
+  acceptance: {
+    title: 'Acceptance verification', sub: 'Verify acceptance after checking evidence from the programme.',
+    empty: 'No acceptance requests yet.', verify: 'Verify', revoke: 'Revoke verification',
+    confirm: 'Change this participant’s acceptance verification?',
+  },
   peers: {
     title: 'Other accepted participants',
-    sub: 'Meet the others accepted to the same programme: plan travel, visas and accommodation together.',
+    sub: 'Contact sharing opens after an admin verifies both participants’ acceptance.',
     share: 'Share my name and email with others accepted to this programme',
     none: 'Nobody else has shared their contact yet. They’ll show up here as soon as they do.',
   },
@@ -1705,6 +1717,8 @@ const en: AppText = {
     errors: {
       premium_required: 'The AI assistant isn’t available for this account.',
       student_required: 'The AI advisor is part of the Student plan.',
+      question_limit: 'You’ve reached today’s question generation limit. Try again tomorrow.',
+      rate_limited: 'Too many requests. Try again in a minute.',
       daily_limit: 'You’ve reached today’s AI limit (free: 1 a day, Premium: 15). Try again tomorrow.',
       refused: 'The AI couldn’t process this request. Change the text and try again.',
       ai_unavailable: 'The AI assistant isn’t available right now. Try again in a bit.',

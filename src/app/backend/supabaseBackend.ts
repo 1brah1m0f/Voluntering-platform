@@ -1,5 +1,5 @@
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
-import { FreeLimitError, type Note, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
+import { FreeLimitError, type AcceptanceRequest, type Note, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
 
 const PROFILE_COLS = 'id, email, full_name, interests, country, plan, account_type, is_admin, digest_opt_out, reminders_opt_out, about, avatar_url, headline, roadmap, student_prefs, prefs';
@@ -183,6 +183,17 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       return data as UserRow[];
     },
 
+    async listAcceptanceRequests() {
+      const { data, error } = await sb.rpc('list_acceptance_requests');
+      if (error) throw dbError(error);
+      return (data ?? []) as AcceptanceRequest[];
+    },
+
+    async setAcceptanceVerified(userId, opportunityId, verified) {
+      const { error } = await sb.rpc('set_acceptance_verified', { target_user: userId, target_opp: opportunityId, verified });
+      if (error) throw dbError(error);
+    },
+
     async setUserPlan(userId, plan) {
       const { error } = await sb.rpc('set_user_plan', { target: userId, new_plan: plan });
       if (error) throw dbError(error);
@@ -210,7 +221,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
           console.warn('[ai] this action is missing on the server — redeploy supabase/functions/ai');
           throw new BackendError('not_configured');
         }
-        if (code === 'premium_required' || code === 'student_required' || code === 'daily_limit' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
+        if (code === 'premium_required' || code === 'student_required' || code === 'daily_limit' || code === 'question_limit' || code === 'rate_limited' || code === 'refused' || code === 'not_configured') throw new BackendError(code, detail);
         throw new BackendError('ai_unavailable', detail);
       }
       return data as { result: unknown; remaining: number };
