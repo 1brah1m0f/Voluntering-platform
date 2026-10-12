@@ -58,8 +58,8 @@ export function StudentLayout() {
   return (
     <div className="app-surface min-h-screen">
       {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
-        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-xs sm:px-5">
+      <main className="mx-auto w-full max-w-7xl px-3.5 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-12">
+        <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-line bg-white px-3 py-2.5 shadow-xs sm:mb-5 sm:gap-3 sm:px-5 sm:py-3">
           <Link to="/student" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
             <Logo className="h-7 w-7" />
             {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
@@ -290,7 +290,7 @@ export default function AppLayout() {
         {/* mobile bottom tabs */}
         <nav
           className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden print:hidden"
-          style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
+          style={{ gridTemplateColumns: `repeat(${links.length}, minmax(0, 1fr))` }}
           aria-label="App"
         >
           {links.map((item) => (
@@ -299,7 +299,7 @@ export default function AppLayout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `group flex flex-col items-center gap-0.5 py-2 text-xs font-semibold ${activeFor(item, isActive) ? 'active text-brand-900' : 'text-slate-500'}`
+                `group flex min-w-0 flex-col items-center gap-0.5 py-2 text-xs font-semibold ${activeFor(item, isActive) ? 'active text-brand-900' : 'text-slate-500'}`
               }
             >
               <span className="flex h-7 w-12 items-center justify-center rounded-full group-[.active]:bg-brand-50">

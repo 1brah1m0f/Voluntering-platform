@@ -113,7 +113,7 @@ export default function StudentPage() {
   return (
     <div className="min-h-screen">
       {tab === 'roadmap' ? (
-        <header className="relative overflow-hidden rounded-4xl bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
+        <header className="relative overflow-hidden rounded-3xl bg-brand-900 p-5 text-white shadow-soft sm:rounded-4xl sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
           {/* The sun and ring from the logo. Decorative. */}
           <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
           <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-22 border-brand-800" aria-hidden="true" />
@@ -128,7 +128,7 @@ export default function StudentPage() {
           <button
             type="button"
             onClick={() => goTab('roadmap')}
-            className="relative mt-6 block w-full rounded-2xl border border-brand-700 bg-brand-800 p-4 text-left transition hover:border-brand-600 sm:p-5 lg:mt-0 lg:w-96 lg:shrink-0"
+            className="relative mt-4 block w-full rounded-2xl border border-brand-700 bg-brand-800 p-3.5 text-left transition hover:border-brand-600 sm:mt-6 sm:p-5 lg:mt-0 lg:w-96 lg:shrink-0"
           >
             <span className="flex items-baseline justify-between gap-3">
               <span className="font-bold text-white">{tx.student.progress(done.length, ROADMAP_STEP_COUNT)}</span>
@@ -152,7 +152,7 @@ export default function StudentPage() {
         </header>
       ) : (
         // Other tabs keep the page for their content: a one-line title and the progress.
-        <header className="rounded-4xl border border-line bg-white p-5 shadow-xs sm:p-6">
+        <header className="rounded-3xl border border-line bg-white p-4 shadow-xs sm:rounded-4xl sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
@@ -180,7 +180,7 @@ export default function StudentPage() {
         ref={tabsRef}
         role="tablist"
         aria-label={tx.student.hubTitle}
-        className="mask-fade-edges sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 px-5 py-1 shadow-xs backdrop-blur-sm sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:p-1 sm:shadow-none"
+        className="mask-fade-edges sticky top-0 z-30 -mx-3.5 mt-4 flex gap-1 overflow-x-auto border-y border-line bg-white/95 px-3.5 py-1 shadow-xs backdrop-blur-sm sm:static sm:mx-0 sm:mt-5 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:p-1 sm:shadow-none"
       >
         {TABS.map(({ id, Icon }) => (
           <button
@@ -199,7 +199,7 @@ export default function StudentPage() {
         ))}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-5 sm:mt-8">
         {tab === 'roadmap' ? (
           <RoadmapTab auto={auto} done={done} savedCount={data.saved.length} goTab={goTab} />
         ) : data.error ? (

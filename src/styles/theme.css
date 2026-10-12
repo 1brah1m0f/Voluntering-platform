@@ -68,3 +68,30 @@
     }
   }
 }
+
+/* Scale text, rather than the rem root, so phone spacing and touch targets stay usable.
+   Screen-only: printed CVs keep the desktop type scale. */
+@layer theme {
+  @media screen and (max-width: 639px) {
+    :root {
+      --text-xs: 0.75rem;
+      --text-xs--line-height: 1.125rem;
+      --text-sm: 0.875rem;
+      --text-sm--line-height: 1.3125rem;
+      --text-base: 0.875rem;
+      --text-base--line-height: 1.375rem;
+      --text-lg: 1rem;
+      --text-lg--line-height: 1.5rem;
+      --text-xl: 1.125rem;
+      --text-xl--line-height: 1.625rem;
+      --text-2xl: 1.25rem;
+      --text-2xl--line-height: 1.75rem;
+      --text-3xl: 1.5rem;
+      --text-3xl--line-height: 1.875rem;
+      --text-4xl: 1.875rem;
+      --text-4xl--line-height: 2.125rem;
+      --text-5xl: 2.125rem;
+      --text-5xl--line-height: 2.375rem;
+    }
+  }
+}

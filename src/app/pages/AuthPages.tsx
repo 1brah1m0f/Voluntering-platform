@@ -39,7 +39,7 @@ function AccountTypeSwitch({ value, onChange }: { value: AccountType; onChange: 
     { id: 'student' as const, label: tx.auth.typeStudent, Icon: GraduationCap },
   ];
   return (
-    <div role="radiogroup" aria-label={tx.auth.accountType} className="mb-6 grid grid-cols-2 gap-1 rounded-full border border-slate-200 bg-white p-1">
+    <div role="radiogroup" aria-label={tx.auth.accountType} className="mb-5 grid grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1 sm:mb-6 sm:rounded-full">
       {options.map(({ id, label, Icon }) => (
         <button
           key={id}
@@ -47,11 +47,11 @@ function AccountTypeSwitch({ value, onChange }: { value: AccountType; onChange: 
           role="radio"
           aria-checked={value === id}
           onClick={() => onChange(id)}
-          className={`flex items-center justify-center gap-2 rounded-full px-3 py-2.5 text-sm font-bold transition ${
+          className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm font-bold transition sm:gap-2 sm:rounded-full sm:px-3 ${
             value === id ? 'bg-brand-900 text-white shadow-xs' : 'text-slate-600 hover:text-brand-800'
           }`}
         >
-          <Icon className="h-4 w-4" aria-hidden="true" />
+          <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
           {label}
         </button>
       ))}
@@ -113,7 +113,7 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
           </ul>
         </div>
       </aside>
-      <main className="app-surface flex flex-col px-4 py-6 sm:px-8">
+      <main className="app-surface flex min-w-0 flex-col px-4 py-4 sm:px-8 sm:py-6">
         <div className="flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-brand-700">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -121,14 +121,14 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
           </Link>
           <LangToggle />
         </div>
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
-          <Link to="/" className="mb-8 inline-flex items-center gap-2 text-lg font-extrabold text-slate-900 lg:hidden">
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-6 sm:py-10">
+          <Link to="/" className="mb-5 inline-flex items-center gap-2 text-lg font-extrabold text-slate-900 sm:mb-8 lg:hidden">
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
           <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
           <p className="mt-2 text-slate-600">{sub}</p>
-          <div className="mt-8">{children}</div>
+          <div className="mt-5 sm:mt-8">{children}</div>
           {backend.mode === 'demo' && <p className="mt-8 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">{tx.demoBanner}</p>}
         </div>
       </main>

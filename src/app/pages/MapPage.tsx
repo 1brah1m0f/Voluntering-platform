@@ -89,6 +89,8 @@ export default function MapPage() {
   selectRef.current = select;
 
   const mapEl = useRef<HTMLDivElement>(null);
+  const frameEl = useRef<HTMLDivElement>(null);
+  const headerEl = useRef<HTMLElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const fittedPhone = useRef(false);
   const visibleTiles = useRef<L.TileLayer | null>(null);
@@ -139,6 +141,30 @@ export default function MapPage() {
       fittedPhone.current = false;
     };
   }, []);
+
+  // Leave room for the phone navigation even when the heading wraps or the screen rotates.
+  useEffect(() => {
+    const frame = frameEl.current;
+    const header = headerEl.current;
+    if (!frame || !header) return;
+    let pending = 0;
+    const update = () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(() => {
+        const top = Math.ceil(frame.getBoundingClientRect().top + window.scrollY);
+        frame.style.setProperty('--map-top', `${top}px`);
+      });
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    window.addEventListener('resize', update, { passive: true });
+    update();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', update);
+      cancelAnimationFrame(pending);
+    };
+  }, [lang]);
 
   // Keep the old tiles underneath until the new style has loaded.
   useEffect(() => {
@@ -258,7 +284,7 @@ export default function MapPage() {
 
   return (
     <div className="openly-map">
-      <header className="map-page-header">
+      <header ref={headerEl} className="map-page-header">
         <div className="flex items-center gap-3.5">
           <span className="map-heading-icon"><Compass className="h-6 w-6" aria-hidden="true" /></span>
           <div>
@@ -272,7 +298,7 @@ export default function MapPage() {
         </div>
       </header>
 
-      <div className={`map-frame ${selected ? 'has-selection' : ''}`}>
+      <div ref={frameEl} className={`map-frame ${selected ? 'has-selection' : ''}`}>
         <div ref={mapEl} className="map-canvas" aria-label={m.title} />
         <div className="map-vignette" aria-hidden="true" />
 

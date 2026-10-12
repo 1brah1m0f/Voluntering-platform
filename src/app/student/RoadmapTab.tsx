@@ -52,9 +52,9 @@ export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<str
                 type="button"
                 onClick={() => setPicked(i)}
                 aria-pressed={shown === i}
-                className={`flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition ${shown === i ? 'border-brand-900 bg-brand-900 text-white' : 'border-line bg-white hover:border-brand-200'}`}
+                className={`flex h-full w-full flex-col gap-2 rounded-2xl border p-3 text-left transition sm:p-4 ${shown === i ? 'border-brand-900 bg-brand-900 text-white' : 'border-line bg-white hover:border-brand-200'}`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-start gap-1.5 sm:items-center sm:gap-2">
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
                       complete ? 'bg-brand-700 text-white' : i === current ? 'bg-coral-700 text-white' : shown === i ? 'bg-brand-800 text-white' : 'bg-paper text-slate-600'
@@ -62,7 +62,7 @@ export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<str
                   >
                     {complete ? <Check className="h-4 w-4" strokeWidth={2.6} aria-hidden="true" /> : i + 1}
                   </span>
-                  <span className={`truncate text-xs font-bold uppercase tracking-wide ${shown === i ? 'text-brand-100' : 'text-brand-700'}`}>{p.when}</span>
+                  <span className={`min-w-0 text-xs font-bold leading-tight sm:uppercase sm:tracking-wide ${shown === i ? 'text-brand-100' : 'text-brand-700'}`}>{p.when}</span>
                 </span>
                 <span className="font-display text-lg font-bold leading-tight">{p.title}</span>
                 <span className="mt-auto flex items-center gap-2">
@@ -79,7 +79,7 @@ export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<str
         })}
       </ol>
 
-      <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="phase-title">
+      <section className="rounded-3xl border border-line bg-white p-4 shadow-card sm:p-7" aria-labelledby="phase-title">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="phase-title" className="text-2xl font-extrabold">
             {phase.title}
@@ -92,7 +92,7 @@ export function RoadmapTab({ auto, done, savedCount, goTab }: { auto: Record<str
             const a = auto[step.id];
             const link = STEP_LINKS[step.id];
             return (
-              <li key={step.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+              <li key={step.id} className="flex gap-3 py-4 first:pt-0 last:pb-0 sm:gap-4">
                 {a ? (
                   // Ticked by the app, not by hand.
                   <span
