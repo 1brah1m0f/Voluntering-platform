@@ -159,7 +159,8 @@
 @keyframes map-compass-turn { 0%,100% { transform: rotate(-35deg); } 50% { transform: rotate(35deg); } }
 
 @media (min-width: 1024px) {
-  .openly-map .map-opportunity-panel { inset: 88px 16px 24px auto; max-height: none; width: 340px; border: 1px solid #ffffffb0; border-radius: 24px; animation-name: map-panel-in; }
+  .openly-map .has-selection .map-controls { top: 88px; right: 372px; }
+  .openly-map .map-opportunity-panel { inset: 88px 16px auto auto; max-height: calc(100% - 112px); width: 340px; border: 1px solid #ffffffb0; border-radius: 24px; animation-name: map-panel-in; }
   .openly-map .map-sheet-handle { display: none; }
 }
 @media (max-width: 1100px) { .openly-map .map-explore-hint { left: auto; right: 16px; transform: none; } }
@@ -168,7 +169,7 @@
   .openly-map .map-heading-icon { width: 44px; height: 44px; border-radius: 15px; }
   .openly-map .map-stats { gap: 6px; }
   .openly-map .map-stat { padding: 5px 9px; font-size: 11px; }
-  .openly-map .map-frame { min-height: 440px; height: calc(100dvh - 17rem); border-radius: 24px; }
+  .openly-map .map-frame { min-height: 440px; height: calc(100dvh - 19.5rem); border-radius: 24px; }
   .openly-map .map-country-bar { top: 12px; left: 10px; right: 61px; gap: 0; padding: 3px; border-radius: 16px; }
   .openly-map .map-country-bar-icon { display: none; }
   .openly-map .map-country-chip { min-height: 34px; padding: 6px 9px; font-size: 11px; gap: 6px; border-radius: 12px; }
@@ -184,6 +185,6 @@
 @media (max-width: 1023px) { .openly-map .has-selection .map-style-picker { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   .openly-map .map-frame, .openly-map .map-pin, .openly-map .map-explore-hint, .openly-map .map-opportunity-panel, .openly-map .map-event, .openly-map .map-loading-compass svg, .openly-map .openly-map-marker.is-selected::before { animation: none; }
-  .openly-map .map-heading-icon svg, .openly-map .map-country-chip, .openly-map .map-controls button, .openly-map .map-style-option, .openly-map .map-pin-body, .openly-map .map-panel-close, .openly-map .map-event-link, .openly-map .map-panel-link { transition: none; }
+  .openly-map .map-event-link svg, .openly-map .map-pin-ground, .openly-map .map-heading-icon svg, .openly-map .map-country-chip, .openly-map .map-controls button, .openly-map .map-style-option, .openly-map .map-pin-body, .openly-map .map-panel-close, .openly-map .map-event-link, .openly-map .map-panel-link { transition: none; }
   .openly-map .map-tile-layer, .openly-map .leaflet-zoom-animated, .openly-map .leaflet-tile { transition: none !important; }
 }

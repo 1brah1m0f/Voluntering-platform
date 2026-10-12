@@ -23,6 +23,7 @@ const COPY = {
   az: { subtitle: 'Növbəti macəran bir pin uzaqdadır.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq' },
   en: { subtitle: 'Your next adventure is one pin away.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop' },
 };
+const isPhone = () => window.matchMedia('(max-width: 639px)').matches;
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function readKind(): MapKind {
@@ -89,6 +90,7 @@ export default function MapPage() {
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const fittedPhone = useRef(false);
   const visibleTiles = useRef<L.TileLayer | null>(null);
   const markersRef = useRef(new Map<string, { marker: L.Marker; count: number }>());
   const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>('loading');
@@ -114,7 +116,7 @@ export default function MapPage() {
     let frame = 0;
     try {
       const animate = !prefersReducedMotion();
-      map = L.map(container, { center: HOME, zoom: 4, minZoom: 2, maxZoom: 10, zoomControl: false, zoomAnimation: animate, fadeAnimation: animate, markerZoomAnimation: animate });
+      map = L.map(container, { center: HOME, zoom: isPhone() ? 3 : 4, zoomSnap: 0.5, minZoom: 2, maxZoom: 10, zoomControl: false, inertia: animate, zoomAnimation: animate, fadeAnimation: animate, markerZoomAnimation: animate });
       mapRef.current = map;
       map.on('click', () => selectRef.current(''));
       setMapState('ready');
@@ -134,6 +136,7 @@ export default function MapPage() {
       map?.remove();
       mapRef.current = null;
       visibleTiles.current = null;
+      fittedPhone.current = false;
     };
   }, []);
 
@@ -183,6 +186,9 @@ export default function MapPage() {
         const marker = L.marker([coords.lat, coords.lng], { icon: pinIcon(country, count, order), bubblingMouseEvents: false, autoPanOnFocus: false });
         marker.on('click', () => selectRef.current(selectedRef.current === country ? '' : country));
         marker.addTo(map);
+        marker.getElement()?.addEventListener('keydown', (event) => {
+          if (event.key === ' ') { event.preventDefault(); marker.fire('click'); }
+        });
         entry = { marker, count };
         markers.set(country, entry);
       } else if (entry.count !== count) {
@@ -200,6 +206,12 @@ export default function MapPage() {
       element?.setAttribute('aria-pressed', String(country === selectedRef.current));
       element?.classList.toggle('is-selected', country === selectedRef.current);
     });
+    if (isPhone() && !fittedPhone.current && markers.size > 0 && !selectedRef.current) {
+      fittedPhone.current = true;
+      map.fitBounds(L.latLngBounds(Array.from(markers.values(), ({ marker }) => marker.getLatLng())), {
+        paddingTopLeft: [50, 130], paddingBottomRight: [50, 110], maxZoom: 4, animate: false,
+      });
+    }
   }, [mapState, counts, m]);
 
   useEffect(() => {
@@ -228,7 +240,14 @@ export default function MapPage() {
 
   const resetView = () => {
     select('');
-    mapRef.current?.stop().flyTo(HOME, 4, { duration: 0.85, animate: !prefersReducedMotion() });
+    const map = mapRef.current;
+    if (!map) return;
+    map.stop();
+    if (isPhone() && markersRef.current.size > 0) {
+      map.fitBounds(L.latLngBounds(Array.from(markersRef.current.values(), ({ marker }) => marker.getLatLng())), {
+        paddingTopLeft: [50, 130], paddingBottomRight: [50, 110], maxZoom: 4, animate: !prefersReducedMotion(), duration: 0.85,
+      });
+    } else map.flyTo(HOME, 4, { duration: 0.85, animate: !prefersReducedMotion() });
   };
   const list = (selected === ONLINE ? open.filter((o) => o.is_online) : selected ? open.filter((o) => !o.is_online && o.country === selected) : []).sort((a, b) => a.deadline.localeCompare(b.deadline));
   const chips = [
