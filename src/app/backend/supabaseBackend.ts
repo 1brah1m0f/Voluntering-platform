@@ -1,3 +1,4 @@
+import { safeReturnPath } from '../../lib/navigation';
 import { FunctionsHttpError, type AuthError, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
 import { FreeLimitError, type AcceptanceRequest, type Note, type Opportunity, type Peer, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
@@ -63,7 +64,7 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
     async signInWithGoogle(nextPath) {
       const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}${nextPath}` },
+        options: { redirectTo: `${window.location.origin}${safeReturnPath(nextPath)}` },
       });
       if (error) throw authError(error);
     },

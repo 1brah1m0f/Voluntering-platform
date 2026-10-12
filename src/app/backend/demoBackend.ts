@@ -1,3 +1,4 @@
+import { DEMO_ACCOUNTS } from './demoAccounts';
 import { FREE_EVENT_LIMIT } from '../../config';
 import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend } from './types';
@@ -17,11 +18,6 @@ type DemoUser = Profile & { password: string; created_at?: string };
 
 const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).getTime() < PREMIUM_EARLY_HOURS * 3_600_000;
 
-export const DEMO_ACCOUNTS = {
-  admin: { email: 'admin@openlyapply.com', password: 'demo1234' },
-  user: { email: 'aysel@openlyapply.com', password: 'demo1234' },
-  student: { email: 'student@openlyapply.com', password: 'demo1234' },
-};
 
 const K = {
   users: 'openly_demo_users',

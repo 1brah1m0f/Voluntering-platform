@@ -5,12 +5,13 @@ import { BRAND } from '../../config';
 import { Logo } from '../../components/Icons';
 import { useLang } from '../../i18n';
 import { backend, BackendError } from '../backend';
-import { DEMO_ACCOUNTS } from '../backend/demoBackend';
+import { DEMO_ACCOUNTS } from '../backend/demoAccounts';
 import { useAuth } from '../AuthContext';
 import { isRegularOnly, isStudentOnly } from '../plans';
 import { useAppText } from '../text';
 import type { AccountType, Profile } from '../types';
 import { Field, Spinner, inputClass } from '../ui';
+import { safeReturnPath } from '../../lib/navigation';
 import { EMAIL_RE } from '../util';
 
 /** The account type picked on the login / register page, kept in the URL (?as=student). */
@@ -203,7 +204,8 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(() => (oauthErrorInUrl() ? tx.auth.oauthError : null));
-  const from = (location.state as { from?: string } | null)?.from;
+  const rawFrom = (location.state as { from?: unknown } | null)?.from;
+  const from = typeof rawFrom === 'string' ? safeReturnPath(rawFrom) : undefined;
   const [params] = useSearchParams();
   const claiming = params.get('claim') === 'student';
   const [claimDone, setClaimDone] = useState(false);
@@ -338,7 +340,8 @@ export function RegisterPage() {
   const [confirmFor, setConfirmFor] = useState<string | null>(null);
   // A guest who signed up from an opportunity page goes back there after onboarding.
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from;
+  const rawFrom = (location.state as { from?: unknown } | null)?.from;
+  const from = typeof rawFrom === 'string' ? safeReturnPath(rawFrom) : undefined;
   const welcome = from ? `/app/welcome?next=${encodeURIComponent(from)}` : '/app/welcome';
 
   if (!loading && userId && !confirmFor) return <Navigate to={isStudentOnly(profile) ? '/student' : welcome} replace />;

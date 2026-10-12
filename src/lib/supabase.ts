@@ -1,9 +1,13 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { resolveBackendConfig } from './backendConfig';
 
-const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
-const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();
+const config = resolveBackendConfig({
+  url: import.meta.env.VITE_SUPABASE_URL,
+  key: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  enableDemo: import.meta.env.VITE_ENABLE_DEMO,
+  production: import.meta.env.PROD,
+});
 
-/**
- * Null when env vars are missing — the app then runs on the in-browser demo backend.
- */
-export const supabase: SupabaseClient | null = url && anonKey ? createClient(url, anonKey) : null;
+export const supabase: SupabaseClient | null = config.mode === 'supabase'
+  ? createClient(config.url, config.key)
+  : null;

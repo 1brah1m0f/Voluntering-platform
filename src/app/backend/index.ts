@@ -1,8 +1,10 @@
 import { supabase } from '../../lib/supabase';
-import { createDemoBackend } from './demoBackend';
 import { createSupabaseBackend } from './supabaseBackend';
+import type { Backend } from './types';
 
 export * from './types';
 
-/** Supabase when VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set, otherwise the in-browser demo. */
-export const backend = supabase ? createSupabaseBackend(supabase) : createDemoBackend();
+// Demo code and seed catalogues load only when the validated configuration selects it.
+export const backend: Backend = supabase
+  ? createSupabaseBackend(supabase)
+  : (await import('./demoBackend')).createDemoBackend();
