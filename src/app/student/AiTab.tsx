@@ -141,7 +141,7 @@ function PlanMode({ data, ai, ready, open, goTab }: { data: StudentData; ai: Ai;
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={build} disabled={!ready || ai.busy} className="btn-primary !py-2.5 text-sm">
+        <button type="button" onClick={build} disabled={!ready || ai.busy} className="btn-primary py-2.5! text-sm">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           {plan ? tx.student.aiAgain : tx.student.aiPlanBtn}
         </button>
@@ -177,7 +177,7 @@ function PlanMode({ data, ai, ready, open, goTab }: { data: StudentData; ai: Ai;
               <ol className="mt-3 space-y-2 border-l-2 border-line pl-5">
                 {plan.next_steps.map((st, i) => (
                   <li key={i} className="relative">
-                    <span className="absolute -left-[1.6rem] top-1.5 h-3 w-3 rounded-full bg-brand-700 ring-[3px] ring-white" aria-hidden="true" />
+                    <span className="absolute left-[-1.6rem] top-1.5 h-3 w-3 rounded-full bg-brand-700 ring-[3px] ring-white" aria-hidden="true" />
                     <span className="text-xs font-bold uppercase tracking-wide text-brand-700">{st.when}</span>
                     <p className="leading-relaxed text-ink">{st.action}</p>
                   </li>
@@ -322,7 +322,7 @@ function AskMode({ data, ai, ready, open }: { data: StudentData; ai: Ai; ready: 
           aria-label={tx.student.aiAskPh}
           className={`${inputClass} resize-none`}
         />
-        <button type="submit" disabled={!ready || ai.busy || !question.trim()} className="btn-primary shrink-0 !px-4 !py-3" aria-label={tx.student.aiAskBtn}>
+        <button type="submit" disabled={!ready || ai.busy || !question.trim()} className="btn-primary shrink-0 px-4! py-3!" aria-label={tx.student.aiAskBtn}>
           <Send className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">{tx.student.aiAskBtn}</span>
         </button>
@@ -375,7 +375,7 @@ function ReviewMode({ data, ai, ready }: { data: StudentData; ai: Ai; ready: boo
       </label>
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} maxLength={12000} placeholder={tx.ai.reviewPh} aria-label={tx.ai.reviewPh} className={inputClass} />
       {short && <ErrorNote text={tx.ai.tooShort} />}
-      <button type="button" onClick={run} disabled={!ready || ai.busy} className="btn-primary !py-2.5 text-sm">
+      <button type="button" onClick={run} disabled={!ready || ai.busy} className="btn-primary py-2.5! text-sm">
         <ListChecks className="h-4 w-4" aria-hidden="true" />
         {tx.ai.reviewBtn}
       </button>
@@ -463,7 +463,7 @@ export function AiFit({ target }: { target: StudentTarget }) {
   return (
     <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4">
       {!result && (
-        <button type="button" onClick={check} disabled={ready === false || ai.busy} className="btn-secondary w-full !py-2.5 text-sm disabled:opacity-60" title={ready === false ? tx.ai.comingSoon : undefined}>
+        <button type="button" onClick={check} disabled={ready === false || ai.busy} className="btn-secondary w-full py-2.5! text-sm disabled:opacity-60" title={ready === false ? tx.ai.comingSoon : undefined}>
           <Sparkles className="h-4 w-4 text-brand-700" aria-hidden="true" />
           {tx.student.aiFitBtn}
         </button>

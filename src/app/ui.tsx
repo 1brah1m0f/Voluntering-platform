@@ -224,7 +224,7 @@ export function Notice({
   const t = noticeTones[tone];
   return (
     <div className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 sm:px-4 ${t.box}`}>
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm ${t.icon}`}>{icon}</span>
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${t.icon}`}>{icon}</span>
       <div className={`min-w-0 flex-1 text-sm font-medium sm:flex sm:items-center sm:gap-3 ${t.text}`}>
         <p className="flex-1">{children}</p>
         {action && <div className="mt-2 shrink-0 sm:mt-0">{action}</div>}

@@ -8,9 +8,11 @@ European Solidarity Corps, UN Volunteers, national programs) in one place. This 
   them and track application status (free plan: 3 at a time).
 - **Admin panel** at `/admin`: add, edit, publish/hide and delete opportunities.
 
-Stack: React 18 + TypeScript + Vite + Tailwind CSS + React Router, Supabase for auth and data.
+Stack: React 18 + TypeScript + Vite + Tailwind CSS + React Router 7, Supabase for auth and data.
 
 ## Run locally
+
+Use Node.js 22.12 or newer within the Node 22 release line (`.nvmrc` pins the tested version).
 
 ```bash
 npm install
@@ -161,7 +163,7 @@ replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't r
 - **Accent colors for cards/steps:** `src/lib/tones.ts`
   (also update the hard-coded name in `index.html` meta tags and `public/og-image.svg`).
 - **All copy (AZ + EN):** `src/i18n.ts`.
-- **Colors:** `tailwind.config.js` (`brand` = teal primary, `coral` = CTA accent).
+- **Colors:** `src/styles/theme.css` (`brand` = teal primary, `coral` = CTA accent).
 
 ## Structure
 

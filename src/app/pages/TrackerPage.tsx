@@ -53,7 +53,7 @@ export default function TrackerPage() {
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${rows.length >= FREE_EVENT_LIMIT ? 'from-coral-400 to-coral-600' : 'from-brand-400 to-brand-600'}`}
+              className={`h-full rounded-full bg-linear-to-r ${rows.length >= FREE_EVENT_LIMIT ? 'from-coral-400 to-coral-600' : 'from-brand-400 to-brand-600'}`}
               style={{ width: `${Math.min(100, (rows.length / FREE_EVENT_LIMIT) * 100)}%` }}
             />
           </div>
@@ -61,7 +61,7 @@ export default function TrackerPage() {
       )}
 
       {/* Phones: the five tabs wrap onto a second row instead of scrolling out of sight. */}
-      <div role="tablist" className="mt-6 flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200 sm:rounded-full">
+      <div role="tablist" className="mt-6 flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-xs ring-1 ring-slate-200 sm:rounded-full">
         {(['all', ...STATUS_ORDER] as const).map((s) => {
           const n = s === 'all' ? rows.length : rows.filter((r) => r.item.status === s).length;
           return (
@@ -95,7 +95,7 @@ export default function TrackerPage() {
             const d = daysUntil(o.deadline);
             const prep = prepProgress(o, item.checklist);
             return (
-              <li key={o.id} className="flex animate-[row-in_0.3s_ease] flex-col gap-4 rounded-3xl border border-line bg-white p-4 shadow-sm transition hover:border-brand-200 hover:shadow-card sm:flex-row sm:items-center">
+              <li key={o.id} className="flex animate-[row-in_0.3s_ease] flex-col gap-4 rounded-3xl border border-line bg-white p-4 shadow-xs transition hover:border-brand-200 hover:shadow-card sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <ProgramBadge program={o.program} />
                   <div className="min-w-0">

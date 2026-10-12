@@ -59,7 +59,7 @@ export function StudentLayout() {
     <div className="app-surface min-h-screen">
       {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800">{tx.demoBanner}</p>}
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-12">
-        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm sm:px-5">
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-xs sm:px-5">
           <Link to="/student" className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
             <Logo className="h-7 w-7" />
             {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
@@ -173,7 +173,7 @@ export default function AppLayout() {
     <DataProvider>
       <div className="app-surface min-h-screen lg:flex">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur lg:flex print:!hidden">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur-sm lg:flex print:hidden!">
           {/* Signed-in users never go back to the landing page from the logo. */}
           <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
@@ -221,10 +221,10 @@ export default function AppLayout() {
             {guest ? (
               <div className="space-y-2 rounded-2xl bg-paper p-3">
                 <p className="text-sm text-slate-600">{tx.guest.sidebar}</p>
-                <Link to="/register" state={back} className="btn-primary w-full !py-2 text-sm">
+                <Link to="/register" state={back} className="btn-primary w-full py-2! text-sm">
                   {tx.guest.signUp}
                 </Link>
-                <Link to="/login" state={back} className="btn-secondary w-full !py-2 text-sm">
+                <Link to="/login" state={back} className="btn-secondary w-full py-2! text-sm">
                   {tx.guest.logIn}
                 </Link>
               </div>
@@ -253,7 +253,7 @@ export default function AppLayout() {
 
         <div className="min-w-0 flex-1 pb-20 lg:pb-0 print:pb-0">
           {/* mobile top bar */}
-          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden print:hidden">
+          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur-sm lg:hidden print:hidden">
             <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
               <Logo className="h-7 w-7" />
               {BRAND}
@@ -273,7 +273,7 @@ export default function AppLayout() {
               </button>
               {/* Signed-in users log out from Profile → Settings; an icon here was easy to tap by mistake. */}
               {guest && (
-                <Link to="/register" state={back} className="btn-primary !px-4 !py-1.5 text-sm">
+                <Link to="/register" state={back} className="btn-primary px-4! py-1.5! text-sm">
                   {tx.guest.signUp}
                 </Link>
               )}
@@ -289,7 +289,7 @@ export default function AppLayout() {
 
         {/* mobile bottom tabs */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden print:hidden"
           style={{ gridTemplateColumns: `repeat(${links.length}, 1fr)` }}
           aria-label="App"
         >

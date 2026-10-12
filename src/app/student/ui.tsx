@@ -147,7 +147,7 @@ export function SaveToggle({ on, onClick, withLabel = true }: { on: boolean; onC
       onClick={onClick}
       aria-pressed={on}
       aria-label={withLabel ? undefined : on ? tx.student.saved : tx.student.save}
-      className={`inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full border px-4 text-sm font-bold transition ${
+      className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-bold transition ${
         on ? 'border-coral-200 bg-coral-50 text-coral-800' : 'border-line bg-white text-ink hover:border-coral-200 hover:text-coral-700'
       }`}
     >

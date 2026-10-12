@@ -82,14 +82,14 @@ export default function CalendarPage() {
             <button type="button" onClick={() => shift(-1)} aria-label={tx.calendar.prev} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
               <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </button>
-            <p className="min-w-[9.5rem] text-center font-display text-lg font-bold text-ink" aria-live="polite">
+            <p className="min-w-38 text-center font-display text-lg font-bold text-ink" aria-live="polite">
               {tx.calendar.months[month.m]} {month.y}
             </p>
             <button type="button" onClick={() => shift(1)} aria-label={tx.calendar.next} className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100">
               <ChevronRight className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <button type="button" onClick={() => setMonth({ y: now.getFullYear(), m: now.getMonth() })} className="btn-secondary !px-4 !py-1.5 text-sm">
+          <button type="button" onClick={() => setMonth({ y: now.getFullYear(), m: now.getMonth() })} className="btn-secondary px-4! py-1.5! text-sm">
             {tx.calendar.today}
           </button>
           {userId && (
@@ -113,7 +113,7 @@ export default function CalendarPage() {
 
       <div className="mt-6 items-start gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem]">
         {/* Month grid (tablets and up) */}
-        <div className="hidden overflow-hidden rounded-3xl border border-line bg-white shadow-sm sm:block">
+        <div className="hidden overflow-hidden rounded-3xl border border-line bg-white shadow-xs sm:block">
           <div className="grid grid-cols-7 border-b border-line bg-paper/60">
             {tx.calendar.weekdays.map((d) => (
               <p key={d} className="px-2 py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
@@ -126,7 +126,7 @@ export default function CalendarPage() {
               const key = d ? isoDay(month.y, month.m, d) : `empty-${i}`;
               const items = d ? (byDay.get(key) ?? []) : [];
               return (
-                <div key={key} className={`min-h-[7.5rem] border-b border-r border-line/60 p-2 [&:nth-child(7n)]:border-r-0 ${d ? '' : 'bg-paper/50'}`}>
+                <div key={key} className={`min-h-30 border-b border-r border-line/60 p-2 nth-[7n]:border-r-0 ${d ? '' : 'bg-paper/50'}`}>
                   {d && (
                     <>
                       <p
@@ -171,7 +171,7 @@ export default function CalendarPage() {
           {userId && (
             <div className="mt-4 hidden space-y-1.5 px-1 text-xs text-slate-600 lg:block">
               <p className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded bg-coral-100 ring-1 ring-coral-200" aria-hidden="true" />
+                <span className="h-3 w-3 rounded-sm bg-coral-100 ring-1 ring-coral-200" aria-hidden="true" />
                 {tx.card.saved}
               </p>
             </div>

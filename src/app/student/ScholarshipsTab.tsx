@@ -80,7 +80,7 @@ export function ScholarshipsTab({
 function ScholarshipCard({ row: { s, info, fit }, saved, onSave, onOpen }: { row: Row; saved: boolean; onSave: () => void; onOpen: () => void }) {
   const { tx, lang } = useAppText();
   return (
-    <article className="grid gap-5 rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_15rem] lg:gap-8">
+    <article className="grid gap-5 rounded-3xl border border-line bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_15rem] lg:gap-8">
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-wider text-brand-700">{s.country}</p>
         <h3 className="mt-1 text-xl font-bold leading-snug sm:text-2xl">
@@ -115,7 +115,7 @@ function ScholarshipCard({ row: { s, info, fit }, saved, onSave, onOpen }: { row
           <FitBadge fit={fit} />
         </div>
         <div className="mt-auto flex items-center gap-2">
-          <button type="button" onClick={onOpen} className="btn-secondary flex-1 !px-4 !py-2.5 text-sm">
+          <button type="button" onClick={onOpen} className="btn-secondary flex-1 px-4! py-2.5! text-sm">
             {tx.student.details}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>

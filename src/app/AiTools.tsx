@@ -199,7 +199,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             {tx.ai.letterLang}
-            <select value={letterLang} onChange={(e) => setLetterLang(e.target.value as Lang)} className={`${inputClass} !w-auto !py-2`}>
+            <select value={letterLang} onChange={(e) => setLetterLang(e.target.value as Lang)} className={`${inputClass} w-auto! py-2!`}>
               <option value="en">English</option>
               <option value="az">Azərbaycan</option>
             </select>
@@ -220,7 +220,7 @@ function LetterTab({ opportunityId, ready }: { opportunityId: string; ready: boo
                 {dirty ? tx.ai.unsaved : saved ? tx.ai.savedAt(formatDateTime(saved.updated_at, lang)) : ''}
               </p>
             </div>
-            <button type="button" onClick={copy} disabled={!text} className="btn-secondary !px-3 !py-1.5 text-sm">
+            <button type="button" onClick={copy} disabled={!text} className="btn-secondary px-3! py-1.5! text-sm">
               {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
               {copied ? tx.ai.copied : tx.ai.copy}
             </button>
@@ -376,7 +376,7 @@ function ReviewTab({ opportunityId, ready }: { opportunityId: string; ready: boo
         ))}
       </div>
       <div className="flex flex-col gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-4 sm:flex-row sm:items-center">
-        <button type="button" onClick={() => fileRef.current?.click()} disabled={reading} className="btn-secondary shrink-0 !px-4 !py-2 text-sm">
+        <button type="button" onClick={() => fileRef.current?.click()} disabled={reading} className="btn-secondary shrink-0 px-4! py-2! text-sm">
           {reading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Upload className="h-4 w-4" aria-hidden="true" />}
           {tx.ai.upload}
         </button>

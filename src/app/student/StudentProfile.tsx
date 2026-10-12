@@ -135,13 +135,13 @@ function StudentPlanCard() {
 
   return (
     <section className="mt-6 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
-      <div className={`relative p-5 text-white sm:p-7 ${active ? 'bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950' : 'bg-brand-900'}`}>
+      <div className={`relative p-5 text-white sm:p-7 ${active ? 'bg-linear-to-br from-brand-700 via-brand-800 to-brand-950' : 'bg-brand-900'}`}>
         <span className="pointer-events-none absolute -right-14 -top-20 h-48 w-48 rounded-full bg-coral-500/80" aria-hidden="true" />
         <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">
           {active ? <GraduationCap className="h-4 w-4" aria-hidden="true" /> : <Lock className="h-4 w-4" aria-hidden="true" />}
           {s.planTitle} · {s.badge}
         </p>
-        <h2 className="relative mt-2 text-2xl font-extrabold !text-white">{active ? s.planActive : s.planLocked}</h2>
+        <h2 className="relative mt-2 text-2xl font-extrabold text-white!">{active ? s.planActive : s.planLocked}</h2>
         <p className="relative mt-2 max-w-lg text-brand-100">{active ? s.planActiveSub : s.planLockedSub}</p>
         {!active && (
           <>

@@ -113,16 +113,16 @@ export default function StudentPage() {
   return (
     <div className="min-h-screen">
       {tab === 'roadmap' ? (
-        <header className="relative overflow-hidden rounded-[2rem] bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
+        <header className="relative overflow-hidden rounded-4xl bg-brand-900 p-6 text-white shadow-soft sm:p-8 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:p-10">
           {/* The sun and ring from the logo. Decorative. */}
           <span className="pointer-events-none absolute -top-32 right-8 hidden h-60 w-60 rounded-full bg-coral-500/90 md:block lg:right-80" aria-hidden="true" />
-          <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-[22px] border-brand-800" aria-hidden="true" />
+          <span className="pointer-events-none absolute -bottom-40 -left-24 h-72 w-72 rounded-full border-22 border-brand-800" aria-hidden="true" />
           <div className="relative max-w-xl">
             <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-200">
               <GraduationCap className="h-4 w-4" aria-hidden="true" />
               Openly {tx.student.title}
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl">{tx.student.hubTitle}</h1>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white! sm:text-5xl">{tx.student.hubTitle}</h1>
             <p className="mt-2 leading-relaxed text-brand-100 sm:text-lg">{tx.student.hubSub}</p>
           </div>
           <button
@@ -152,7 +152,7 @@ export default function StudentPage() {
         </header>
       ) : (
         // Other tabs keep the page for their content: a one-line title and the progress.
-        <header className="rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-6">
+        <header className="rounded-4xl border border-line bg-white p-5 shadow-xs sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-700">
@@ -180,7 +180,7 @@ export default function StudentPage() {
         ref={tabsRef}
         role="tablist"
         aria-label={tx.student.hubTitle}
-        className="mask-fade-edges sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 px-5 py-1 shadow-sm backdrop-blur sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:p-1 sm:shadow-none"
+        className="mask-fade-edges sticky top-0 z-30 -mx-4 mt-5 flex gap-1 overflow-x-auto border-y border-line bg-white/95 px-5 py-1 shadow-xs backdrop-blur-sm sm:static sm:mx-0 sm:grid sm:grid-cols-5 sm:rounded-full sm:border sm:p-1 sm:shadow-none"
       >
         {TABS.map(({ id, Icon }) => (
           <button

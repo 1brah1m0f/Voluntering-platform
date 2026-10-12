@@ -82,13 +82,13 @@ function BoardingPasses() {
   const label = 'block text-[0.6875rem] font-bold uppercase tracking-widest text-slate-500';
 
   return (
-    <div className="relative mx-auto h-[34rem] max-w-[34rem]" aria-hidden="true">
+    <div className="relative mx-auto h-136 max-w-136" aria-hidden="true">
       {/* The sun and ring from the logo. */}
       <span className="absolute right-2 top-0 h-52 w-52 rounded-full bg-coral-400" />
-      <span className="absolute bottom-2 left-4 h-64 w-64 rounded-full border-[26px] border-brand-100" />
+      <span className="absolute bottom-2 left-4 h-64 w-64 rounded-full border-26 border-brand-100" />
 
       {/* Back pass */}
-      <div className="absolute right-0 top-16 flex h-52 w-[27rem] rotate-[5deg] rounded-[1.375rem] bg-white shadow-soft">
+      <div className="absolute right-0 top-16 flex h-52 w-108 rotate-[5deg] rounded-[1.375rem] bg-white shadow-soft">
         <div className="flex flex-1 flex-col justify-between p-6">
           <span className={label}>{p.training}</span>
           <span className="flex items-center gap-3 font-display text-4xl font-extrabold tracking-tight text-ink">
@@ -110,10 +110,10 @@ function BoardingPasses() {
       </div>
 
       {/* Front pass */}
-      <div className="absolute left-0 top-60 flex h-56 w-[30rem] -rotate-3 rounded-[1.375rem] bg-white shadow-[0_24px_50px_-20px_rgba(15,58,66,0.45)]">
+      <div className="absolute left-0 top-60 flex h-56 w-120 -rotate-3 rounded-[1.375rem] bg-white shadow-[0_24px_50px_-20px_rgba(15,58,66,0.45)]">
         {/* Punched notches at both ends of the perforation. */}
-        <span className="absolute -top-3 right-[7.25rem] h-6 w-6 rounded-full bg-paper" />
-        <span className="absolute -bottom-3 right-[7.25rem] h-6 w-6 rounded-full bg-paper" />
+        <span className="absolute -top-3 right-29 h-6 w-6 rounded-full bg-paper" />
+        <span className="absolute -bottom-3 right-29 h-6 w-6 rounded-full bg-paper" />
         <div className="flex flex-1 flex-col justify-between p-6">
           <span className={label}>{p.exchange} · Erasmus+</span>
           <span className="flex items-center gap-3 font-display text-[2.5rem] font-extrabold leading-none tracking-tight text-ink">

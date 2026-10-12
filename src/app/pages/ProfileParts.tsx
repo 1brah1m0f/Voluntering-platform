@@ -109,7 +109,7 @@ export function ThemeButton() {
         aria-expanded={open}
         title={tx.profile.theme}
         aria-label={tx.profile.theme}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/35"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/35"
       >
         {open ? <X className="h-4 w-4" aria-hidden="true" /> : <Palette className="h-4 w-4" aria-hidden="true" />}
       </button>
@@ -133,7 +133,7 @@ export function LanguagesEditor({ value, onChange }: { value: { name: string; le
             aria-label={tx.profile.languageName}
             className={`${inputClass} min-w-0 flex-1`}
           />
-          <select value={l.level} onChange={(e) => set(i, { level: e.target.value as LangLevel })} aria-label={tx.profile.languageLevel} className={`${inputClass} !w-32 shrink-0`}>
+          <select value={l.level} onChange={(e) => set(i, { level: e.target.value as LangLevel })} aria-label={tx.profile.languageLevel} className={`${inputClass} w-32! shrink-0`}>
             {LANG_LEVELS.map((lv) => (
               <option key={lv} value={lv}>
                 {lv === 'native' ? tx.profile.levelNative : lv}
@@ -189,7 +189,7 @@ export function SkillsEditor({ value, onChange }: { value: string[]; onChange: (
   };
   return (
     <div>
-      <div className="field-surface flex min-h-[3rem] flex-wrap items-center gap-1.5 !py-2">
+      <div className="field-surface flex min-h-12 flex-wrap items-center gap-1.5 py-2!">
         {value.map((s) => (
           <span key={s} className="inline-flex items-center gap-1 rounded-full bg-brand-700 py-1 pl-3 pr-1.5 text-sm font-semibold text-white">
             {s}
@@ -205,7 +205,7 @@ export function SkillsEditor({ value, onChange }: { value: string[]; onChange: (
           onBlur={() => draft.trim() && add(draft)}
           placeholder={value.length ? '' : tx.profile.skillPh}
           aria-label={tx.profile.sectionSkills}
-          className="min-w-[8rem] flex-1 border-0 bg-transparent p-1 text-sm outline-none focus:ring-0"
+          className="min-w-32 flex-1 border-0 bg-transparent p-1 text-sm outline-hidden focus:ring-0"
         />
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -263,7 +263,7 @@ export function ExperienceEditor({ value, onChange }: { value: Experience[]; onC
                   </option>
                 ))}
               </select>
-              <select value={e.year ?? ''} onChange={(ev) => set(i, { year: Number(ev.target.value) || undefined })} aria-label={tx.profile.expYear} className={`${inputClass} !w-28 shrink-0`}>
+              <select value={e.year ?? ''} onChange={(ev) => set(i, { year: Number(ev.target.value) || undefined })} aria-label={tx.profile.expYear} className={`${inputClass} w-28! shrink-0`}>
                 <option value="">{tx.profile.expYear}</option>
                 {Array.from({ length: 15 }, (_, k) => thisYear - k).map((y) => (
                   <option key={y} value={y}>
@@ -302,7 +302,7 @@ function SwitchRow({ title, sub, on, disabled, onToggle }: { title: string; sub:
         onClick={onToggle}
         className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-60 ${on ? 'bg-brand-600' : 'bg-slate-300'}`}
       >
-        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
+        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${on ? 'left-6' : 'left-1'}`} />
       </button>
     </div>
   );
@@ -418,7 +418,7 @@ export function JourneyTab() {
           {list.map((b) => (
             <li
               key={b.id}
-              className={`flex flex-col items-center rounded-2xl border p-3 text-center transition ${b.earned ? 'border-amber-200 bg-gradient-to-b from-amber-50 to-white' : 'border-line bg-paper/60'}`}
+              className={`flex flex-col items-center rounded-2xl border p-3 text-center transition ${b.earned ? 'border-amber-200 bg-linear-to-b from-amber-50 to-white' : 'border-line bg-paper/60'}`}
             >
               <span className={`text-3xl ${b.earned ? '' : 'opacity-30 grayscale'}`} aria-hidden="true">
                 {b.emoji}
@@ -449,8 +449,8 @@ export function JourneyTab() {
         )}
       </Section>
 
-      <Link to="/app/cv" className="group flex items-center gap-4 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-brand-50 p-5 transition hover:-translate-y-0.5 hover:shadow-card sm:p-6">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-700 text-white shadow">
+      <Link to="/app/cv" className="group flex items-center gap-4 rounded-3xl border border-violet-200 bg-linear-to-br from-violet-50 to-brand-50 p-5 transition hover:-translate-y-0.5 hover:shadow-card sm:p-6">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-indigo-700 text-white shadow-sm">
           <FileText className="h-6 w-6" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">

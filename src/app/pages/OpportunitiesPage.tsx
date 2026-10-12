@@ -30,14 +30,14 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
   const closed = daysUntil(o.deadline) < 0;
   return (
     <article
-      className={`group relative flex flex-col rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card ${closed ? 'opacity-60' : ''}`}
+      className={`group relative flex flex-col rounded-3xl border border-line bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card ${closed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
         <ProgramBadge program={o.program} />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-brand-700">{o.program}</p>
           <h3 className="mt-0.5 text-lg font-bold leading-snug">
-            <Link to={`/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-[1.375rem] focus:outline-none">
+            <Link to={`/o/${o.id}`} className="after:absolute after:inset-0 after:rounded-[1.375rem] focus:outline-hidden">
               {o.title}
             </Link>
           </h3>
@@ -143,7 +143,7 @@ export default function OpportunitiesPage() {
   const [interestsClosed, closeInterests] = useDismissed('pick-interests');
   const [freshClosed, closeFresh] = useDismissed(`fresh:${newestFresh}`);
   const [earlyClosed, closeEarly] = useDismissed('early-teaser');
-  const smallBtn = 'btn-primary !px-4 !py-1.5 text-sm';
+  const smallBtn = 'btn-primary px-4! py-1.5! text-sm';
   const notices = [
     !profile && !guestClosed && (
       <Notice
@@ -230,7 +230,7 @@ export default function OpportunitiesPage() {
       {/* One strip at a time, so the list starts sooner; closing one shows the next. */}
       {notices.length > 0 && <div className="mt-4">{notices[0]}</div>}
 
-      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
+      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4 shadow-xs sm:p-5">
         <div className="flex gap-2">
           <label className="relative block flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -337,9 +337,9 @@ export default function OpportunitiesPage() {
                 onChange={(e) => setNaming(e.target.value)}
                 placeholder={tx.searches.namePh}
                 aria-label={tx.searches.namePh}
-                className={`${inputClass} !py-1.5 sm:w-72`}
+                className={`${inputClass} py-1.5! sm:w-72`}
               />
-              <button type="submit" className="btn-primary !px-4 !py-1.5 text-sm">
+              <button type="submit" className="btn-primary px-4! py-1.5! text-sm">
                 {tx.searches.saveBtn}
               </button>
               <button type="button" onClick={() => setNaming(null)} className="text-sm font-semibold text-slate-500 hover:text-slate-800">

@@ -29,7 +29,7 @@ export default function Navbar() {
 
   return (
     <header className={`sticky top-0 z-50 transition ${scrolled || open ? 'border-b border-slate-200/70 bg-white/90 backdrop-blur-md' : 'bg-transparent'}`}>
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:shadow">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:shadow-sm">
         {t.nav.skip}
       </a>
       <nav className="container-x flex h-16 items-center justify-between gap-3" aria-label="Main">
@@ -64,7 +64,7 @@ export default function Navbar() {
           </div>
 
           {signedIn ? (
-            <Link to="/app" className="btn-primary !px-4 !py-2 text-sm">
+            <Link to="/app" className="btn-primary px-4! py-2! text-sm">
               {t.nav.openApp}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
@@ -73,7 +73,7 @@ export default function Navbar() {
               <Link to="/login" className="rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-brand-700">
                 {t.nav.login}
               </Link>
-              <Link to="/register" className="btn-primary hidden !px-5 !py-2 text-sm sm:inline-flex">
+              <Link to="/register" className="btn-primary hidden px-5! py-2! text-sm sm:inline-flex">
                 {t.nav.cta}
               </Link>
             </>
@@ -93,7 +93,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div id="mobile-menu" className="border-t border-slate-200 bg-white/95 shadow-soft backdrop-blur md:hidden">
+        <div id="mobile-menu" className="border-t border-slate-200 bg-white/95 shadow-soft backdrop-blur-sm md:hidden">
           <ul className="container-x flex flex-col gap-1 py-3">
             {links.map((l) => (
               <li key={l.href}>

@@ -63,14 +63,14 @@ export function CompareSheet({
     <Sheet open={open} onClose={onClose} title={tx.student.compareTitle} wide>
       {/* Phones scroll sideways; the row labels stay put. */}
       <div className="-mx-5 overflow-x-auto px-5 sm:-mx-7 sm:px-7">
-        <table className="w-full min-w-[36rem] border-separate border-spacing-0 text-sm">
+        <table className="w-full min-w-xl border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
               <td className="sticky left-0 z-10 w-24 bg-white sm:w-36" />
               {unis.map((u) => {
                 const listed = data.shortlist.some((x) => x.university_id === u.id);
                 return (
-                  <th key={u.id} scope="col" className="min-w-[11rem] p-3 pt-0 text-left align-bottom">
+                  <th key={u.id} scope="col" className="min-w-44 p-3 pt-0 text-left align-bottom">
                     <div className="flex items-start justify-between gap-2">
                       <button type="button" onClick={() => onOpen(u.id)} className="text-left font-display text-lg font-bold leading-snug text-ink hover:text-brand-800">
                         {u.name}
@@ -89,7 +89,7 @@ export function CompareSheet({
                       type="button"
                       onClick={() => data.uni.add(u.id)}
                       disabled={listed}
-                      className={`mt-2 inline-flex min-h-[2.25rem] items-center gap-1 rounded-full px-3 text-xs font-bold ${listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'}`}
+                      className={`mt-2 inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-xs font-bold ${listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'}`}
                     >
                       {listed ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
                       {listed ? tx.student.inShortlist : tx.student.addShortlist}

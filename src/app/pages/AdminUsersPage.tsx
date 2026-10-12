@@ -105,7 +105,7 @@ export default function AdminUsersPage() {
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <span
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
-                      premium ? 'bg-gradient-to-br from-amber-400 to-coral-600' : 'bg-gradient-to-br from-brand-400 to-brand-700'
+                      premium ? 'bg-linear-to-br from-amber-400 to-coral-600' : 'bg-linear-to-br from-brand-400 to-brand-700'
                     }`}
                   >
                     {initials}

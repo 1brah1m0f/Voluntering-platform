@@ -248,7 +248,7 @@ function ListGroup({ title, empty, browse, items }: { title: string; empty: stri
           {items.map((it) => (
             <li key={it.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
               {/* Wraps the status onto its own line on phones rather than cutting the name short. */}
-              <div className="min-w-[12rem] flex-1">
+              <div className="min-w-48 flex-1">
                 <button type="button" onClick={it.onOpen} className="block max-w-full truncate text-left font-bold text-ink hover:text-brand-700">
                   {it.name}
                 </button>

@@ -81,7 +81,7 @@ export default function ProgramStrip() {
   // identical halves so the -50% translate loops seamlessly.
   const group = [...logos, ...logos];
   return (
-    <section aria-label={t.strip.label} className="relative overflow-hidden border-y border-white bg-gradient-to-r from-brand-50 via-white to-coral-50 py-10">
+    <section aria-label={t.strip.label} className="relative overflow-hidden border-y border-white bg-linear-to-r from-brand-50 via-white to-coral-50 py-10">
       <div className="bg-dots pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
       <p className="relative mb-4 px-4 text-center text-xs font-extrabold uppercase tracking-wider sm:tracking-[0.2em]">
         <span className="text-gradient">{t.strip.label}</span>

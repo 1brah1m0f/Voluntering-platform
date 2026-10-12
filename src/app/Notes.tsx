@@ -104,7 +104,7 @@ function Composer({ onAdd, compact = false }: { onAdd: (body: string, color: Not
         rows={compact ? 2 : 3}
         placeholder={tx.notes.ph}
         aria-label={tx.notes.ph}
-        className="w-full resize-y border-0 bg-transparent p-1 text-sm text-ink outline-none placeholder:text-slate-500 focus:ring-0"
+        className="w-full resize-y border-0 bg-transparent p-1 text-sm text-ink outline-hidden placeholder:text-slate-500 focus:ring-0"
       />
       <div className="mt-2 flex items-center justify-between gap-2">
         <ColorDots value={color} onChange={setColor} />
@@ -127,7 +127,7 @@ function NoteCard({ note, onUpdate, onRemove }: { note: Note; onUpdate: ReturnTy
     if (await onUpdate(note.id, { body: draft.trim(), color })) setEditing(false);
   };
   return (
-    <article className={`mb-3 break-inside-avoid rounded-2xl border p-4 shadow-sm ${COLORS[editing ? color : note.color].card}`}>
+    <article className={`mb-3 break-inside-avoid rounded-2xl border p-4 shadow-xs ${COLORS[editing ? color : note.color].card}`}>
       {editing ? (
         <>
           <textarea
@@ -136,7 +136,7 @@ function NoteCard({ note, onUpdate, onRemove }: { note: Note; onUpdate: ReturnTy
             maxLength={2000}
             rows={4}
             autoFocus
-            className="w-full resize-y border-0 bg-transparent p-0 text-sm text-ink outline-none focus:ring-0"
+            className="w-full resize-y border-0 bg-transparent p-0 text-sm text-ink outline-hidden focus:ring-0"
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <ColorDots value={color} onChange={setColor} />
@@ -160,7 +160,7 @@ function NoteCard({ note, onUpdate, onRemove }: { note: Note; onUpdate: ReturnTy
         </>
       ) : (
         <>
-          <p className="whitespace-pre-line break-words text-sm leading-relaxed text-ink">{note.body}</p>
+          <p className="whitespace-pre-line wrap-break-word text-sm leading-relaxed text-ink">{note.body}</p>
           <div className="mt-3 flex items-center justify-between gap-2">
             <span className="text-[0.6875rem] font-medium text-slate-500">{formatDateTime(note.updated_at, lang)}</span>
             <div className="flex items-center gap-0.5">
@@ -222,7 +222,7 @@ export function NotesMini() {
   const { tx } = useAppText();
   const { notes, add, update, remove } = useNotes();
   return (
-    <section className="rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
+    <section className="rounded-3xl border border-line bg-white p-4 shadow-xs sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 font-bold">
           <StickyNote className="h-4 w-4 text-amber-500" aria-hidden="true" />

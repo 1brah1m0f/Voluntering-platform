@@ -119,7 +119,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
 
       {!onboarding && (
         // Six tabs don't fit in one row on any screen: two rows of three.
-        <div role="tablist" className="mt-5 grid grid-cols-3 gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
+        <div role="tablist" className="mt-5 grid grid-cols-3 gap-1 rounded-2xl bg-white p-1 shadow-xs ring-1 ring-slate-200">
           {(
             [
               { id: 'profile', label: tx.profile.tabProfile, Icon: UserRound },
@@ -301,7 +301,7 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
 
           {/* Save bar: stays in view on long forms, only while there's something to save (or a result to show). */}
           {(dirty || onboarding || busy || msg) && (
-            <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur sm:flex-row sm:items-center lg:bottom-4">
+            <div className="sticky bottom-20 z-30 flex flex-col gap-3 rounded-3xl border border-line bg-white/95 p-4 shadow-soft backdrop-blur-sm sm:flex-row sm:items-center lg:bottom-4">
               <div className="min-w-0 flex-1">
                 {/* A "saved" message gives way to "unsaved changes" as soon as the user edits again. */}
                 {msg && (!msg.ok || !dirty) ? (
@@ -383,11 +383,11 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
   const studyLine = [p.occupation ? tx.profile.occupations[p.occupation] : '', p.school, p.field].filter(Boolean).join(' · ');
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
       {/* Cover in the colour the user picked. */}
-      <div className={`relative h-24 bg-gradient-to-br sm:h-28 ${theme.cover}`}>
+      <div className={`relative h-24 bg-linear-to-br sm:h-28 ${theme.cover}`}>
         <span className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-white/15" aria-hidden="true" />
-        <span className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full border-[16px] border-white/10" aria-hidden="true" />
+        <span className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full border-16 border-white/10" aria-hidden="true" />
         <ThemeButton />
       </div>
     <div className="flex items-start gap-4 px-5 pb-5 sm:gap-5 sm:px-6 sm:pb-6">
@@ -399,7 +399,7 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
           disabled={busy}
           title={tx.profile.changePhoto}
           aria-label={tx.profile.changePhoto}
-          className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white shadow transition hover:bg-brand-800 disabled:opacity-60"
+          className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-brand-700 text-white shadow-sm transition hover:bg-brand-800 disabled:opacity-60"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Camera className="h-4 w-4" aria-hidden="true" />}
         </button>
@@ -445,7 +445,7 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
               [stats.accepted, tx.profile.statAccepted, 'text-emerald-700'],
             ] as const
           ).map(([n, label, tone]) => (
-            <div key={label} className="min-w-[4.5rem] rounded-2xl bg-paper px-3 py-2.5">
+            <div key={label} className="min-w-18 rounded-2xl bg-paper px-3 py-2.5">
               <dt className="sr-only">{label}</dt>
               <dd className={`font-display text-2xl font-extrabold leading-none ${tone}`}>{n}</dd>
               <dd className="mt-1 text-xs font-medium text-slate-500">{label}</dd>
@@ -503,7 +503,7 @@ function NotificationSettings() {
                 onClick={() => toggle(key)}
                 className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-50 ${on ? 'bg-brand-600' : 'bg-slate-300'}`}
               >
-                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
+                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${on ? 'left-6' : 'left-1'}`} />
               </button>
             </li>
           );

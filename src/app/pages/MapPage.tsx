@@ -234,16 +234,16 @@ export default function MapPage() {
         </p>
       </div>
 
-      <div className="relative -mx-3.5 h-[calc(100dvh-13rem)] min-h-[26rem] overflow-hidden border-y border-line bg-[#cdeeee] sm:mx-0 sm:rounded-[2rem] sm:border sm:shadow-card lg:h-[calc(100vh-11rem)]">
+      <div className="relative -mx-3.5 h-[calc(100dvh-13rem)] min-h-104 overflow-hidden border-y border-line bg-[#cdeeee] sm:mx-0 sm:rounded-4xl sm:border sm:shadow-card lg:h-[calc(100vh-11rem)]">
         <div ref={mapEl} className="absolute inset-0 z-0 h-full w-full" />
 
         {(isDataLoading || mapState === 'loading') && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f5f2ea]/80 backdrop-blur-sm">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-paper/80 backdrop-blur-xs">
             <Spinner label={tx.loading} />
           </div>
         )}
         {mapState === 'failed' && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-50 via-[#f5f2ea] to-coral-50 p-6 text-center">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-linear-to-br from-brand-50 via-paper to-coral-50 p-6 text-center">
             <Globe2 className="h-12 w-12 text-brand-300" aria-hidden="true" />
             <p className="max-w-xs text-sm font-medium text-brand-900">{m.loadError}</p>
           </div>
@@ -259,7 +259,7 @@ export default function MapPage() {
                 role="radio"
                 aria-checked={selected === c.id}
                 onClick={() => select(selected === c.id ? '' : c.id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-md backdrop-blur transition ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-md backdrop-blur-sm transition ${
                   selected === c.id ? 'bg-coral-700 text-white' : 'bg-white/95 text-slate-700 hover:bg-white'
                 }`}
               >
@@ -306,7 +306,7 @@ export default function MapPage() {
           <section
             key={selected}
             aria-label={selected === ONLINE ? m.online : selected}
-            className="absolute inset-x-0 bottom-0 z-20 flex max-h-[62%] animate-[sheet-up_0.25s_ease] flex-col rounded-t-[1.75rem] bg-paper/95 shadow-[0_-12px_40px_-12px_rgba(15,58,66,0.35)] backdrop-blur lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-16 lg:max-h-none lg:w-[24rem] lg:rounded-[1.75rem]"
+            className="absolute inset-x-0 bottom-0 z-20 flex max-h-[62%] animate-[sheet-up_0.25s_ease] flex-col rounded-t-[1.75rem] bg-paper/95 shadow-[0_-12px_40px_-12px_rgba(15,58,66,0.35)] backdrop-blur-sm lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-16 lg:max-h-none lg:w-[24rem] lg:rounded-[1.75rem]"
           >
             <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-slate-300 lg:hidden" aria-hidden="true" />
             <header className="flex items-start gap-3 px-4 pb-3 pt-3 sm:px-5">
@@ -320,7 +320,7 @@ export default function MapPage() {
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
-              <button type="button" onClick={() => select('')} aria-label={tx.close} className="rounded-full bg-white p-2 text-slate-500 shadow-sm hover:text-ink">
+              <button type="button" onClick={() => select('')} aria-label={tx.close} className="rounded-full bg-white p-2 text-slate-500 shadow-xs hover:text-ink">
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </header>

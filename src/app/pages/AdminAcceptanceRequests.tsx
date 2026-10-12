@@ -42,7 +42,7 @@ export default function AdminAcceptanceRequests() {
                 <p className="break-all text-sm text-slate-500">{row.email}</p>
                 <p className="text-sm text-slate-700">{row.title}</p>
               </div>
-              <button type="button" disabled={busy !== null} onClick={() => void toggle(row)} className="btn-secondary !px-4 !py-2 text-sm">
+              <button type="button" disabled={busy !== null} onClick={() => void toggle(row)} className="btn-secondary px-4! py-2! text-sm">
                 {row.verified ? tx.acceptance.revoke : tx.acceptance.verify}
               </button>
             </li>

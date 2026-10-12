@@ -92,7 +92,7 @@ export function UniversitiesTab({
           <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-brand-900 p-3 pl-5 text-white shadow-soft">
             <ul className="flex min-w-0 flex-1 flex-wrap gap-1.5">
               {chosen.map((u) => (
-                <li key={u.id} className="inline-flex max-w-[14rem] items-center gap-1 rounded-full bg-brand-800 py-1 pl-3 pr-1 text-sm font-semibold">
+                <li key={u.id} className="inline-flex max-w-56 items-center gap-1 rounded-full bg-brand-800 py-1 pl-3 pr-1 text-sm font-semibold">
                   <span className="truncate">{u.name}</span>
                   <button type="button" onClick={() => onToggleCompare(u.id)} aria-label={`${tx.student.remove}: ${u.name}`} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-brand-700">
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -104,7 +104,7 @@ export function UniversitiesTab({
               type="button"
               onClick={onOpenCompare}
               disabled={chosen.length < 2}
-              className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-brand-900 transition hover:bg-brand-50 disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-brand-900 transition hover:bg-brand-50 disabled:opacity-60"
             >
               <Columns3 className="h-4 w-4" aria-hidden="true" />
               {tx.student.compareN(chosen.length)}
@@ -140,7 +140,7 @@ function UniversityCard({
   const fee = u.app_fee_eur === null ? '—' : u.app_fee_eur === 0 ? tx.student.free : `~${eur(u.app_fee_eur)}`;
   return (
     <article
-      className={`grid gap-5 rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] lg:gap-8 ${
+      className={`grid gap-5 rounded-3xl border bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] lg:gap-8 ${
         comparing ? 'border-brand-400 ring-2 ring-brand-100' : 'border-line hover:border-brand-200'
       }`}
     >
@@ -185,7 +185,7 @@ function UniversityCard({
           type="button"
           onClick={onList}
           disabled={listed}
-          className={`inline-flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition ${
+          className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition ${
             listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'
           }`}
         >
@@ -193,12 +193,12 @@ function UniversityCard({
           {listed ? tx.student.inShortlist : tx.student.addShortlist}
         </button>
         <div className="mt-auto grid grid-cols-2 gap-2 lg:grid-cols-1">
-          <button type="button" onClick={onOpen} className="btn-secondary !px-4 !py-2.5 text-sm">
+          <button type="button" onClick={onOpen} className="btn-secondary px-4! py-2.5! text-sm">
             {tx.student.details}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
           <label
-            className={`inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold ${
+            className={`inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold ${
               comparing ? 'border-brand-300 bg-brand-50 text-brand-900' : 'border-line text-slate-700'
             } ${!comparing && compareFull ? 'cursor-not-allowed opacity-60' : ''}`}
             title={!comparing && compareFull ? tx.student.compareMax : undefined}

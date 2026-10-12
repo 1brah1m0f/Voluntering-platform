@@ -1,6 +1,237 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@import './styles/theme.css';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility container-x {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility app-surface {
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(213, 243, 243, 0.55),
+      transparent 30rem
+    ),
+    linear-gradient(180deg, #fbfcfb 0%, #f5f2ea 100%);
+}
+
+@utility surface-card {
+  @apply rounded-3xl border border-line bg-white shadow-card;
+}
+
+@utility btn-primary {
+  @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed;
+  /* Disabled: neutral grey, so it reads as "not available" rather than as a faded, broken red. */
+  &:disabled {
+    @apply translate-y-0 bg-slate-200 text-slate-500 shadow-none;
+  }
+  &:disabled::after {
+    display: none;
+  }
+  /* Light sweep across primary buttons. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 50%;
+    z-index: -1;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.35),
+      transparent
+    );
+    transform: translateX(-120%) skewX(-20deg);
+    animation: sweep 3.2s ease-in-out infinite;
+  }
+}
+
+@utility btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;
+}
+
+@utility field-surface {
+  @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-xs transition placeholder:text-slate-500 focus:border-brand-500 focus:outline-hidden focus:ring-4 focus:ring-brand-100;
+}
+
+@utility eyebrow {
+  @apply mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider;
+}
+
+@utility section-title {
+  @apply text-balance text-3xl font-extrabold leading-[1.2]! tracking-tight sm:text-4xl lg:text-[2.75rem];
+}
+
+@utility section-sub {
+  @apply mt-4 text-base leading-7 text-slate-700 sm:text-lg sm:leading-8;
+}
+
+@utility bg-dots {
+  background-image: radial-gradient(
+    rgba(15, 58, 66, 0.12) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@utility bg-dots-light {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.25) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@utility mask-fade-y {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 20%,
+    black 70%,
+    transparent
+  );
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+}
+
+@utility mask-fade-edges {
+  /* Scrolling tab rows on phones: faded ends hint that there is more. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 1.25rem,
+    black calc(100% - 1.25rem),
+    transparent
+  );
+  @media (min-width: 640px) {
+    mask-image: none;
+  }
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(
+    90deg,
+    #1b626c,
+    #1f98a1,
+    #fb5d3b,
+    #8b5cf6,
+    #1b626c
+  );
+  background-size: 300% auto;
+  animation: shine 8s linear infinite;
+}
+
+@utility reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.8s cubic-bezier(0.5, 0, 0, 1),
+    transform 0.8s cubic-bezier(0.5, 0, 0, 1);
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility reveal-left {
+  transform: translateX(-60px);
+}
+
+@utility reveal-right {
+  transform: translateX(60px);
+}
+
+@utility reveal-scale {
+  transform: scale(0.9);
+}
+
+@utility is-visible {
+  &.reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility tilt-card {
+  /* 3D tilt driven by useInteractions(); transform is set inline on hover. */
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@utility particle {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(135deg, #3ab4bb, #fb5d3b);
+  animation: particle-rise linear infinite;
+}
+
+@utility orb {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(70px);
+  transition: transform 0.6s ease-out;
+}
+
+@utility logo-track {
+  /* Logo marquee: always moves, like a news ticker. Defined here (not in the
+     Tailwind config) so it can't go missing from a stale build. */
+  animation: logo-marquee 12s linear infinite;
+}
+
+@utility logo-card {
+  /* Marquee logo cards; ProgramStrip sets scale/shadow inline as the cursor nears. */
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+
+@utility click-ring {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(31, 152, 161, 0.9);
+  border-radius: 9999px;
+  pointer-events: none;
+  transform: scale(0.4);
+  box-shadow: 0 0 12px rgba(31, 152, 161, 0.5);
+  animation: ring-expand 0.55s ease-out forwards;
+}
 
 @layer base {
   html {
@@ -24,139 +255,7 @@
     @apply font-display text-ink;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-coral-500 ring-offset-2;
-  }
-}
-
-@layer components {
-  .container-x {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
-  }
-  .app-surface {
-    background:
-      radial-gradient(circle at 90% 0%, rgba(213, 243, 243, 0.55), transparent 30rem),
-      linear-gradient(180deg, #fbfcfb 0%, #f5f2ea 100%);
-  }
-  .surface-card {
-    @apply rounded-3xl border border-line bg-white shadow-card;
-  }
-  .btn-primary {
-    @apply relative isolate overflow-hidden inline-flex items-center justify-center gap-2 rounded-full bg-coral-700 px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-white shadow-lg shadow-coral-700/25 transition hover:-translate-y-0.5 hover:bg-coral-800 active:translate-y-0 disabled:cursor-not-allowed;
-  }
-  /* Disabled: neutral grey, so it reads as "not available" rather than as a faded, broken red. */
-  .btn-primary:disabled {
-    @apply translate-y-0 bg-slate-200 text-slate-500 shadow-none;
-  }
-  .btn-primary:disabled::after {
-    display: none;
-  }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 sm:px-6 sm:py-3 font-semibold text-slate-800 transition hover:border-brand-300 hover:text-brand-700;
-  }
-  .field-surface {
-    @apply w-full rounded-xl sm:rounded-2xl border border-line bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
-  }
-  .eyebrow {
-    @apply mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider;
-  }
-  .section-title {
-    @apply text-balance text-3xl font-extrabold !leading-[1.2] tracking-tight sm:text-4xl lg:text-[2.75rem];
-  }
-  .section-sub {
-    @apply mt-4 text-base leading-7 text-slate-700 sm:text-lg sm:leading-8;
-  }
-  .bg-dots {
-    background-image: radial-gradient(rgba(15, 58, 66, 0.12) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .bg-dots-light {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .mask-fade-y {
-    mask-image: linear-gradient(to bottom, transparent, black 20%, black 70%, transparent);
-  }
-  .mask-fade-x {
-    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
-  }
-  /* Scrolling tab rows on phones: faded ends hint that there is more. */
-  .mask-fade-edges {
-    mask-image: linear-gradient(to right, transparent, black 1.25rem, black calc(100% - 1.25rem), transparent);
-  }
-  @media (min-width: 640px) {
-    .mask-fade-edges { mask-image: none; }
-  }
-  .text-gradient {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(90deg, #1b626c, #1f98a1, #fb5d3b, #8b5cf6, #1b626c);
-    background-size: 300% auto;
-    animation: shine 8s linear infinite;
-  }
-  /* Light sweep across primary buttons. */
-  .btn-primary::after {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 50%;
-    z-index: -1;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    transform: translateX(-120%) skewX(-20deg);
-    animation: sweep 3.2s ease-in-out infinite;
-  }
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1);
-  }
-  .reveal-left { transform: translateX(-60px); }
-  .reveal-right { transform: translateX(60px); }
-  .reveal-scale { transform: scale(0.9); }
-  .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-  }
-  /* 3D tilt driven by useInteractions(); transform is set inline on hover. */
-  .tilt-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-  .particle {
-    position: absolute;
-    bottom: -12px;
-    border-radius: 9999px;
-    pointer-events: none;
-    opacity: 0;
-    background: linear-gradient(135deg, #3ab4bb, #fb5d3b);
-    animation: particle-rise linear infinite;
-  }
-  .orb {
-    position: absolute;
-    border-radius: 9999px;
-    pointer-events: none;
-    filter: blur(70px);
-    transition: transform 0.6s ease-out;
-  }
-  /* Logo marquee: always moves, like a news ticker. Defined here (not in the
-     Tailwind config) so it can't go missing from a stale build. */
-  .logo-track {
-    animation: logo-marquee 12s linear infinite;
-  }
-  /* Marquee logo cards; ProgramStrip sets scale/shadow inline as the cursor nears. */
-  .logo-card {
-    transition: transform 0.18s ease-out, box-shadow 0.25s ease-out;
-    will-change: transform;
-  }
-  .click-ring {
-    position: absolute;
-    width: 34px;
-    height: 34px;
-    border: 3px solid rgba(31, 152, 161, 0.9);
-    border-radius: 9999px;
-    pointer-events: none;
-    transform: scale(0.4);
-    box-shadow: 0 0 12px rgba(31, 152, 161, 0.5);
-    animation: ring-expand 0.55s ease-out forwards;
+    @apply outline-hidden ring-2 ring-coral-500 ring-offset-2;
   }
 }
 

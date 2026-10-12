@@ -179,7 +179,7 @@ export function GuidePage() {
                     aria-selected={platform === sec.platform}
                     onClick={() => setPlatform(sec.platform!)}
                     className={`rounded-2xl border px-3 py-2.5 text-sm font-bold transition ${
-                      platform === sec.platform ? 'border-brand-700 bg-brand-700 text-white shadow-sm' : 'border-line bg-white text-slate-700 hover:border-brand-300'
+                      platform === sec.platform ? 'border-brand-700 bg-brand-700 text-white shadow-xs' : 'border-line bg-white text-slate-700 hover:border-brand-300'
                     }`}
                   >
                     {sec.h}
@@ -206,7 +206,7 @@ export function GuidePage() {
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {sec.images.map((img) => (
                     <figure key={img.src}>
-                      <img src={img.src} alt={img.alt} loading="lazy" width={739} height={900} className="h-auto w-full rounded-2xl border border-line shadow-sm" />
+                      <img src={img.src} alt={img.alt} loading="lazy" width={739} height={900} className="h-auto w-full rounded-2xl border border-line shadow-xs" />
                       <figcaption className="mt-1.5 text-xs leading-snug text-slate-500">{img.alt}</figcaption>
                     </figure>
                   ))}
@@ -240,7 +240,7 @@ export function GuidePage() {
       <h2 className="mt-10 text-lg font-extrabold">{tx.learn.related}</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         {others.map((o) => (
-          <Link key={o.slug} to={`/guides/${o.slug}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card">
+          <Link key={o.slug} to={`/guides/${o.slug}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:shadow-card">
             <p className="font-semibold leading-snug text-slate-900">{o.text[lang].title}</p>
             <p className="mt-2 text-xs font-semibold text-slate-500">{tx.learn.minutes(o.minutes)}</p>
           </Link>
@@ -279,15 +279,15 @@ export function ProgramPage() {
   return (
     <div>
       <BackLink to="/guides" label={tx.learn.title} />
-      <header className={`relative mt-4 overflow-hidden rounded-3xl bg-gradient-to-br ${page.tone} p-6 text-white shadow-soft sm:p-8`}>
+      <header className={`relative mt-4 overflow-hidden rounded-3xl bg-linear-to-br ${page.tone} p-6 text-white shadow-soft sm:p-8`}>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           {logo && (
-            <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-2xl bg-white p-2.5 shadow">
+            <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-2xl bg-white p-2.5 shadow-sm">
               <img src={logo} alt="" className="max-h-full max-w-full object-contain" />
             </span>
           )}
           <div className="min-w-0">
-            <h1 className="text-2xl font-extrabold tracking-tight !text-white sm:text-3xl">{page.name}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-white! sm:text-3xl">{page.name}</h1>
             <p className="mt-1 text-white/85">{t.tagline}</p>
           </div>
           <a
@@ -303,13 +303,13 @@ export function ProgramPage() {
       </header>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs lg:col-span-2">
           <h2 className="font-bold">{tx.program.about}</h2>
           <p className="mt-2 leading-7 text-slate-700">{t.about}</p>
         </section>
         <div className="grid gap-4">
           {facts.map(({ Icon, label, text }) => (
-            <section key={label} className="flex gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section key={label} className="flex gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
               <Icon className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden="true" />
               <div>
                 <h2 className="text-sm font-bold">{label}</h2>

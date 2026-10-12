@@ -21,10 +21,10 @@ export function SectionHeader({
   return (
     <div ref={ref} className="reveal mx-auto max-w-2xl text-center">
       <span className={light ? 'mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-100' : `eyebrow ${tones[tone].eyebrow}`}>{eyebrow}</span>
-      <h2 id={id} className={`section-title ${light ? '!text-white' : ''}`}>
+      <h2 id={id} className={`section-title ${light ? 'text-white!' : ''}`}>
         {title}
       </h2>
-      {subtitle && <p className={`section-sub ${light ? '!text-brand-100' : ''}`}>{subtitle}</p>}
+      {subtitle && <p className={`section-sub ${light ? 'text-brand-100!' : ''}`}>{subtitle}</p>}
     </div>
   );
 }

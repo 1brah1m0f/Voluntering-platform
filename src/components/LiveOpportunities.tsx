@@ -32,7 +32,7 @@ export default function LiveOpportunities() {
   const shown = [...open].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 4);
 
   return (
-    <section id="live" aria-labelledby="live-title" className="bg-gradient-to-b from-white via-brand-50/40 to-white py-20 sm:py-24">
+    <section id="live" aria-labelledby="live-title" className="bg-linear-to-b from-white via-brand-50/40 to-white py-20 sm:py-24">
       <div className="container-x">
         <SectionHeader id="live-title" eyebrow={t.live.eyebrow} title={fresh.length ? t.live.titleNew(fresh.length) : t.live.titleOpen(open.length)} subtitle={t.live.subtitle} tone="coral" />
         <Reveal className="mt-12 grid gap-4 sm:grid-cols-2">
@@ -40,7 +40,7 @@ export default function LiveOpportunities() {
             <Link
               key={o.id}
               to={`/o/${o.id}`}
-              className="group flex gap-4 rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-6"
+              className="group flex gap-4 rounded-3xl border border-line bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-6"
             >
               <ProgramBadge program={o.program} />
               <div className="min-w-0 flex-1">

@@ -19,7 +19,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 }
 
 const officialLink = (url: string, label: string) => (
-  <a href={url} target="_blank" rel="noopener noreferrer" className="btn-primary !py-2.5 text-sm">
+  <a href={url} target="_blank" rel="noopener noreferrer" className="btn-primary py-2.5! text-sm">
     {label}
     <ExternalLink className="h-4 w-4" aria-hidden="true" />
   </a>
@@ -44,7 +44,7 @@ export function ScholarshipSheet({ s, data, onClose }: { s: Scholarship | null; 
               <button
                 type="button"
                 onClick={() => downloadIcs({ uid: `scholarship-${s.id}`, date: info.date, title: `${tx.student.deadline}: ${s.name}`, details: s.deadline_note, link: s.url })}
-                className="btn-secondary !py-2.5 text-sm"
+                className="btn-secondary py-2.5! text-sm"
               >
                 <CalendarPlus className="h-4 w-4" aria-hidden="true" />
                 {tx.share.ics}
@@ -120,7 +120,7 @@ export function UniversitySheet({
               type="button"
               onClick={() => data.uni.add(u.id)}
               disabled={listed}
-              className={`inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full px-4 text-sm font-bold ${listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'}`}
+              className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold ${listed ? 'bg-emerald-50 text-emerald-800' : 'bg-brand-50 text-brand-900 hover:bg-brand-100'}`}
             >
               {listed ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
               {listed ? tx.student.inShortlist : tx.student.addShortlist}
@@ -131,7 +131,7 @@ export function UniversitySheet({
               aria-pressed={comparing}
               disabled={!comparing && compareFull}
               title={!comparing && compareFull ? tx.student.compareMax : undefined}
-              className="btn-secondary !py-2.5 text-sm disabled:opacity-60"
+              className="btn-secondary py-2.5! text-sm disabled:opacity-60"
             >
               <Columns3 className="h-4 w-4" aria-hidden="true" />
               {tx.student.compare}

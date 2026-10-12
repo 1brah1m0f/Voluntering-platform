@@ -13,7 +13,7 @@ export default function HowItWorks() {
       <div className="container-x">
         <SectionHeader id="how-title" eyebrow={t.how.eyebrow} title={t.how.title} tone="emerald" />
         <div className="relative mt-14">
-          <div className="absolute left-[16%] right-[16%] top-8 hidden h-0.5 bg-gradient-to-r from-coral-300 via-brand-300 to-emerald-300 md:block" aria-hidden="true" />
+          <div className="absolute left-[16%] right-[16%] top-8 hidden h-0.5 bg-linear-to-r from-coral-300 via-brand-300 to-emerald-300 md:block" aria-hidden="true" />
           <ol className="relative grid gap-10 md:grid-cols-3 md:gap-6">
             {t.how.steps.map((step, i) => {
               const Icon = icons[i];

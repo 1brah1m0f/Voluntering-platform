@@ -129,9 +129,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider value={value}>
       {children}
       {limitOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="limit-title">
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="limit-title">
           <div className="w-full max-w-sm animate-[row-in_0.25s_ease] rounded-3xl bg-white p-6 text-center shadow-2xl">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-coral-400 to-coral-600 text-white">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-coral-400 to-coral-600 text-white">
               <Lock className="h-6 w-6" aria-hidden="true" />
             </span>
             <h2 id="limit-title" className="mt-4 text-xl font-extrabold">

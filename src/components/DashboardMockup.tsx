@@ -36,8 +36,8 @@ export default function DashboardMockup() {
 
   return (
     <div className="relative mx-auto w-full max-w-md" aria-hidden="true">
-      <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-to-br from-brand-200/60 via-white to-coral-200/60 blur-2xl" />
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
+      <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-linear-to-br from-brand-200/60 via-white to-coral-200/60 blur-2xl" />
+      <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-slate-900">{t.mock.greeting}</p>

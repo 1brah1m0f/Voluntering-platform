@@ -44,7 +44,7 @@ export function useAiStatus(): AiStatus {
 
 function ToolCard({ Icon, title, points, tone }: { Icon: LucideIcon; title: string; points: string[]; tone: string }) {
   return (
-    <div className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6">
+    <div className="rounded-3xl border border-line bg-white p-5 shadow-xs sm:p-6">
       <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${tone}`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
@@ -88,7 +88,7 @@ export default function AiPage() {
 
   return (
     <div className="space-y-6">
-      <header className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-indigo-800 to-brand-950 p-6 text-white shadow-soft sm:p-8 lg:p-10">
+      <header className="relative overflow-hidden rounded-4xl bg-linear-to-br from-violet-700 via-indigo-800 to-brand-950 p-6 text-white shadow-soft sm:p-8 lg:p-10">
         <span className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-fuchsia-400/30 blur-3xl" aria-hidden="true" />
         <span className="pointer-events-none absolute -bottom-28 left-10 h-56 w-56 rounded-full bg-brand-400/20 blur-3xl" aria-hidden="true" />
         <div className="relative flex flex-wrap items-center gap-2">
@@ -99,7 +99,7 @@ export default function AiPage() {
           <AiStatusPill status={status} />
           {info?.limit != null && <span className="text-sm text-violet-100">{h.perDay(info.limit)}</span>}
         </div>
-        <h1 className="relative mt-4 max-w-2xl text-3xl font-extrabold tracking-tight !text-white sm:text-4xl">{h.title}</h1>
+        <h1 className="relative mt-4 max-w-2xl text-3xl font-extrabold tracking-tight text-white! sm:text-4xl">{h.title}</h1>
         <p className="relative mt-2 max-w-2xl leading-relaxed text-violet-100 sm:text-lg">{h.sub}</p>
         {status === 'soon' && <p className="relative mt-4 max-w-2xl rounded-2xl bg-white/10 px-4 py-3 text-sm text-violet-50">{tx.ai.comingSoon}</p>}
       </header>
@@ -108,7 +108,7 @@ export default function AiPage() {
 
       {free && (
         <div className="flex flex-col gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:p-6">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-coral-600 text-white">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-coral-600 text-white">
             <Crown className="h-6 w-6" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
@@ -127,7 +127,7 @@ export default function AiPage() {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-3">
-        <section className="min-w-0 rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6 lg:col-span-2" aria-labelledby="ai-pick">
+        <section className="min-w-0 rounded-3xl border border-line bg-white p-5 shadow-xs sm:p-6 lg:col-span-2" aria-labelledby="ai-pick">
           <h2 id="ai-pick" className="text-xl font-bold">
             {h.pickTitle}
           </h2>
@@ -135,7 +135,7 @@ export default function AiPage() {
           {tracked.length === 0 ? (
             <div className="mt-4 flex flex-col items-start gap-3 rounded-2xl bg-paper p-4">
               <p className="text-sm text-slate-600">{h.pickEmpty}</p>
-              <Link to="/app" className="btn-secondary !py-2 text-sm">
+              <Link to="/app" className="btn-secondary py-2! text-sm">
                 <Search className="h-4 w-4" aria-hidden="true" />
                 {h.pickFind}
               </Link>
@@ -179,7 +179,7 @@ export default function AiPage() {
         </section>
 
         <div className="space-y-4">
-          <section className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-3xl border border-line bg-white p-5 shadow-xs sm:p-6">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                 <UserRound className="h-5 w-5" aria-hidden="true" />
@@ -196,7 +196,7 @@ export default function AiPage() {
             </Link>
           </section>
 
-          <section className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-3xl border border-line bg-white p-5 shadow-xs sm:p-6">
             <h2 className="font-bold">{h.howTitle}</h2>
             <ol className="mt-3 space-y-3">
               {h.how.map((step, i) => (

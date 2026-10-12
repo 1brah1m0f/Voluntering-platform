@@ -117,11 +117,11 @@ export default function InstallPrompt() {
       role="dialog"
       aria-live="polite"
       aria-labelledby="install-title"
-      className={`fixed inset-x-3 top-3 z-[60] mx-auto max-w-md transition duration-500 ease-out sm:top-5 ${
+      className={`fixed inset-x-3 top-3 z-60 mx-auto max-w-md transition duration-500 ease-out sm:top-5 ${
         ready ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-8 opacity-0'
       }`}
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-2xl shadow-brand-900/40 ring-1 ring-white/10">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-2xl shadow-brand-900/40 ring-1 ring-white/10">
         <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
         <button
           type="button"
@@ -170,7 +170,7 @@ export function InstallCard({ className = '' }: { className?: string }) {
   return (
     <section
       aria-labelledby="install-card-title"
-      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-sm ${className}`}
+      className={`relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-xs ${className}`}
     >
       <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-brand-300/30 blur-2xl" aria-hidden="true" />
       <button
@@ -234,7 +234,7 @@ export function InstallLink({ hint }: { hint?: string }) {
       )}
     </>
   );
-  const cls = 'group inline-flex items-center gap-3 rounded-full border border-brand-200 bg-white/80 py-1.5 pl-1.5 pr-4 shadow-sm backdrop-blur transition hover:border-brand-400 hover:bg-white';
+  const cls = 'group inline-flex items-center gap-3 rounded-full border border-brand-200 bg-white/80 py-1.5 pl-1.5 pr-4 shadow-xs backdrop-blur-sm transition hover:border-brand-400 hover:bg-white';
 
   if (canPrompt) {
     return (

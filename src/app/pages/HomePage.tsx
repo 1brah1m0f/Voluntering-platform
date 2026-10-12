@@ -17,7 +17,7 @@ import { daysUntil } from '../util';
 /** A plain white card with a title row. */
 function Card({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-3xl border border-line bg-white p-4 shadow-sm sm:p-5">
+    <section className="rounded-3xl border border-line bg-white p-4 shadow-xs sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="font-bold text-ink">{title}</h2>
         {action}
@@ -115,7 +115,7 @@ export default function HomePage() {
         <p className="mt-1 text-sm text-slate-600 sm:text-base">{tx.dash.sub(open.length, fits)}</p>
       </header>
 
-      <Link to="/app/tracker" className="grid grid-cols-3 divide-x divide-line rounded-3xl border border-line bg-white shadow-sm transition hover:border-brand-200">
+      <Link to="/app/tracker" className="grid grid-cols-3 divide-x divide-line rounded-3xl border border-line bg-white shadow-xs transition hover:border-brand-200">
         {stats.map(({ label, n, Icon, tone }) => (
           <div key={label} className="flex flex-col items-center gap-1 px-2 py-4 text-center sm:flex-row sm:justify-center sm:gap-3">
             <Icon className={`h-5 w-5 ${tone}`} aria-hidden="true" />
@@ -158,7 +158,7 @@ export default function HomePage() {
         </div>
 
         <div className="min-w-0 space-y-5">
-          <nav aria-label={tx.dash.shortcutsTitle} className="overflow-hidden rounded-3xl border border-line bg-white shadow-sm">
+          <nav aria-label={tx.dash.shortcutsTitle} className="overflow-hidden rounded-3xl border border-line bg-white shadow-xs">
             {links.map(({ to, label, sub, Icon }) => (
               <Link key={to} to={to} className="flex items-center gap-3 border-b border-line/70 px-4 py-3 transition last:border-0 hover:bg-paper">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">

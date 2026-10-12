@@ -7,7 +7,7 @@ export default function Pricing() {
   const { t } = useLang();
   const p = t.pricing;
   return (
-    <section id="pricing" aria-labelledby="pricing-title" className="relative overflow-hidden bg-gradient-to-b from-white via-sky-50/60 to-white py-14 sm:py-20 lg:py-24">
+    <section id="pricing" aria-labelledby="pricing-title" className="relative overflow-hidden bg-linear-to-b from-white via-sky-50/60 to-white py-14 sm:py-20 lg:py-24">
       <div className="container-x">
         <SectionHeader id="pricing-title" eyebrow={p.eyebrow} title={p.title} subtitle={p.subtitle} tone="sky" />
         <div className="mx-auto mt-8 grid max-w-6xl gap-6 sm:mt-12 md:grid-cols-2 lg:grid-cols-3">
@@ -34,16 +34,16 @@ export default function Pricing() {
           </Reveal>
 
           <Reveal className="h-full" variant="right" delay={120}>
-            <article className="relative isolate flex h-full flex-col rounded-3xl bg-gradient-to-br from-brand-800 to-brand-950 p-6 text-brand-50 sm:p-8 tilt-card shadow-soft ring-1 ring-brand-900">
+            <article className="relative isolate flex h-full flex-col rounded-3xl bg-linear-to-br from-brand-800 to-brand-950 p-6 text-brand-50 sm:p-8 tilt-card shadow-soft ring-1 ring-brand-900">
               <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl" aria-hidden="true">
                 <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand-300/20 blur-3xl" />
                 <div className="bg-dots-light absolute inset-0 opacity-30" />
               </div>
-              <span className="absolute -top-3 right-6 inline-flex items-center gap-1 rounded-full bg-coral-700 px-3 py-1 text-xs font-bold text-white shadow">
+              <span className="absolute -top-3 right-6 inline-flex items-center gap-1 rounded-full bg-coral-700 px-3 py-1 text-xs font-bold text-white shadow-sm">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 {p.popular}
               </span>
-              <h3 className="text-xl font-bold !text-white">{p.premium.name}</h3>
+              <h3 className="text-xl font-bold text-white!">{p.premium.name}</h3>
               <p className="mt-1 text-brand-100">{p.premium.desc}</p>
               <p className="mt-6 flex items-baseline gap-1.5">
                 <span className="text-4xl font-extrabold text-white">{p.premium.price}</span>
@@ -64,7 +64,7 @@ export default function Pricing() {
           </Reveal>
 
           <Reveal className="h-full md:col-span-2 lg:col-span-1" variant="right" delay={240}>
-            <article className="flex h-full flex-col tilt-card rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-indigo-50 p-6 shadow-card sm:p-8 hover:shadow-soft">
+            <article className="flex h-full flex-col tilt-card rounded-3xl border border-violet-200 bg-linear-to-br from-violet-50 via-white to-indigo-50 p-6 shadow-card sm:p-8 hover:shadow-soft">
               <h3 className="inline-flex items-center gap-2 text-xl font-bold">
                 <GraduationCap className="h-5 w-5 text-violet-600" aria-hidden="true" />
                 {p.student.name}

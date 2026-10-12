@@ -18,7 +18,7 @@ export function AdminTabs() {
     { to: '/admin/users', label: tx.users.title },
   ];
   return (
-    <nav className="mb-5 inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-200" aria-label={tx.nav.admin}>
+    <nav className="mb-5 inline-flex rounded-full bg-white p-1 shadow-xs ring-1 ring-slate-200" aria-label={tx.nav.admin}>
       {tabs.map((t) => (
         <NavLink
           key={t.to}
@@ -84,7 +84,7 @@ export function AdminListPage() {
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.admin.title}</h1>
           <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.admin.sub}</p>
         </div>
-        <Link to="/admin/new" className="btn-primary shrink-0 self-start !py-2.5 sm:self-auto">
+        <Link to="/admin/new" className="btn-primary shrink-0 self-start py-2.5! sm:self-auto">
           <Plus className="h-5 w-5" aria-hidden="true" />
           {tx.admin.add}
         </Link>
@@ -276,7 +276,7 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
       </Link>
       <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">{existing ? tx.admin.editTitle : tx.admin.newTitle}</h1>
 
-      <form onSubmit={submit} noValidate className="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <form onSubmit={submit} noValidate className="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
         <Field label={f.title} htmlFor={id('title')} error={errors.title}>
           <input id={id('title')} value={v.title} maxLength={160} onChange={(e) => set('title', e.target.value)} className={inputClass} />
         </Field>
@@ -329,7 +329,7 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
             type="checkbox"
             checked={v.is_online}
             onChange={(e) => set('is_online', e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
           />
           {f.online}
         </label>
@@ -402,7 +402,7 @@ function OpportunityForm({ existing }: { existing?: Opportunity }) {
             type="checkbox"
             checked={v.published}
             onChange={(e) => set('published', e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 rounded-sm border-slate-300 text-brand-600 focus:ring-brand-500"
           />
           {f.publish}
         </label>

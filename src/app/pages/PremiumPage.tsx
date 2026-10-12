@@ -36,13 +36,13 @@ function ActivePremium() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/25 blur-3xl" aria-hidden="true" />
         <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">
           <Crown className="h-4 w-4 text-amber-300" aria-hidden="true" />
           {p.current}
         </p>
-        <h2 className="relative mt-2 text-2xl font-extrabold !text-white">{student ? p.studentActive : p.active}</h2>
+        <h2 className="relative mt-2 text-2xl font-extrabold text-white!">{student ? p.studentActive : p.active}</h2>
         <p className="relative mt-2 max-w-lg text-brand-100">{student ? p.studentActiveSub : p.activeSub}</p>
         {student && (
           <Link to="/student" className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/25">
@@ -52,7 +52,7 @@ function ActivePremium() {
         )}
       </div>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-7">
         <h2 className="text-lg font-bold">{p.cancelTitle}</h2>
         <p className="mt-1 text-sm text-slate-500">{p.cancelSub}</p>
         <button
@@ -78,7 +78,7 @@ export default function PremiumPlan() {
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-700 via-brand-800 to-brand-950 p-6 text-white shadow-soft sm:p-8">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-300/25 blur-3xl" aria-hidden="true" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -86,17 +86,17 @@ export default function PremiumPlan() {
               <Crown className="h-4 w-4 text-amber-300" aria-hidden="true" />
               {p.title}
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold !text-white">{p.price}</h1>
+            <h1 className="mt-2 text-3xl font-extrabold text-white!">{p.price}</h1>
             <p className="mt-1 text-brand-100">{p.sub}</p>
           </div>
-          <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm backdrop-blur">
+          <div className="rounded-2xl bg-white/10 px-4 py-3 text-sm backdrop-blur-sm">
             <p className="text-brand-100">{p.current}</p>
             <p className="mt-0.5 text-lg font-bold">{p.free}</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50 text-left">

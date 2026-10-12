@@ -136,7 +136,7 @@ export default function DetailPage() {
     { id: 'review' as const, label: tx.ai.tabReview, short: tx.ai.tabReviewShort, Icon: ClipboardCheck, ai: true },
   ];
   const applyLink = (className: string) => (
-    <a href={o.url} target="_blank" rel="noopener noreferrer" onClick={onApplyClick} className={`btn-primary !px-4 text-[15px] ${className}`}>
+    <a href={o.url} target="_blank" rel="noopener noreferrer" onClick={onApplyClick} className={`btn-primary px-4! text-[15px] ${className}`}>
       {tx.detail.apply}
       <ExternalLink className="h-4 w-4" aria-hidden="true" />
     </a>
@@ -145,8 +145,8 @@ export default function DetailPage() {
   return (
     <div>
       {back}
-      <article className="mt-4 overflow-hidden rounded-[2rem] border border-line bg-white shadow-card">
-        <header className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-coral-50 p-5 sm:p-8">
+      <article className="mt-4 overflow-hidden rounded-4xl border border-line bg-white shadow-card">
+        <header className="relative overflow-hidden bg-linear-to-br from-brand-50 via-white to-coral-50 p-5 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <ProgramBadge program={o.program} size="lg" />
             <div className="min-w-0 flex-1">
@@ -244,10 +244,10 @@ export default function DetailPage() {
                 <p className="font-bold text-brand-900">{tx.applied.question}</p>
                 <p className="mt-1 text-sm text-brand-900/80">{tx.applied.text}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={markApplied} className="btn-primary !px-4 !py-2 text-sm">
+                  <button type="button" onClick={markApplied} className="btn-primary px-4! py-2! text-sm">
                     {tx.applied.yes}
                   </button>
-                  <button type="button" onClick={closeApplied} className="btn-secondary !px-4 !py-2 text-sm">
+                  <button type="button" onClick={closeApplied} className="btn-secondary px-4! py-2! text-sm">
                     {tx.applied.no}
                   </button>
                 </div>
@@ -286,9 +286,9 @@ export default function DetailPage() {
         </div>
       </article>
       {/* Phones: the main actions stay in reach above the tab bar instead of sitting below all the facts. */}
-      <div className="sticky bottom-20 z-30 mt-4 flex items-center gap-2 rounded-3xl border border-line bg-white/95 p-2.5 shadow-soft backdrop-blur lg:hidden">
+      <div className="sticky bottom-20 z-30 mt-4 flex items-center gap-2 rounded-3xl border border-line bg-white/95 p-2.5 shadow-soft backdrop-blur-sm lg:hidden">
         {applyLink('flex-1')}
-        <SaveButton id={o.id} className="!px-4 !py-3" />
+        <SaveButton id={o.id} className="px-4! py-3!" />
       </div>
       <SimilarOpportunities current={o} />
     </div>
@@ -461,7 +461,7 @@ function PrepChecklist({ o, checklist, note, trip }: { o: Opportunity; checklist
         </span>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
-        <div className="h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 transition-all" style={{ width: `${(done / items.length) * 100}%` }} />
+        <div className="h-full rounded-full bg-linear-to-r from-brand-400 to-brand-600 transition-all" style={{ width: `${(done / items.length) * 100}%` }} />
       </div>
       <ul className="mt-3 space-y-1.5">
         {items.map((i) => (
@@ -484,7 +484,7 @@ function PrepChecklist({ o, checklist, note, trip }: { o: Opportunity; checklist
         onChange={(e) => setDraft(e.target.value)}
         onBlur={saveNote}
         placeholder={tx.prep.notePh}
-        className={`${inputClass} mt-1.5 resize-y !py-2 text-sm`}
+        className={`${inputClass} mt-1.5 resize-y py-2! text-sm`}
       />
       {noteSaved && (
         <p role="status" className="mt-1 text-xs font-medium text-emerald-700">
@@ -520,7 +520,7 @@ function SimilarOpportunities({ current }: { current: Opportunity }) {
           <Link
             key={o.id}
             to={`/o/${o.id}`}
-            className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
+            className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:shadow-card"
           >
             <p className="text-xs font-bold text-brand-700">{o.program}</p>
             <p className="line-clamp-2 font-semibold leading-snug text-slate-900 group-hover:text-brand-800">{o.title}</p>

@@ -26,7 +26,7 @@ export function Paywall() {
             <GraduationCap className="h-4 w-4" aria-hidden="true" />
             {tx.student.badge}
           </span>
-          <h1 className="mt-4 text-balance text-2xl font-extrabold leading-tight tracking-tight !text-white sm:text-4xl">{tx.student.lockTitle}</h1>
+          <h1 className="mt-4 text-balance text-2xl font-extrabold leading-tight tracking-tight text-white! sm:text-4xl">{tx.student.lockTitle}</h1>
           <p className="mt-3 max-w-xl leading-relaxed text-brand-100">{tx.student.lockSub}</p>
           <ul className="mt-6 space-y-2.5">
             {tx.student.lockItems(counts.scholarships, counts.universities).map((item) => (

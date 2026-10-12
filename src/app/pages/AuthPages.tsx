@@ -47,7 +47,7 @@ function AccountTypeSwitch({ value, onChange }: { value: AccountType; onChange: 
           aria-checked={value === id}
           onClick={() => onChange(id)}
           className={`flex items-center justify-center gap-2 rounded-full px-3 py-2.5 text-sm font-bold transition ${
-            value === id ? 'bg-brand-900 text-white shadow-sm' : 'text-slate-600 hover:text-brand-800'
+            value === id ? 'bg-brand-900 text-white shadow-xs' : 'text-slate-600 hover:text-brand-800'
           }`}
         >
           <Icon className="h-4 w-4" aria-hidden="true" />
@@ -90,7 +90,7 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
   const { tx } = useAppText();
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 p-12 text-white lg:flex lg:flex-col">
+      <aside className="relative hidden overflow-hidden bg-linear-to-br from-brand-700 via-brand-800 to-brand-950 p-12 text-white lg:flex lg:flex-col">
         <div className="bg-dots-light pointer-events-none absolute inset-0 opacity-30" />
         <div className="animate-blob pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-300/25 blur-3xl" />
         <div className="animate-blob pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-brand-400/30 blur-3xl [animation-delay:-6s]" />
@@ -169,7 +169,7 @@ function GoogleSignIn({ nextPath, onError }: { nextPath: string; onError: (msg: 
         type="button"
         onClick={go}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 disabled:opacity-60"
       >
         {busy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <GoogleIcon />}
         {tx.auth.google}
@@ -274,7 +274,7 @@ export function LoginPage() {
                 type="button"
                 disabled={busy}
                 onClick={() => signIn(DEMO_ACCOUNTS[key].email, DEMO_ACCOUNTS[key].password)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-brand-800 shadow-sm ring-1 ring-brand-200 transition hover:ring-brand-400 disabled:opacity-60"
+                className="flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-brand-800 shadow-xs ring-1 ring-brand-200 transition hover:ring-brand-400 disabled:opacity-60"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}

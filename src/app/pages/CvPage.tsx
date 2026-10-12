@@ -47,11 +47,11 @@ export default function CvPage() {
           {c.back}
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <Link to="/app/profile" className="btn-secondary !py-2 text-sm">
+          <Link to="/app/profile" className="btn-secondary py-2! text-sm">
             <PenLine className="h-4 w-4" aria-hidden="true" />
             {c.edit}
           </Link>
-          <button type="button" onClick={() => window.print()} className="btn-primary !py-2 text-sm">
+          <button type="button" onClick={() => window.print()} className="btn-primary py-2! text-sm">
             <Printer className="h-4 w-4" aria-hidden="true" />
             {c.print}
           </button>
@@ -61,10 +61,10 @@ export default function CvPage() {
       {thin && <p className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 print:hidden">{c.empty}</p>}
 
       <article className="overflow-hidden rounded-3xl border border-line bg-white shadow-card print:rounded-none print:border-0 print:shadow-none">
-        <header className={`flex flex-col gap-5 bg-gradient-to-br p-6 text-white sm:flex-row sm:items-center sm:p-8 print:p-6 ${theme.cover}`}>
+        <header className={`flex flex-col gap-5 bg-linear-to-br p-6 text-white sm:flex-row sm:items-center sm:p-8 print:p-6 ${theme.cover}`}>
           <Avatar profile={profile} className="h-24 w-24 text-3xl ring-4 ring-white/40" />
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-extrabold tracking-tight !text-white">{profile.full_name || profile.email}</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white!">{profile.full_name || profile.email}</h1>
             {(profile.headline || study.length > 0) && <p className="mt-1 text-white/90">{profile.headline || study.join(' · ')}</p>}
             <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/90">
               <li className="inline-flex items-center gap-1.5">
@@ -147,7 +147,7 @@ export default function CvPage() {
                 <ol className="space-y-3 border-l-2 border-brand-100 pl-4">
                   {experiences.map((e, i) => (
                     <li key={`${e.title}-${i}`} className="relative">
-                      <span className="absolute -left-[1.4rem] top-1.5 h-2.5 w-2.5 rounded-full bg-brand-600 ring-4 ring-white" aria-hidden="true" />
+                      <span className="absolute left-[-1.4rem] top-1.5 h-2.5 w-2.5 rounded-full bg-brand-600 ring-4 ring-white" aria-hidden="true" />
                       <p className="font-semibold text-ink">{e.title}</p>
                       <p className="text-sm text-slate-500">{[e.org, e.country, e.year].filter(Boolean).join(' · ')}</p>
                     </li>
