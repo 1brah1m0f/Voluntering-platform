@@ -76,7 +76,7 @@ export function createHandler(deps: {
     ]);
     if (target && !tgt.data) return json({ error: "not_found" }, 404);
     // The plan only needs what the student can apply to at their level.
-    const level = ((profile.student_prefs ?? {}) as Row).level as string | undefined;
+    const level = (((profile as Row).student_prefs ?? {}) as Row).level as string | undefined;
     const atLevel = (r: Row) => !level || body.action !== "student_plan" || (r.levels as string[]).includes(level);
     const scholarships = ((sch.data ?? []) as Row[]).filter(atLevel).map((r) => localized(r, lang));
     const universities = ((uni.data ?? []) as Row[]).filter(atLevel).map((r) => localized(r, lang));

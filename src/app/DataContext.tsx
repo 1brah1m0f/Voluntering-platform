@@ -77,7 +77,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await backend.setStatus(id, status);
     setSaved((m) => {
       const cur = m.get(id);
-      return cur ? new Map(m).set(id, { ...cur, status, updated_at: new Date().toISOString() }) : m;
+      return cur ? new Map(m).set(id, { ...cur, status, share_contact: cur.status === status ? cur.share_contact : false, updated_at: new Date().toISOString() }) : m;
     });
   }, []);
 
