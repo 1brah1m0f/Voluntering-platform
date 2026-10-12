@@ -15,7 +15,7 @@ const ASSETS = `openly-assets-${VERSION}`;
 const STATIC = `openly-static-${VERSION}`;
 const FONTS = `openly-fonts-${VERSION}`;
 const KEEP = [SHELL, ASSETS, STATIC, FONTS];
-const PRECACHE = ['/index.html', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png'];
+const PRECACHE = ['/index.html', '/theme-init.js', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png'];
 // Hashed bundles pile up across deploys; keep the newest ones only.
 const MAX_ASSETS = 120;
 
@@ -49,7 +49,8 @@ self.addEventListener('fetch', (event) => {
   } else if (url.pathname.startsWith('/assets/')) {
     event.respondWith(cacheFirst(req, ASSETS, MAX_ASSETS));
   } else {
-    event.respondWith(staleWhileRevalidate(req, STATIC));
+    // The prepaint script must be available with the precached offline shell.
+    event.respondWith(staleWhileRevalidate(req, url.pathname === '/theme-init.js' ? SHELL : STATIC));
   }
 });
 

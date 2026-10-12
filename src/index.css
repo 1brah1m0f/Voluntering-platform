@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @import './styles/theme.css';
+@import './styles/dark.css';
 
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
@@ -292,6 +293,7 @@
 
 /* Printing (the CV page): keep the colours and use the whole sheet. */
 @media print {
+  :root { color-scheme: light !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { margin: 10mm; }
   body, .app-surface { background: #fff !important; }

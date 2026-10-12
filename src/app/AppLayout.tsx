@@ -3,6 +3,7 @@ import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } 
 import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 import { useLang } from '../i18n';
 import { backend } from './backend';
 import { useAuth } from './AuthContext';
@@ -65,6 +66,7 @@ export function StudentLayout() {
             {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
           </Link>
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <ThemeToggle />
             {/* Admins also use the regular app; students only have this section. */}
             {profile?.is_admin && (
               <Link to="/app/home" className="hidden rounded-full px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-paper hover:text-ink sm:inline-flex">
@@ -175,11 +177,11 @@ export default function AppLayout() {
         {/* desktop sidebar */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur-sm lg:flex print:hidden!">
           {/* Signed-in users never go back to the landing page from the logo. */}
-          <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
+          <Link to={guest ? '/' : '/app/home'} className="flex shrink-0 items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
-          <nav className="mt-8 space-y-6" aria-label="App">
+          <nav className="mt-8 min-h-0 space-y-6 overflow-y-auto pb-4" aria-label="App">
             {groups.map((g) => (
               <div key={g.label}>
                 <p className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">{g.label}</p>
@@ -204,7 +206,8 @@ export default function AppLayout() {
               </div>
             ))}
           </nav>
-          <div className="mt-auto space-y-3">
+          <div className="mt-auto shrink-0 space-y-3">
+            <ThemeToggle showLabel />
             <div className="flex rounded-full border border-line p-0.5 text-xs font-bold">
               {(['az', 'en'] as const).map((l) => (
                 <button
@@ -258,7 +261,8 @@ export default function AppLayout() {
               <Logo className="h-7 w-7" />
               {BRAND}
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <ThemeToggle />
               {!guest && (
                 <Link to="/app/profile" aria-label={tx.nav.profile}>
                   <Avatar profile={profile} className="h-8 w-8 text-[11px]" />
@@ -273,7 +277,7 @@ export default function AppLayout() {
               </button>
               {/* Signed-in users log out from Profile → Settings; an icon here was easy to tap by mistake. */}
               {guest && (
-                <Link to="/register" state={back} className="btn-primary px-4! py-1.5! text-sm">
+                <Link to="/register" state={back} className="btn-primary px-3! py-1.5! text-sm">
                   {tx.guest.signUp}
                 </Link>
               )}

@@ -12,6 +12,7 @@ import { useAppText } from '../text';
 import type { Opportunity } from '../types';
 import { DeadlineChip, ErrorState, ProgramBadge, Spinner } from '../ui';
 import { daysUntil } from '../util';
+import { useTheme } from '../../ThemeProvider';
 
 const ONLINE = 'online';
 const HOME: L.LatLngTuple = [48, 16];
@@ -20,8 +21,8 @@ type MapKind = 'standard' | 'terrain' | 'satellite' | 'clean';
 const MAP_KINDS: MapKind[] = ['clean', 'standard', 'terrain', 'satellite'];
 const STYLE_ICONS = { clean: Layers, standard: MapIcon, terrain: Mountain, satellite: Satellite };
 const COPY = {
-  az: { subtitle: 'Növbəti macəran bir pin uzaqdadır.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq' },
-  en: { subtitle: 'Your next adventure is one pin away.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop' },
+  az: { subtitle: 'Növbəti macəran bir pin uzaqdadır.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq', tilesError: 'Xəritə fonu yüklənmədi. İmkanlar ölkə düymələrində əlçatandır.' },
+  en: { subtitle: 'Your next adventure is one pin away.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop', tilesError: 'The map background could not load. Opportunities are still available through the country buttons.' },
 };
 const isPhone = () => window.matchMedia('(max-width: 639px)').matches;
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -53,7 +54,7 @@ function EventCard({ o, index }: { o: Opportunity; index: number }) {
   const { tx, lang } = useAppText();
   return (
     <li className="map-event" style={{ '--card-delay': `${Math.min(index, 7) * 40}ms` } as CSSProperties}>
-      <Link to={`/o/${o.id}`} className="map-event-link group flex items-center gap-3 rounded-2xl border border-white bg-white/90 p-3.5">
+      <Link to={`/o/${o.id}`} className="map-event-link group flex items-center gap-3 rounded-2xl border p-3.5">
         <ProgramBadge program={o.program} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold text-brand-700">{o.program} · {KINDS[o.kind][lang]}</p>
@@ -72,6 +73,7 @@ function EventCard({ o, index }: { o: Opportunity; index: number }) {
 
 export default function MapPage() {
   const { tx, lang } = useAppText();
+  const { theme } = useTheme();
   const m = tx.map;
   const copy = COPY[lang];
   const { opportunities, error, reload } = useData();
@@ -96,7 +98,9 @@ export default function MapPage() {
   const visibleTiles = useRef<L.TileLayer | null>(null);
   const markersRef = useRef(new Map<string, { marker: L.Marker; count: number }>());
   const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>('loading');
+  const [tilesFailed, setTilesFailed] = useState(false);
   const [kind, setKind] = useState<MapKind>(readKind);
+  const tileKind = kind === 'clean' && theme === 'dark' ? 'cleanDark' : kind;
 
   const changeKind = (next: MapKind) => {
     setKind(next);
@@ -170,32 +174,46 @@ export default function MapPage() {
   useEffect(() => {
     const map = mapRef.current;
     if (mapState !== 'ready' || !map) return;
-    const config = TILE_LAYERS[kind];
+    const config = TILE_LAYERS[tileKind];
     const previous = visibleTiles.current;
     const layer = L.tileLayer(config.url, { attribution: config.attribution, subdomains: config.subdomains || 'abc', maxZoom: config.maxZoom, className: 'map-tile-layer', opacity: previous ? 0 : 1 });
     let disposed = false;
     let settled = false;
+    let loadedTiles = 0;
+    let failedTiles = 0;
+    setTilesFailed(false);
     let removeOld: ReturnType<typeof setTimeout> | undefined;
     const reveal = () => {
       if (disposed || settled) return;
+      // A failed new provider must not replace a working map underneath it.
+      if (!loadedTiles && failedTiles) { setTilesFailed(true); return; }
       settled = true;
       visibleTiles.current = layer;
       layer.setOpacity(1);
       removeOld = setTimeout(() => previous?.remove(), prefersReducedMotion() ? 0 : 220);
     };
-    layer.once('load', reveal);
+    const loaded = () => { if (!disposed) { loadedTiles += 1; setTilesFailed(false); } };
+    const failed = () => { if (!disposed) failedTiles += 1; };
+    layer.on('tileload', loaded);
+    layer.on('tileerror', failed);
+    layer.on('load', reveal);
     layer.addTo(map);
     // Keep controls usable if a provider is slow; the previous map stays underneath.
-    const fallback = setTimeout(reveal, 2500);
+    const fallback = setTimeout(() => {
+      if (loadedTiles) reveal();
+      else if (failedTiles && !disposed) setTilesFailed(true);
+    }, 2500);
     return () => {
       disposed = true;
       clearTimeout(fallback);
       clearTimeout(removeOld);
       layer.off('load', reveal);
+      layer.off('tileload', loaded);
+      layer.off('tileerror', failed);
       if (visibleTiles.current !== layer) layer.remove();
       else previous?.remove();
     };
-  }, [mapState, kind]);
+  }, [mapState, tileKind]);
 
   // Reconcile countries without recreating pins when the selection changes.
   useEffect(() => {
@@ -312,8 +330,9 @@ export default function MapPage() {
         {mapState === 'failed' && !error && (
           <div className="map-loading text-center"><Globe2 className="h-12 w-12 text-brand-300" aria-hidden="true" /><p className="max-w-xs text-sm font-medium text-brand-900">{m.loadError}</p></div>
         )}
+        {tilesFailed && mapState === 'ready' && <p className="map-tile-notice" role="status">{copy.tilesError}</p>}
 
-        <div className="map-country-bar">
+        {chips.length > 0 && <div className="map-country-bar">
           <span className="map-country-bar-icon"><Compass className="h-4 w-4" aria-hidden="true" /></span>
           <div className="map-country-chips" role="group" aria-label={m.pick}>
             {chips.map((chip) => (
@@ -323,7 +342,9 @@ export default function MapPage() {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
+
+        {opportunities && !error && !selected && open.length === 0 && <div className="map-empty-state" role="status"><span className="map-empty-icon"><Compass className="h-6 w-6" aria-hidden="true" /></span><p>{m.empty}</p></div>}
 
         {mapState === 'ready' && (
           <>
@@ -332,7 +353,7 @@ export default function MapPage() {
               <button type="button" onClick={() => mapRef.current?.zoomOut(undefined, { animate: !prefersReducedMotion() })} aria-label={copy.zoomOut} title={copy.zoomOut}><Minus className="h-4.5 w-4.5" aria-hidden="true" /></button>
               <button type="button" onClick={resetView} aria-label={copy.reset} title={copy.reset}><Crosshair className="h-4.5 w-4.5" aria-hidden="true" /></button>
             </div>
-            {!selected && <div className="map-explore-hint"><span className="map-hint-icon"><Hand className="h-4 w-4" aria-hidden="true" /></span><div><p className="text-xs font-extrabold text-brand-800">{copy.explore}</p><p className="mt-0.5 text-xs text-slate-500">{m.hint}</p></div><Sparkles className="ml-2 h-4 w-4 text-coral-500" aria-hidden="true" /></div>}
+            {!selected && open.length > 0 && !tilesFailed && <div className="map-explore-hint"><span className="map-hint-icon"><Hand className="h-4 w-4" aria-hidden="true" /></span><div><p className="text-xs font-extrabold text-brand-800">{copy.explore}</p><p className="mt-0.5 text-xs text-slate-500">{m.hint}</p></div><Sparkles className="ml-2 h-4 w-4 text-coral-500" aria-hidden="true" /></div>}
             <div role="group" aria-label={m.kindLabel} className="map-style-picker">
               {MAP_KINDS.map((style) => {
                 const Icon = STYLE_ICONS[style];
@@ -350,7 +371,7 @@ export default function MapPage() {
               <div className="min-w-0 flex-1"><p className="map-destination-label">{copy.destination}</p><h2 className="mt-0.5 truncate text-xl font-extrabold">{selected === ONLINE ? m.online : selected}</h2><p className="mt-1 text-xs font-semibold text-brand-700">{m.count(list.length)}</p></div>
               <button type="button" onClick={() => select('')} aria-label={tx.close} className="map-panel-close"><X className="h-4 w-4" aria-hidden="true" /></button>
             </header>
-            {list.length === 0 ? <p className="mx-4 mb-4 rounded-2xl border border-dashed border-line bg-white py-8 text-center text-sm text-slate-500">{m.empty}</p> : <ul className="map-event-list">{list.map((o, index) => <EventCard key={o.id} o={o} index={index} />)}</ul>}
+            {list.length === 0 ? <p className="map-panel-empty" role="status">{m.empty}</p> : <ul className="map-event-list">{list.map((o, index) => <EventCard key={o.id} o={o} index={index} />)}</ul>}
             <Link to={listHref} className="map-panel-link">{m.openList}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         )}

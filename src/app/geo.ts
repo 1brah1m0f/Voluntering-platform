@@ -118,6 +118,12 @@ export interface TileConfig {
 }
 
 export const TILE_LAYERS: Record<string, TileConfig> = {
+  cleanDark: {
+    // Native dark tiles; same Esri Canvas service family as the light map.
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri, HERE, &copy; OpenStreetMap contributors',
+    maxZoom: 16,
+  },
   clean: {
     // Esri Light Gray Canvas: clean, elegant, completely free without watermark
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
