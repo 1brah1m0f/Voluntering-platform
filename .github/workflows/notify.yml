@@ -19,6 +19,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -41,9 +44,12 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           SITE_URL: https://www.openlyapply.com
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_ONLY: ${{ inputs.only }}
+          INPUT_FORCE_WEEKLY: ${{ inputs.force_weekly }}
         run: |
-          ARGS=""
-          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
-          if [ -n "${{ inputs.only }}" ]; then ARGS="$ARGS --only=${{ inputs.only }}"; fi
-          if [ "${{ inputs.force_weekly }}" = "true" ]; then ARGS="$ARGS --force-weekly"; fi
-          node jobs/notify.mjs $ARGS
+          args=()
+          if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          if [ -n "$INPUT_ONLY" ]; then args+=("--only=$INPUT_ONLY"); fi
+          if [ "$INPUT_FORCE_WEEKLY" = "true" ]; then args+=(--force-weekly); fi
+          node jobs/notify.mjs "${args[@]}"
