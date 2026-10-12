@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, ClipboardCheck, ExternalLink, FileText, Globe2, MapPin, PenLine, Wallet, Shapes, Building2, Users, BookOpen } from 'lucide-react';
+import { ProgramQuestions } from '../ProgramQuestions';
 import { AiTools } from '../AiTools';
 import { GUIDES } from '../../content/guides';
 import { programPageByName } from '../../content/programs';
@@ -290,6 +291,7 @@ export default function DetailPage() {
         {applyLink('flex-1')}
         <SaveButton id={o.id} className="px-4! py-3!" />
       </div>
+      <ProgramQuestions key={o.id} scope={`opportunity:${o.id}`} />
       <SimilarOpportunities current={o} />
     </div>
   );

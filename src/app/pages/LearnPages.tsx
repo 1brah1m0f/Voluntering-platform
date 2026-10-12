@@ -1,3 +1,4 @@
+import { ProgramQuestions } from '../ProgramQuestions';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clock, ExternalLink, Globe2, GraduationCap, HeartHandshake, Info, Smartphone, Users, UsersRound, Wallet } from 'lucide-react';
@@ -330,6 +331,7 @@ export function ProgramPage() {
           ))}
         </div>
       )}
+      <ProgramQuestions key={page.slug} scope={`program:${page.slug}`} />
     </div>
   );
 }

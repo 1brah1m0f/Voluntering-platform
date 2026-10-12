@@ -30,6 +30,38 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
   const uid = async () => (await sb.auth.getSession()).data.session?.user.id ?? null;
 
   return {
+    async listQuestions(scope) {
+      const { data, error } = await sb.from('discussion_questions')
+        .select('id, scope, author_name, title, body, created_at, answers:discussion_answers(id, question_id, author_name, body, created_at), stars:discussion_stars(user_id)')
+        .eq('scope', scope).order('created_at', { ascending: false });
+      if (error) throw dbError(error);
+      const userId = await uid();
+      return (data ?? []).map(q => ({ ...q,
+        answers: q.answers.sort((a, b) => a.created_at.localeCompare(b.created_at)),
+        stars: q.stars.length, starred: q.stars.some(s => s.user_id === userId),
+      }));
+    },
+    async askQuestion(scope, title, body) {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const { error } = await sb.from('discussion_questions').insert({ scope, title: title.trim(), body: body.trim(), user_id: userId });
+      if (error) throw dbError(error);
+    },
+    async answerQuestion(questionId, body) {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const { error } = await sb.from('discussion_answers').insert({ question_id: questionId, body: body.trim(), user_id: userId });
+      if (error) throw dbError(error);
+    },
+    async starQuestion(questionId, starred) {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const query = sb.from('discussion_stars');
+      const { error } = starred
+        ? await query.upsert({ question_id: questionId, user_id: userId }, { onConflict: 'question_id,user_id', ignoreDuplicates: true })
+        : await query.delete().eq('question_id', questionId).eq('user_id', userId);
+      if (error) throw dbError(error);
+    },
     mode: 'supabase',
     supportsGoogle: true,
 

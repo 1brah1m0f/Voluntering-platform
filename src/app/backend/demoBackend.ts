@@ -1,7 +1,7 @@
 import { DEMO_ACCOUNTS } from './demoAccounts';
 import { FREE_EVENT_LIMIT } from '../../config';
 import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
-import { BackendError, type Backend } from './types';
+import { BackendError, type Backend, type DiscussionQuestion } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
 // Stable ids so the shortlist survives reloads.
@@ -250,6 +250,36 @@ export function createDemoBackend(): Backend {
   const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, account_type: p.account_type ?? 'regular', avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {}, prefs: p.prefs ?? {} });
 
   return {
+    async listQuestions(scope) {
+      const rows = read<Array<DiscussionQuestion & { voters: string[] }>>('openly_demo_discussions_v1', []);
+      return rows.filter(q => q.scope === scope).map(q => ({ ...q, stars: q.voters.length, starred: q.voters.includes(session() ?? '') }));
+    },
+    async askQuestion(scope, title, body) {
+      const u = requireUser();
+      title = title.trim(); body = body.trim();
+      if (!title || title.length > 160 || !body || body.length > 3000) throw new BackendError('unknown');
+      const rows = read<Array<DiscussionQuestion & { voters: string[] }>>('openly_demo_discussions_v1', []);
+      rows.unshift({ id: uuid(), scope, title, body, author_name: u.full_name || 'İstifadəçi', created_at: new Date().toISOString(), answers: [], stars: 0, starred: false, voters: [] });
+      write('openly_demo_discussions_v1', rows);
+    },
+    async answerQuestion(questionId, body) {
+      const u = requireUser(); body = body.trim();
+      if (!body || body.length > 3000) throw new BackendError('unknown');
+      const rows = read<Array<DiscussionQuestion & { voters: string[] }>>('openly_demo_discussions_v1', []);
+      const q = rows.find(q => q.id === questionId);
+      if (!q) throw new BackendError('not_allowed');
+      q.answers.push({ id: uuid(), question_id: questionId, body, author_name: u.full_name || 'İstifadəçi', created_at: new Date().toISOString() });
+      write('openly_demo_discussions_v1', rows);
+    },
+    async starQuestion(questionId, starred) {
+      const u = requireUser();
+      const rows = read<Array<DiscussionQuestion & { voters: string[] }>>('openly_demo_discussions_v1', []);
+      const q = rows.find(q => q.id === questionId);
+      if (!q) throw new BackendError('not_allowed');
+      q.voters = q.voters.filter(id => id !== u.id);
+      if (starred) q.voters.push(u.id);
+      write('openly_demo_discussions_v1', rows);
+    },
     mode: 'demo',
     supportsGoogle: false,
 

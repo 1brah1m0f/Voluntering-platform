@@ -33,7 +33,30 @@ export class BackendError extends Error {
   }
 }
 
+export interface DiscussionAnswer {
+  id: string;
+  question_id: string;
+  author_name: string;
+  body: string;
+  created_at: string;
+}
+export interface DiscussionQuestion {
+  id: string;
+  scope: string;
+  author_name: string;
+  title: string;
+  body: string;
+  created_at: string;
+  answers: DiscussionAnswer[];
+  stars: number;
+  starred: boolean;
+}
+
 export interface Backend {
+  listQuestions(scope: string): Promise<DiscussionQuestion[]>;
+  askQuestion(scope: string, title: string, body: string): Promise<void>;
+  answerQuestion(questionId: string, body: string): Promise<void>;
+  starQuestion(questionId: string, starred: boolean): Promise<void>;
   mode: 'supabase' | 'demo';
   /** Whether "Continue with Google" can be offered. */
   supportsGoogle: boolean;

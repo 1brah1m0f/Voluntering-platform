@@ -122,3 +122,46 @@ test('rerunning the bootstrap preserves the final security rules', async () => {
   assert.equal((await reserve(free, 'draft')).error, 'daily_limit');
   await assert.rejects(asUser(peer, 'update public.notes set user_id = $1', [free]), /permission denied/);
 });
+
+test('programme discussions allow peer answers and one reversible star per user', async () => {
+  const [question] = await asUser(free, `insert into public.discussion_questions(scope, title, body) values ('program:erasmus-plus', 'Application question', 'How do I apply?') returning id, author_name`);
+  assert.ok(question.author_name);
+  const [answer] = await asUser(peer, `insert into public.discussion_answers(question_id, body) values ($1, 'Use the official programme page.') returning question_id`, [question.id]);
+  assert.equal(answer.question_id, question.id);
+  await asUser(peer, 'insert into public.discussion_stars(question_id) values ($1)', [question.id]);
+  await assert.rejects(asUser(peer, 'insert into public.discussion_stars(question_id) values ($1)', [question.id]), /duplicate key/);
+  await asUser(peer, 'insert into public.discussion_stars(question_id) values ($1) on conflict (question_id, user_id) do nothing', [question.id]);
+  assert.equal((await asUser(free, 'select * from public.discussion_stars where question_id = $1', [question.id])).length, 1);
+  await asUser(free, 'delete from public.discussion_stars where question_id = $1', [question.id]);
+  assert.equal((await asUser(peer, 'select * from public.discussion_stars where question_id = $1', [question.id])).length, 1);
+  await asUser(peer, 'delete from public.discussion_stars where question_id = $1', [question.id]);
+  assert.equal((await asUser(free, 'select * from public.discussion_stars where question_id = $1', [question.id])).length, 0);
+});
+
+test('discussions reject impersonation, blank content and unknown programme scopes', async () => {
+  await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, user_id, title, body) values ('program:erasmus-plus', $1, 'Title', 'Body')`, [peer]), /row-level security/);
+  await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, title, body) values ('program:unknown', 'Title', 'Body')`), /row-level security/);
+  await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, title, body) values ('program:erasmus-plus', '   ', 'Body')`), /check constraint/);
+  await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, author_name, title, body) values ('program:erasmus-plus', 'Another user', 'Title', 'Body')`), /permission denied/);
+  await db.exec('begin; set local role anon;');
+  try {
+    const { rows } = await db.query("select title from public.discussion_questions where scope = 'program:erasmus-plus'");
+    assert.ok(rows.length);
+    await assert.rejects(db.query(`insert into public.discussion_questions(scope, title, body) values ('program:erasmus-plus', 'Title', 'Body')`), /permission denied/);
+  } finally { await db.exec('rollback'); }
+});
+
+test('opportunity discussions inherit opportunity visibility, including answers and stars', async () => {
+  const hidden = id(80);
+  await db.query(`insert into public.opportunities(id, title, program, deadline, url, published) values ($1, 'Draft', 'ESC', '2030-01-01', 'https://example.test', false)`, [hidden]);
+  const [q] = await asUser(admin, `insert into public.discussion_questions(scope, title, body) values ($1, 'Draft question', 'Draft details') returning id`, [`opportunity:${hidden}`]);
+  await asUser(admin, 'insert into public.discussion_answers(question_id, body) values ($1, $2)', [q.id, 'Draft answer']);
+  await asUser(admin, 'insert into public.discussion_stars(question_id) values ($1)', [q.id]);
+  for (const table of ['discussion_questions', 'discussion_answers', 'discussion_stars']) {
+    const column = table === 'discussion_questions' ? 'id' : 'question_id';
+    assert.deepEqual(await asUser(free, `select * from public.${table} where ${column} = $1`, [q.id]), []);
+  }
+  await assert.rejects(asUser(free, 'insert into public.discussion_answers(question_id, body) values ($1, $2)', [q.id, 'Hidden answer']), /row-level security/);
+  await assert.rejects(asUser(free, 'insert into public.discussion_stars(question_id) values ($1)', [q.id]), /row-level security/);
+  await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, title, body) values ($1, 'Hidden', 'Hidden')`, [`opportunity:${hidden}`]), /row-level security/);
+});

@@ -51,3 +51,13 @@ order and the boundaries that still need a live verification.
 The Tailwind 4 toolchain targets modern browsers (Safari 16.4+, Chrome 111+, Firefox 128+).
 Desktop and mobile Chrome smoke checks cover public routes, redirects, explicit demo
 login, and the admin acceptance section with the configured CSP enabled.
+
+Programme hubs and opportunity details include a compact community Q&A section
+(`ProgramQuestions.tsx`). Both backend adapters implement questions, peer answers,
+and reversible stars. Supabase stores these in `discussion_questions`,
+`discussion_answers`, and `discussion_stars`; RLS inherits opportunity visibility
+and restricts writes to the signed-in author. Display names are captured by an
+insert trigger without exposing private profile records or email addresses.
+Existing installations should apply
+`supabase/migrations/20261012170302_program_discussions.sql` in the SQL Editor;
+new installations receive the same schema through `supabase/app.sql`.
