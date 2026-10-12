@@ -8,7 +8,9 @@ European Solidarity Corps, UN Volunteers, national programs) in one place. This 
   them and track application status (free plan: 3 at a time).
 - **Admin panel** at `/admin`: add, edit, publish/hide and delete opportunities.
 
-Stack: React 18 + TypeScript + Vite + Tailwind CSS + React Router 7, Supabase for auth and data.
+Stack: React 18 + TypeScript + Vite 8 + Tailwind CSS 4 + React Router 7, Supabase for auth and data.
+
+See [Architecture](docs/architecture.md) and [Security rollout](docs/security-rollout.md).
 
 ## Run locally
 
@@ -21,10 +23,12 @@ npm run build      # type-check + production build into dist/
 npm run preview    # serve the build
 ```
 
-Without Supabase credentials the app runs on an **in-browser demo backend**
+During development, without Supabase credentials the app runs on an **in-browser demo backend**
 (`src/app/backend/demoBackend.ts`): accounts and data live in `localStorage`, it comes with sample
-opportunities, and the first account you register becomes the admin. A yellow banner shows while
-demo mode is on.
+opportunities, and the demo admin, regular and student accounts are available on the login page. A yellow banner shows while
+demo mode is on. Production builds require valid public Supabase configuration;
+set `VITE_ENABLE_DEMO=true` explicitly for a demo build. Never enter real passwords
+into the browser-only demo.
 
 ## Connect the app to Supabase
 
@@ -44,7 +48,7 @@ demo mode is on.
 ## Premium AI assistant
 
 Every regular account gets two extra tabs on every opportunity page (`/o/<id>?tab=letter|review`),
-free users 1 use a day, Premium users 15:
+free users 1 draft/review a day, Premium users 15:
 
 - **Motivation letter assistant** — the AI first asks 4–6 questions tailored to the opportunity
   and the user's profile, then builds a draft *only* from the answers (placeholders in
@@ -58,20 +62,23 @@ for you"), see `src/app/match.ts`.
 The AI runs in the Supabase Edge Function `supabase/functions/ai` and calls Google Gemini
 (`gemini-3.1-flash-lite` by default, thinking set to minimal: $0.25 / $1.50 per 1M tokens,
 roughly $1–2 per 1000 requests; `gemini-2.5-flash-lite` is no longer open to new API users). It checks that the caller is signed in; free users get 1 use a day, Premium (and Student) 15 —
-a letter draft or a review is one use, the interview questions before a draft aren't counted
-(`ai_usage` table). The API key never reaches the browser. **Until the key is set, the
+a letter draft or a review is one use. Question generation has its own daily cap
+(free: 3, paid: 30), and every generation is limited to 6 requests a minute per
+regular user. Quotas are reserved atomically in the database. The API key never reaches the browser. **Until the key is set, the
 tabs are visible but disabled with a "coming soon" note.**
 
 Setup:
-1. Re-run `supabase/app.sql` (adds `profiles.about`, `ai_usage`, `bump_ai_usage`).
+1. Re-run `supabase/app.sql` (adds `profiles.about`, quota tables and `reserve_ai_request`).
 2. Create an API key in Google AI Studio (aistudio.google.com → Get API key; enable billing for
    the paid tier) and set it as a function secret:
    `supabase secrets set GEMINI_API_KEY=...` (or Dashboard → Edge Functions → Secrets).
    Optional: `GEMINI_MODEL` to use another model.
 3. Deploy: `supabase functions deploy ai` (or Dashboard → Edge Functions → Deploy a new function
-   → name `ai` → paste `supabase/functions/ai/index.ts`).
+   → name `ai`; include all files in `supabase/functions/ai/`).
 
 Type-check locally: `deno check supabase/functions/ai/index.ts`.
+Security tests: `npm run test:security` (run `npm run build` first).
+Existing installations also need the [security migration](supabase/migrations/20261012160713_security_hardening.sql) and a full Edge Function redeploy.
 
 ## Student plan (7 ₼)
 
@@ -169,7 +176,9 @@ replace `public/og-image.svg` with a 1200×630 PNG (some social networks don't r
 
 ```
 src/
-  main.tsx              routes (landing, /login, /register, /app/*, /admin/*)
+  main.tsx              bootstrap and shared providers
+  routes/AppRoutes.tsx  routes, lazy pages and guards
+  styles/theme.css      colours, fonts and design tokens
   App.tsx               landing page composition
   LangProvider.tsx      site-wide AZ/EN state
   i18n.ts               landing AZ/EN dictionaries

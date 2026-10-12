@@ -26,6 +26,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",
     "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.20.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "6.1.2",
