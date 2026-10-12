@@ -1,5 +1,5 @@
 // The entry point only wires runtime configuration and dependencies.
-import { createClient } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 import { createHandler } from "./handler.ts";
 import { createGemini } from "./provider.ts";
 

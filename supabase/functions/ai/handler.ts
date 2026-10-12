@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "npm:@supabase/supabase-js@2.117.2";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.117.3";
 import { STUDENT_ACTIONS, type Action } from "./schema.ts";
 import { buildPrompt, buildStudentPrompt, localized, STUDENT_SYSTEM, type Row } from "./prompts.ts";
 import { validate, type Lang, type PdfFile } from "./validation.ts";
