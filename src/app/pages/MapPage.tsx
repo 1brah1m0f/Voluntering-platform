@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, ChevronRight, Globe2, Hand, MapPin, Wallet, X } from 'lucide-react';
+import { ArrowRight, ChevronRight, Compass, Crosshair, Globe2, Hand, Layers, Map as MapIcon, MapPin, Minus, Mountain, Plus, Satellite, Sparkles, Wallet, X } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './MapPage.css';
 import { COUNTRY_COORDS, TILE_LAYERS } from '../geo';
 import { useData } from '../DataContext';
 import { countryCode } from '../personal';
@@ -13,326 +14,299 @@ import { DeadlineChip, ErrorState, ProgramBadge, Spinner } from '../ui';
 import { daysUntil } from '../util';
 
 const ONLINE = 'online';
-
+const HOME: L.LatLngTuple = [48, 16];
+const KIND_KEY = 'openly_map_kind';
 type MapKind = 'standard' | 'terrain' | 'satellite' | 'clean';
 const MAP_KINDS: MapKind[] = ['clean', 'standard', 'terrain', 'satellite'];
-const KIND_KEY = 'openly_map_kind';
+const STYLE_ICONS = { clean: Layers, standard: MapIcon, terrain: Mountain, satellite: Satellite };
+const COPY = {
+  az: { subtitle: 'Növbəti macəran bir pin uzaqdadır.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq' },
+  en: { subtitle: 'Your next adventure is one pin away.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop' },
+};
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function readKind(): MapKind {
   try {
     const k = localStorage.getItem(KIND_KEY) as MapKind | null;
     return k && MAP_KINDS.includes(k) ? k : 'clean';
-  } catch {
-    return 'clean';
-  }
+  } catch { return 'clean'; }
 }
 
-/** The pin's markup; the selected one is coral and a little bigger. */
-function pinHtml(code: string, n: number, on: boolean) {
-  return `<span class="flex flex-col items-center transition-transform duration-200 ${on ? 'scale-110' : 'hover:scale-110'}">
-    <span class="flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 shadow-lg ring-1 ${on ? 'ring-2 ring-coral-500' : 'ring-black/5'}">
-      <span class="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-extrabold text-white ${on ? 'bg-coral-700' : 'bg-brand-700'}">${code}</span>
-      <span class="font-display text-sm font-extrabold text-ink">${n}</span>
-    </span>
-    <span class="-mt-1.5 h-3 w-3 rotate-45 bg-white shadow-md ${on ? 'ring-2 ring-coral-500' : ''}"></span>
-  </span>`;
+function flagFor(country: string) {
+  const code = countryCode(country);
+  return /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...Array.from(code, (c) => 127397 + c.charCodeAt(0))) : '◉';
 }
 
-/** One opportunity in the panel; the whole card opens its page. */
-function EventCard({ o }: { o: Opportunity }) {
+function pinIcon(country: string, count: number, order: number) {
+  // Only an ISO flag and a numeric count enter the HTML; country names use textContent.
+  return L.divIcon({
+    className: 'openly-map-marker',
+    html: `<span class="map-pin" style="--pin-delay:${Math.min(order, 9) * 35}ms"><span class="map-pin-body"><span class="map-pin-flag" aria-hidden="true">${flagFor(country)}</span><span class="map-pin-count">${count}</span></span><span class="map-pin-tip"></span><span class="map-pin-ground"></span></span>`,
+    iconSize: [68, 58],
+    iconAnchor: [34, 55],
+    tooltipAnchor: [0, -50],
+  });
+}
+
+function EventCard({ o, index }: { o: Opportunity; index: number }) {
   const { tx, lang } = useAppText();
   return (
-    <li>
-      <Link to={`/o/${o.id}`} className="group flex items-center gap-3 rounded-2xl border border-line bg-white p-3 transition hover:border-brand-300 hover:shadow-card">
+    <li className="map-event" style={{ '--card-delay': `${Math.min(index, 7) * 40}ms` } as CSSProperties}>
+      <Link to={`/o/${o.id}`} className="map-event-link group flex items-center gap-3 rounded-2xl border border-white bg-white/90 p-3.5">
         <ProgramBadge program={o.program} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-semibold text-brand-700">
-            {o.program} · {KINDS[o.kind][lang]}
-          </p>
+          <p className="truncate text-xs font-semibold text-brand-700">{o.program} · {KINDS[o.kind][lang]}</p>
           <p className="mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-ink group-hover:text-brand-800">{o.title}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
-            {!o.is_online && o.city && (
-              <span className="inline-flex items-center gap-1 text-slate-500">
-                <MapPin className="h-3 w-3" aria-hidden="true" />
-                {o.city}
-              </span>
-            )}
-            {o.costs === 'full' && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800">
-                <Wallet className="h-3 w-3" aria-hidden="true" />
-                {tx.list.fullyFunded}
-              </span>
-            )}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+            {!o.is_online && o.city && <span className="inline-flex items-center gap-1 text-slate-500"><MapPin className="h-3 w-3" aria-hidden="true" />{o.city}</span>}
+            {o.costs === 'full' && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800"><Wallet className="h-3 w-3" aria-hidden="true" />{tx.list.fullyFunded}</span>}
             <DeadlineChip deadline={o.deadline} />
           </div>
         </div>
-        <ChevronRight className="h-5 w-5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600" aria-hidden="true" />
+        <ChevronRight className="h-4 w-4 shrink-0 text-brand-400 transition-transform group-hover:translate-x-1" aria-hidden="true" />
       </Link>
     </li>
   );
 }
 
-/**
- * /app/map — a full-size map with a pin per country using Leaflet (CartoDB / OpenStreetMap).
- * Zero API keys or billing accounts needed, completely free and lightweight.
- */
 export default function MapPage() {
-  const { tx } = useAppText();
+  const { tx, lang } = useAppText();
   const m = tx.map;
+  const copy = COPY[lang];
   const { opportunities, error, reload } = useData();
   const [params, setParams] = useSearchParams();
   const selected = params.get('country') ?? '';
-  const select = (c: string) => setParams(c ? { country: c } : {}, { replace: true });
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const select = useCallback((country: string) => {
+    if (country && document.activeElement instanceof HTMLElement) returnFocus.current = document.activeElement;
+    setParams(country ? { country } : {}, { replace: true });
+    if (!country) requestAnimationFrame(() => returnFocus.current?.isConnected && returnFocus.current.focus({ preventScroll: true }));
+  }, [setParams]);
+  const selectRef = useRef(select);
+  selectRef.current = select;
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
+  const visibleTiles = useRef<L.TileLayer | null>(null);
+  const markersRef = useRef(new Map<string, { marker: L.Marker; count: number }>());
   const [mapState, setMapState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [kind, setKind] = useState<MapKind>(readKind);
 
-  const changeKind = (k: MapKind) => {
-    setKind(k);
-    try {
-      localStorage.setItem(KIND_KEY, k);
-    } catch {
-      /* storage blocked */
-    }
+  const changeKind = (next: MapKind) => {
+    setKind(next);
+    try { localStorage.setItem(KIND_KEY, next); } catch { /* Storage unavailable. */ }
   };
-
   const open = useMemo(() => (opportunities ?? []).filter((o) => o.published && daysUntil(o.deadline) >= 0), [opportunities]);
   const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const o of open) if (!o.is_online && o.country) c[o.country] = (c[o.country] ?? 0) + 1;
-    return c;
+    const result = Object.create(null) as Record<string, number>;
+    for (const o of open) if (!o.is_online && o.country) result[o.country] = (result[o.country] ?? 0) + 1;
+    return result;
   }, [open]);
   const onlineCount = open.filter((o) => o.is_online).length;
 
-  // Initialize Leaflet map
   useEffect(() => {
-    if (!mapEl.current || mapRef.current) return;
+    const container = mapEl.current;
+    if (!container) return;
+    let map: L.Map | undefined;
+    let resize: ResizeObserver | undefined;
+    let frame = 0;
     try {
-      if ((mapEl.current as any)?._leaflet_id) {
-        (mapEl.current as any)._leaflet_id = null;
-      }
-
-      const tileConfig = TILE_LAYERS[kind] || TILE_LAYERS.clean;
-      const map = L.map(mapEl.current, {
-        center: [48.0, 16.0],
-        zoom: 4,
-        minZoom: 3,
-        maxZoom: 10,
-        zoomControl: false,
-      });
-
-      // Zoom control in top-right
-      L.control.zoom({ position: 'topright' }).addTo(map);
-
-      const tileLayer = L.tileLayer(tileConfig.url, {
-        attribution: tileConfig.attribution,
-        subdomains: tileConfig.subdomains || 'abc',
-        maxZoom: tileConfig.maxZoom,
-      }).addTo(map);
-      tileLayerRef.current = tileLayer;
-
-      map.on('click', () => select(''));
+      const animate = !prefersReducedMotion();
+      map = L.map(container, { center: HOME, zoom: 4, minZoom: 2, maxZoom: 10, zoomControl: false, zoomAnimation: animate, fadeAnimation: animate, markerZoomAnimation: animate });
       mapRef.current = map;
-
-      map.whenReady(() => {
-        setMapState('ready');
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 150);
+      map.on('click', () => selectRef.current(''));
+      setMapState('ready');
+      resize = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => map?.invalidateSize({ pan: false }));
       });
-
-      const onResize = () => map.invalidateSize();
-      window.addEventListener('resize', onResize);
-
-      return () => {
-        window.removeEventListener('resize', onResize);
-        if (mapRef.current) {
-          mapRef.current.remove();
-          mapRef.current = null;
-        }
-      };
+      resize.observe(container);
     } catch (err) {
       console.error('[map] Leaflet init failed', err);
       setMapState('failed');
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      resize?.disconnect();
+      cancelAnimationFrame(frame);
+      markersRef.current.clear();
+      map?.remove();
+      mapRef.current = null;
+      visibleTiles.current = null;
+    };
+  }, []);
 
-  // Tile layer switching
+  // Keep the old tiles underneath until the new style has loaded.
   useEffect(() => {
     const map = mapRef.current;
     if (mapState !== 'ready' || !map) return;
-    const tileConfig = TILE_LAYERS[kind] || TILE_LAYERS.clean;
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-    const newLayer = L.tileLayer(tileConfig.url, {
-      attribution: tileConfig.attribution,
-      subdomains: tileConfig.subdomains || 'abc',
-      maxZoom: tileConfig.maxZoom,
-    }).addTo(map);
-    tileLayerRef.current = newLayer;
+    const config = TILE_LAYERS[kind];
+    const previous = visibleTiles.current;
+    const layer = L.tileLayer(config.url, { attribution: config.attribution, subdomains: config.subdomains || 'abc', maxZoom: config.maxZoom, className: 'map-tile-layer', opacity: previous ? 0 : 1 });
+    let disposed = false;
+    let settled = false;
+    let removeOld: ReturnType<typeof setTimeout> | undefined;
+    const reveal = () => {
+      if (disposed || settled) return;
+      settled = true;
+      visibleTiles.current = layer;
+      layer.setOpacity(1);
+      removeOld = setTimeout(() => previous?.remove(), prefersReducedMotion() ? 0 : 220);
+    };
+    layer.once('load', reveal);
+    layer.addTo(map);
+    // Keep controls usable if a provider is slow; the previous map stays underneath.
+    const fallback = setTimeout(reveal, 2500);
+    return () => {
+      disposed = true;
+      clearTimeout(fallback);
+      clearTimeout(removeOld);
+      layer.off('load', reveal);
+      if (visibleTiles.current !== layer) layer.remove();
+      else previous?.remove();
+    };
   }, [mapState, kind]);
 
-  // Render country pins
+  // Reconcile countries without recreating pins when the selection changes.
   useEffect(() => {
     const map = mapRef.current;
     if (mapState !== 'ready' || !map) return;
-
-    markersRef.current.forEach((mk) => mk.remove());
-    markersRef.current = [];
-
-    Object.entries(counts)
-      .filter(([c]) => COUNTRY_COORDS[c])
-      .forEach(([c, n]) => {
-        const coords = COUNTRY_COORDS[c];
-        const isSelected = c === selected;
-        const icon = L.divIcon({
-          className: 'leaflet-div-icon',
-          html: pinHtml(countryCode(c), n, isSelected),
-          iconSize: [60, 42],
-          iconAnchor: [30, 42],
-        });
-        const marker = L.marker([coords.lat, coords.lng], { icon });
-        marker.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          select(isSelected ? '' : c);
-        });
-        marker.addTo(map);
-        markersRef.current.push(marker);
-      });
-
-    if (selected && COUNTRY_COORDS[selected]) {
-      const coords = COUNTRY_COORDS[selected];
-      map.panTo([coords.lat, coords.lng], { animate: true });
+    const markers = markersRef.current;
+    for (const [country, entry] of markers) {
+      if (!counts[country] || !Object.prototype.hasOwnProperty.call(COUNTRY_COORDS, country)) { entry.marker.remove(); markers.delete(country); }
     }
-  }, [mapState, counts, selected]); // eslint-disable-line react-hooks/exhaustive-deps
+    Object.entries(counts).filter(([country]) => Object.prototype.hasOwnProperty.call(COUNTRY_COORDS, country)).forEach(([country, count], order) => {
+      const coords = COUNTRY_COORDS[country];
+      let entry = markers.get(country);
+      if (!entry) {
+        const marker = L.marker([coords.lat, coords.lng], { icon: pinIcon(country, count, order), bubblingMouseEvents: false, autoPanOnFocus: false });
+        marker.on('click', () => selectRef.current(selectedRef.current === country ? '' : country));
+        marker.addTo(map);
+        entry = { marker, count };
+        markers.set(country, entry);
+      } else if (entry.count !== count) {
+        entry.marker.setIcon(pinIcon(country, count, order));
+        entry.count = count;
+      }
+      const label = `${country} · ${m.count(count)}`;
+      const tooltip = document.createElement('span');
+      tooltip.textContent = label;
+      if (entry.marker.getTooltip()) entry.marker.setTooltipContent(tooltip);
+      else entry.marker.bindTooltip(tooltip, { direction: 'top', className: 'map-country-tooltip' });
+      const element = entry.marker.getElement();
+      element?.setAttribute('aria-label', label);
+      element?.setAttribute('title', label);
+      element?.setAttribute('aria-pressed', String(country === selectedRef.current));
+      element?.classList.toggle('is-selected', country === selectedRef.current);
+    });
+  }, [mapState, counts, m]);
 
-  if (error) return <ErrorState onRetry={reload} />;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (mapState !== 'ready' || !map) return;
+    for (const [country, { marker }] of markersRef.current) {
+      marker.getElement()?.classList.toggle('is-selected', country === selected);
+      marker.getElement()?.setAttribute('aria-pressed', String(country === selected));
+      marker.setZIndexOffset(country === selected ? 1000 : 0);
+    }
+    const coords = Object.prototype.hasOwnProperty.call(COUNTRY_COORDS, selected) ? COUNTRY_COORDS[selected] : undefined;
+    if (!coords) return;
+    const zoom = Math.min(Math.max(map.getZoom(), 5), 6);
+    const desktop = window.matchMedia('(min-width: 1024px)').matches;
+    const offset = desktop ? L.point(Math.min(170, map.getSize().x * 0.2), 0) : L.point(0, map.getSize().y * 0.22);
+    const center = map.unproject(map.project([coords.lat, coords.lng], zoom).add(offset), zoom);
+    map.stop().flyTo(center, zoom, { duration: 0.85, animate: !prefersReducedMotion() });
+  }, [mapState, selected]);
 
-  const isDataLoading = !opportunities;
-  const list = (selected === ONLINE ? open.filter((o) => o.is_online) : selected ? open.filter((o) => !o.is_online && o.country === selected) : []).sort((a, b) =>
-    a.deadline.localeCompare(b.deadline),
-  );
+  useEffect(() => {
+    if (!selected) return;
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') select(''); };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
+  }, [selected, select]);
+
+  const resetView = () => {
+    select('');
+    mapRef.current?.stop().flyTo(HOME, 4, { duration: 0.85, animate: !prefersReducedMotion() });
+  };
+  const list = (selected === ONLINE ? open.filter((o) => o.is_online) : selected ? open.filter((o) => !o.is_online && o.country === selected) : []).sort((a, b) => a.deadline.localeCompare(b.deadline));
   const chips = [
-    ...Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([c, n]) => ({ id: c, label: c, n })),
+    ...Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([country, n]) => ({ id: country, label: country, n })),
     ...(onlineCount ? [{ id: ONLINE, label: m.online, n: onlineCount }] : []),
   ];
   const listHref = selected === ONLINE ? '/app?country=__online__&mine=0' : `/app?country=${encodeURIComponent(selected)}&mine=0`;
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{m.title}</h1>
-        <p className="text-sm text-slate-500">
-          {m.count(open.length)} · {m.countries(Object.keys(counts).length)}
-        </p>
-      </div>
+    <div className="openly-map">
+      <header className="map-page-header">
+        <div className="flex items-center gap-3.5">
+          <span className="map-heading-icon"><Compass className="h-6 w-6" aria-hidden="true" /></span>
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{m.title}</h1>
+            <p className="mt-1 text-sm text-slate-500">{copy.subtitle}</p>
+          </div>
+        </div>
+        <div className="map-stats" aria-live="polite">
+          <span className="map-stat"><span className="map-live-dot" /><span>{m.count(open.length)}</span></span>
+          <span className="map-stat"><Globe2 className="h-3.5 w-3.5 text-brand-600" aria-hidden="true" />{m.countries(Object.keys(counts).length)}</span>
+        </div>
+      </header>
 
-      <div className="relative -mx-3.5 h-[calc(100dvh-13rem)] min-h-104 overflow-hidden border-y border-line bg-[#cdeeee] sm:mx-0 sm:rounded-4xl sm:border sm:shadow-card lg:h-[calc(100vh-11rem)]">
-        <div ref={mapEl} className="absolute inset-0 z-0 h-full w-full" />
+      <div className={`map-frame ${selected ? 'has-selection' : ''}`}>
+        <div ref={mapEl} className="map-canvas" aria-label={m.title} />
+        <div className="map-vignette" aria-hidden="true" />
 
-        {(isDataLoading || mapState === 'loading') && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-paper/80 backdrop-blur-xs">
+        {(!opportunities || mapState === 'loading') && !error && (
+          <div className="map-loading">
+            <span className="map-loading-compass"><Compass className="h-8 w-8" aria-hidden="true" /></span>
             <Spinner label={tx.loading} />
           </div>
         )}
-        {mapState === 'failed' && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-linear-to-br from-brand-50 via-paper to-coral-50 p-6 text-center">
-            <Globe2 className="h-12 w-12 text-brand-300" aria-hidden="true" />
-            <p className="max-w-xs text-sm font-medium text-brand-900">{m.loadError}</p>
-          </div>
+        {error && <div className="map-loading"><ErrorState onRetry={reload} /></div>}
+        {mapState === 'failed' && !error && (
+          <div className="map-loading text-center"><Globe2 className="h-12 w-12 text-brand-300" aria-hidden="true" /><p className="max-w-xs text-sm font-medium text-brand-900">{m.loadError}</p></div>
         )}
 
-        {/* Country chips over the top of the map. */}
-        <div className="absolute inset-x-0 top-0 z-10 p-3 sm:right-16">
-          <div className="flex gap-2 overflow-x-auto pb-1" role="radiogroup" aria-label={m.pick}>
-            {chips.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                role="radio"
-                aria-checked={selected === c.id}
-                onClick={() => select(selected === c.id ? '' : c.id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-md backdrop-blur-sm transition ${
-                  selected === c.id ? 'bg-coral-700 text-white' : 'bg-white/95 text-slate-700 hover:bg-white'
-                }`}
-              >
-                {c.id === ONLINE ? <Globe2 className="h-3.5 w-3.5" aria-hidden="true" /> : <span className="text-[0.6875rem] font-extrabold opacity-70">{countryCode(c.id)}</span>}
-                {c.label}
-                <span className={`rounded-full px-1.5 text-xs font-bold ${selected === c.id ? 'bg-white/25' : 'bg-paper text-slate-500'}`}>{c.n}</span>
+        <div className="map-country-bar">
+          <span className="map-country-bar-icon"><Compass className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="map-country-chips" role="group" aria-label={m.pick}>
+            {chips.map((chip) => (
+              <button key={chip.id} type="button" aria-pressed={selected === chip.id} onClick={() => select(selected === chip.id ? '' : chip.id)} className={`map-country-chip ${selected === chip.id ? 'is-active' : ''}`}>
+                {chip.id === ONLINE ? <Globe2 className="h-4 w-4" aria-hidden="true" /> : <span className="map-chip-flag" aria-hidden="true">{flagFor(chip.id)}</span>}
+                {chip.label}<span className="map-chip-count">{chip.n}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Hint until something is picked. */}
-        {!selected && mapState === 'ready' && (
-          <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-semibold text-ink shadow-lg sm:flex">
-            <Hand className="h-4 w-4 text-coral-600" aria-hidden="true" />
-            {m.hint}
-          </p>
-        )}
-
-        {/* Map type switcher */}
         {mapState === 'ready' && (
-          <div
-            role="radiogroup"
-            aria-label={m.kindLabel}
-            className={`absolute bottom-3 left-3 z-10 gap-0.5 rounded-full bg-white/95 p-1 shadow-lg ${selected ? 'hidden lg:flex' : 'flex'}`}
-          >
-            {MAP_KINDS.map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={kind === k}
-                onClick={() => changeKind(k)}
-                className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${kind === k ? 'bg-brand-800 text-white' : 'text-slate-600 hover:text-ink'}`}
-              >
-                {m.kinds[k]}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="map-controls" role="group" aria-label={m.title}>
+              <button type="button" onClick={() => mapRef.current?.zoomIn(undefined, { animate: !prefersReducedMotion() })} aria-label={copy.zoomIn} title={copy.zoomIn}><Plus className="h-4.5 w-4.5" aria-hidden="true" /></button>
+              <button type="button" onClick={() => mapRef.current?.zoomOut(undefined, { animate: !prefersReducedMotion() })} aria-label={copy.zoomOut} title={copy.zoomOut}><Minus className="h-4.5 w-4.5" aria-hidden="true" /></button>
+              <button type="button" onClick={resetView} aria-label={copy.reset} title={copy.reset}><Crosshair className="h-4.5 w-4.5" aria-hidden="true" /></button>
+            </div>
+            {!selected && <div className="map-explore-hint"><span className="map-hint-icon"><Hand className="h-4 w-4" aria-hidden="true" /></span><div><p className="text-xs font-extrabold text-brand-800">{copy.explore}</p><p className="mt-0.5 text-xs text-slate-500">{m.hint}</p></div><Sparkles className="ml-2 h-4 w-4 text-coral-500" aria-hidden="true" /></div>}
+            <div role="group" aria-label={m.kindLabel} className="map-style-picker">
+              {MAP_KINDS.map((style) => {
+                const Icon = STYLE_ICONS[style];
+                return <button key={style} type="button" aria-pressed={kind === style} onClick={() => changeKind(style)} className={`map-style-option ${kind === style ? 'is-active' : ''}`}><span className={`map-style-swatch map-style-swatch-${style}`}><Icon className="h-4 w-4" aria-hidden="true" /></span><span>{m.kinds[style]}</span></button>;
+              })}
+            </div>
+          </>
         )}
 
-        {/* The country's opportunities: a side panel on large screens, a bottom sheet on phones. */}
         {selected && (
-          <section
-            key={selected}
-            aria-label={selected === ONLINE ? m.online : selected}
-            className="absolute inset-x-0 bottom-0 z-20 flex max-h-[62%] animate-[sheet-up_0.25s_ease] flex-col rounded-t-[1.75rem] bg-paper/95 shadow-[0_-12px_40px_-12px_rgba(15,58,66,0.35)] backdrop-blur-sm lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-16 lg:max-h-none lg:w-[24rem] lg:rounded-[1.75rem]"
-          >
-            <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-slate-300 lg:hidden" aria-hidden="true" />
-            <header className="flex items-start gap-3 px-4 pb-3 pt-3 sm:px-5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-coral-700 font-display text-sm font-extrabold text-white">
-                {selected === ONLINE ? <Globe2 className="h-5 w-5" aria-hidden="true" /> : countryCode(selected)}
-              </span>
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate text-lg font-extrabold">{selected === ONLINE ? m.online : selected}</h2>
-                <Link to={listHref} className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 hover:underline">
-                  {m.count(list.length)} · {m.openList}
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </div>
-              <button type="button" onClick={() => select('')} aria-label={tx.close} className="rounded-full bg-white p-2 text-slate-500 shadow-xs hover:text-ink">
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
+          <section key={selected} aria-label={selected === ONLINE ? m.online : selected} className="map-opportunity-panel">
+            <div className="map-sheet-handle" aria-hidden="true" />
+            <header className="map-panel-header">
+              <span className="map-destination-badge">{selected === ONLINE ? <Globe2 className="h-6 w-6" aria-hidden="true" /> : <span aria-hidden="true">{flagFor(selected)}</span>}</span>
+              <div className="min-w-0 flex-1"><p className="map-destination-label">{copy.destination}</p><h2 className="mt-0.5 truncate text-xl font-extrabold">{selected === ONLINE ? m.online : selected}</h2><p className="mt-1 text-xs font-semibold text-brand-700">{m.count(list.length)}</p></div>
+              <button type="button" onClick={() => select('')} aria-label={tx.close} className="map-panel-close"><X className="h-4 w-4" aria-hidden="true" /></button>
             </header>
-            {list.length === 0 ? (
-              <p className="mx-4 mb-4 rounded-2xl border border-dashed border-line bg-white py-8 text-center text-sm text-slate-500">{m.empty}</p>
-            ) : (
-              <ul className="space-y-2 overflow-y-auto overscroll-contain px-4 pb-4 sm:px-5">
-                {list.map((o) => (
-                  <EventCard key={o.id} o={o} />
-                ))}
-              </ul>
-            )}
+            {list.length === 0 ? <p className="mx-4 mb-4 rounded-2xl border border-dashed border-line bg-white py-8 text-center text-sm text-slate-500">{m.empty}</p> : <ul className="map-event-list">{list.map((o, index) => <EventCard key={o.id} o={o} index={index} />)}</ul>}
+            <Link to={listHref} className="map-panel-link">{m.openList}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         )}
       </div>
