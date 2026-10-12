@@ -176,15 +176,17 @@
   .openly-map .map-controls { top: 12px; right: 10px; padding: 3px; border-radius: 15px; }
   .openly-map .map-controls button { width: 32px; height: 34px; }
   .openly-map .map-explore-hint { left: 10px; right: auto; top: 66px; bottom: auto; max-width: calc(100% - 70px); padding: 8px 10px; gap: 8px; border-radius: 14px; }
-  .openly-map .map-hint-icon { width: 27px; height: 27px; border-radius: 9px; }
-  .openly-map .map-hint-icon { flex-shrink: 0; }
+  .openly-map .map-hint-icon { width: 27px; height: 27px; flex-shrink: 0; border-radius: 9px; }
   .openly-map .map-explore-hint p:first-child, .openly-map .map-explore-hint > svg { display: none; }
   .openly-map .map-explore-hint .text-xs { margin-top: 0; font-size: 12px; line-height: 1.4; }
   .openly-map .map-style-picker { bottom: 25px; left: 10px; padding: 5px; gap: 3px; border-radius: 16px; }
   .openly-map .map-style-option { min-width: 49px; padding: 3px; }
   .openly-map .map-style-swatch { width: 44px; height: 30px; }
-  .openly-map .map-opportunity-panel { max-height: 74%; border-radius: 22px 22px 0 0; }
-  .openly-map .map-panel-header { gap: 10px; padding: 10px 12px; }
+  .openly-map .map-opportunity-panel { max-height: min(78%, calc(100% - 58px)); border-radius: 22px 22px 0 0; }
+  .openly-map .map-panel-header { gap: 10px; padding: 8px 12px; }
+  .openly-map .map-destination-label { display: none; }
+  .openly-map .map-panel-header h2 { margin-top: 0; line-height: 1.3; }
+  .openly-map .map-panel-header .text-xs { margin-top: 2px; }
   .openly-map .map-destination-badge { width: 40px; height: 44px; border-radius: 14px; font-size: 25px; }
   .openly-map .map-panel-close { width: 36px; height: 36px; }
   .openly-map .map-event-list { padding: 0 10px 8px; }
