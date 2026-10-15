@@ -1,5 +1,7 @@
 import type { AcceptanceRequest, AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
+export interface PlanNotification { id: string; plan: 'premium' | 'student'; created_at: string }
+
 export type ProfilePatch = Partial<Pick<Profile, 'full_name' | 'interests' | 'country' | 'digest_opt_out' | 'reminders_opt_out' | 'about' | 'headline' | 'roadmap' | 'student_prefs' | 'prefs'>>;
 
 /**
@@ -74,6 +76,9 @@ export interface Backend {
   requestPasswordReset(email: string): Promise<void>;
   /** Sets a new password for the signed-in user (also used after a reset link). */
   updatePassword(password: string): Promise<void>;
+
+  listPlanNotifications(): Promise<PlanNotification[]>;
+  dismissPlanNotification(id: string): Promise<void>;
 
   getProfile(): Promise<Profile | null>;
   updateProfile(patch: ProfilePatch): Promise<Profile>;

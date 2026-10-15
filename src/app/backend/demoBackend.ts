@@ -1,7 +1,7 @@
 import { DEMO_ACCOUNTS } from './demoAccounts';
 import { FREE_EVENT_LIMIT } from '../../config';
 import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
-import { BackendError, type Backend, type DiscussionQuestion } from './types';
+import { BackendError, type Backend, type DiscussionQuestion, type PlanNotification } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
 // Stable ids so the shortlist survives reloads.
@@ -20,6 +20,7 @@ const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).ge
 
 
 const K = {
+  notifications: 'openly_demo_plan_notifications',
   users: 'openly_demo_users',
   verifications: 'openly_demo_verifications',
   session: 'openly_demo_session',
@@ -472,8 +473,24 @@ export function createDemoBackend(): Backend {
       write(K.verifications, verified ? [...approvals, key] : approvals);
     },
 
+    async listPlanNotifications() {
+      const u = requireUser();
+      return read<Record<string, PlanNotification[]>>(K.notifications, {})[u.id] ?? [];
+    },
+    async dismissPlanNotification(id) {
+      const u = requireUser();
+      const all = read<Record<string, PlanNotification[]>>(K.notifications, {});
+      all[u.id] = (all[u.id] ?? []).filter(n => n.id !== id);
+      write(K.notifications, all);
+    },
     async setUserPlan(userId, plan) {
       requireAdmin();
+      const target = users().find(u => u.id === userId);
+      if (target && target.plan !== plan && (plan === 'premium' || plan === 'student')) {
+        const all = read<Record<string, PlanNotification[]>>(K.notifications, {});
+        all[userId] = [{ id: uuid(), plan, created_at: new Date().toISOString() }, ...(all[userId] ?? [])];
+        write(K.notifications, all);
+      }
       write(
         K.users,
         users().map((u) => (u.id === userId ? { ...u, plan } : u)),

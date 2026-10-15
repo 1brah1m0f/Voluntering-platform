@@ -192,3 +192,13 @@ src/
     text.ts             app AZ/EN strings
 supabase/app.sql        app tables, RLS, triggers
 ```
+
+## Plan activation messages
+
+Apply `supabase/migrations/20261015090000_plan_notifications.sql` to an existing database
+(or use the updated `supabase/app.sql` for setup). Changing a profile to Premium or
+Student creates a private in-app activation message, including changes through SQL.
+Signed-in users see it within 15 seconds while the page is visible, or on their next
+visit. Dismissing it persists across devices. Assigning the same plan again does not
+create another message; cancellation followed by reactivation does. Existing paid
+accounts are not notified retroactively.

@@ -63,6 +63,21 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
       if (error) throw dbError(error);
     },
     mode: 'supabase',
+    async listPlanNotifications() {
+      const userId = await uid();
+      if (!userId) return [];
+      const { data, error } = await sb.from('plan_notifications').select('id, plan, created_at')
+        .eq('user_id', userId).is('read_at', null).order('created_at', { ascending: false });
+      if (error) throw dbError(error);
+      return data ?? [];
+    },
+    async dismissPlanNotification(id) {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const { error } = await sb.from('plan_notifications').update({ read_at: new Date().toISOString() })
+        .eq('id', id).eq('user_id', userId);
+      if (error) throw dbError(error);
+    },
     supportsGoogle: true,
 
     getUserId: uid,

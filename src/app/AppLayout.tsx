@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import type { PlanNotification } from './backend';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
@@ -10,6 +11,63 @@ import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
 import { hasPremium, homeFor, isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
+
+/** Durable activation messages are shared by the regular and student shells. */
+function PlanNotifications() {
+  const { userId, refresh } = useAuth();
+  const { lang } = useLang();
+  const [messages, setMessages] = useState<PlanNotification[]>([]);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    let running = false;
+    let previousIds = '';
+    setMessages([]);
+    setError(false);
+    const load = async () => {
+      if (!userId || running || document.hidden) return;
+      running = true;
+      try {
+        const rows = await backend.listPlanNotifications();
+        if (!active) return;
+        setMessages(rows);
+        const ids = rows.map(row => row.id).join(',');
+        if (ids && ids !== previousIds) void refresh();
+        previousIds = ids;
+      } catch (err) {
+        console.error('[plan notifications]', err);
+      } finally { running = false; }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 15000);
+    const onFocus = () => void load();
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, [userId, refresh]);
+  const dismiss = async (id: string) => {
+    try {
+      await backend.dismissPlanNotification(id);
+      setMessages(rows => rows.filter(row => row.id !== id));
+      setError(false);
+    } catch { setError(true); }
+  };
+  return <div aria-live="polite">
+    {messages.map(message => <div key={message.id} role="status" className="mb-4 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
+      <div>
+        <p className="font-bold">{lang === 'az' ? `🎉 ${message.plan === 'student' ? 'Tələbə planın' : 'Premium planın'} aktivləşdirildi!` : `🎉 Your ${message.plan === 'student' ? 'Student' : 'Premium'} plan has been activated!`}</p>
+        <p className="mt-1 text-sm">{lang === 'az' ? 'Planına daxil olan bütün imkanlardan indi istifadə edə bilərsən.' : 'You can now use all the features included in your plan.'}</p>
+      </div>
+      <button type="button" onClick={() => void dismiss(message.id)} className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-amber-100">{lang === 'az' ? 'Bağla' : 'Dismiss'}</button>
+    </div>)}
+    {error && <p role="alert" className="mb-3 text-sm text-red-700">{lang === 'az' ? 'Mesaj bağlanmadı. Yenidən cəhd et.' : 'Could not dismiss the message. Please try again.'}</p>}
+  </div>;
+}
 
 /** The landing page is for guests; signed-in users go straight to their own home. */
 export function LandingRoute({ children }: { children: ReactNode }) {
@@ -100,6 +158,7 @@ export function StudentLayout() {
             </button>
           </div>
         </div>
+        <PlanNotifications />
         <Outlet />
       </main>
     </div>
@@ -283,6 +342,7 @@ export default function AppLayout() {
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800 print:hidden">{tx.demoBanner}</p>}
 
           <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8 print:max-w-none print:p-0">
+            <PlanNotifications />
             <Outlet />
           </main>
         </div>

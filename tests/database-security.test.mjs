@@ -165,3 +165,26 @@ test('opportunity discussions inherit opportunity visibility, including answers 
   await assert.rejects(asUser(free, 'insert into public.discussion_stars(question_id) values ($1)', [q.id]), /row-level security/);
   await assert.rejects(asUser(free, `insert into public.discussion_questions(scope, title, body) values ($1, 'Hidden', 'Hidden')`, [`opportunity:${hidden}`]), /row-level security/);
 });
+
+
+test('plan activation messages persist, deduplicate unchanged plans and enforce ownership', async () => {
+  const target = id(50);
+  await db.query('insert into auth.users(id, email) values ($1, $2)', [target, 'notification@example.test']);
+  await asUser(admin, "select public.set_user_plan($1, 'premium')", [target]);
+  let rows = await asUser(target, 'select * from public.plan_notifications');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].plan, 'premium');
+  assert.equal(rows[0].read_at, null);
+  await asUser(admin, "select public.set_user_plan($1, 'premium')", [target]);
+  assert.equal((await asUser(target, 'select * from public.plan_notifications')).length, 1);
+  assert.deepEqual(await asUser(peer, 'select * from public.plan_notifications where user_id = $1', [target]), []);
+  await assert.rejects(asUser(target, "insert into public.plan_notifications(user_id, plan) values ($1, 'premium')", [target]), /permission denied/);
+  await assert.rejects(asUser(target, 'update public.plan_notifications set user_id = $1 where id = $2', [peer, rows[0].id]), /permission denied/);
+  await asUser(peer, 'update public.plan_notifications set read_at = now() where id = $1', [rows[0].id]);
+  assert.equal((await asUser(target, 'select * from public.plan_notifications'))[0].read_at, null);
+  await asUser(target, 'update public.plan_notifications set read_at = now() where id = $1', [rows[0].id]);
+  assert.equal((await asUser(target, 'select * from public.plan_notifications where read_at is null')).length, 0);
+  await db.query("update public.profiles set plan = 'basic' where id = $1", [target]);
+  await db.query("update public.profiles set plan = 'premium' where id = $1", [target]);
+  assert.equal((await asUser(target, 'select * from public.plan_notifications where read_at is null')).length, 1);
+});
