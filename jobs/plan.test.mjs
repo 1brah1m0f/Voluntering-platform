@@ -1,7 +1,8 @@
+import { activationEmail } from './emails.mjs';
 // Run: npm run test:jobs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bakuDate, daysBetween, logKey, planNotifications } from './plan.mjs';
+import { bakuDate, daysBetween, logKey, planNotifications, planActivationEmails } from './plan.mjs';
 
 // Monday 2026-10-05 09:00 Baku = 05:00 UTC
 const MONDAY = new Date('2026-10-05T05:00:00Z');
@@ -168,4 +169,29 @@ test('student accounts get no volunteering emails', () => {
   });
   assert.equal(digests.length, 0);
   assert.equal(reminders.length, 0);
+});
+
+
+test('activation emails include dismissed messages and student plans despite digest opt-outs', () => {
+  const input = {
+    notifications: [{ id: 'n1', user_id: 'u1', plan: 'premium', read_at: '2026-10-15' }, { id: 'n2', user_id: 'u2', plan: 'student' }],
+    profiles: [profile('u1', { plan: 'premium', digest_opt_out: true, reminders_opt_out: true }), profile('u2', { plan: 'student', account_type: 'student' })],
+    confirmedEmails: new Map([['u1', 'one@example.test'], ['u2', 'two@example.test']]), sent: new Set(),
+  };
+  assert.equal(planActivationEmails(input).length, 2);
+  assert.equal(planActivationEmails({ ...input, only: 'ONE@example.test' }).length, 1);
+  assert.equal(planActivationEmails({ ...input, sent: new Set([logKey('u1', 'plan_activation', 'n1')]) }).length, 1);
+  assert.equal(planActivationEmails({ ...input, confirmedEmails: new Map() }).length, 0);
+  assert.equal(planActivationEmails({ ...input, profiles: [profile('u1'), profile('u2')] }).length, 0);
+});
+
+test('activation templates provide the correct plan, destination, text and escaped name', () => {
+  for (const plan of ['premium', 'student']) {
+    const mail = activationEmail({ name: '<script>', plan, site: 'https://example.test' });
+    assert.match(mail.subject, /aktivləşdirildi/);
+    assert.match(mail.html, /&lt;script&gt;/);
+    assert.ok(!mail.html.includes('<script>'));
+    assert.ok(mail.text.includes(plan === 'student' ? '/student/profile' : '/app/profile?tab=premium'));
+    assert.match(mail.html, /plan aktivləşdirildiyi üçün/);
+  }
 });

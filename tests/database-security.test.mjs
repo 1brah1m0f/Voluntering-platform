@@ -188,3 +188,17 @@ test('plan activation messages persist, deduplicate unchanged plans and enforce 
   await db.query("update public.profiles set plan = 'premium' where id = $1", [target]);
   assert.equal((await asUser(target, 'select * from public.plan_notifications where read_at is null')).length, 1);
 });
+
+
+test('activation email receipts are restricted to the worker and deduplicate per activation', async () => {
+  await db.exec('begin; set local role service_role;');
+  try {
+    const notifications = await db.query('select id from public.plan_notifications where user_id = $1', [paid]);
+    const ref = notifications.rows[0].id;
+    await db.query("insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', $2)", [paid, ref]);
+    const repeated = await db.query("insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', $2) on conflict do nothing returning ref", [paid, ref]);
+    assert.equal(repeated.rows.length, 0);
+    await db.exec('commit');
+  } catch (err) { await db.exec('rollback'); throw err; }
+  await assert.rejects(asUser(paid, "insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', 'forged')", [paid]), /row-level security|permission denied/);
+});

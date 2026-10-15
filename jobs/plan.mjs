@@ -92,3 +92,16 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
 
   return { today, weeklyDay, digests, reminders };
 }
+
+/** Transactional plan emails ignore marketing opt-outs and in-app dismissal. */
+export function planActivationEmails({ notifications, profiles, confirmedEmails, sent, only = null }) {
+  const byId = new Map(profiles.map(p => [p.id, p]));
+  return notifications.flatMap(n => {
+    const p = byId.get(n.user_id);
+    const email = confirmedEmails.get(n.user_id);
+    if (!p || !email || p.plan !== n.plan || !['premium', 'student'].includes(n.plan)) return [];
+    if (only && email.toLowerCase() !== only.toLowerCase()) return [];
+    if (sent.has(logKey(p.id, 'plan_activation', n.id))) return [];
+    return [{ userId: p.id, email, name: p.full_name || '', plan: n.plan, ref: n.id }];
+  });
+}

@@ -12,10 +12,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { digestEmail, reminderEmail } from './emails.mjs';
-import { logKey, planNotifications } from './plan.mjs';
+import { activationEmail, digestEmail, reminderEmail } from './emails.mjs';
+import { logKey, planNotifications, planActivationEmails } from './plan.mjs';
 
 const args = process.argv.slice(2);
+const activationOnly = args.includes('--activation-only');
 const dryRun = args.includes('--dry-run');
 const forceWeekly = args.includes('--force-weekly');
 const only = args.find((a) => a.startsWith('--only='))?.slice('--only='.length) || null;
@@ -67,25 +68,31 @@ async function unclaim(userId, kind, refs) {
 
 async function main() {
   const now = new Date();
-  const [emails, profiles, opportunities, saved, log] = await Promise.all([
+  const [emails, profiles, opportunities, saved, log, notifications] = await Promise.all([
     confirmedEmails(),
     must(sb.from('profiles').select('id, full_name, interests, plan, account_type, digest_opt_out, reminders_opt_out, last_digest_at'), 'profiles'),
-    must(sb.from('opportunities').select('*').eq('published', true), 'opportunities'),
-    must(sb.from('saved_opportunities').select('user_id, opportunity_id, status'), 'saved_opportunities'),
-    must(sb.from('email_log').select('user_id, kind, ref').gte('sent_at', new Date(now.getTime() - 30 * 864e5).toISOString()), 'email_log'),
+    activationOnly ? [] : must(sb.from('opportunities').select('*').eq('published', true), 'opportunities'),
+    activationOnly ? [] : must(sb.from('saved_opportunities').select('user_id, opportunity_id, status'), 'saved_opportunities'),
+    must(sb.from('email_log').select('user_id, kind, ref').or(`kind.eq.plan_activation,sent_at.gte.${new Date(now.getTime() - 30 * 864e5).toISOString()}`), 'email_log'),
+    must(sb.from('plan_notifications').select('id, user_id, plan, created_at'), 'plan_notifications'),
   ]);
   const sent = new Set(log.map((r) => logKey(r.user_id, r.kind, r.ref)));
 
   const plan = planNotifications({ now, profiles, confirmedEmails: emails, opportunities, saved, sent, forceWeekly, only });
+  const activations = planActivationEmails({ notifications, profiles, confirmedEmails: emails, sent, only });
+  console.log(`${activations.length} plan activation email(s)`);
   console.log(
     `Baku date ${plan.today}${plan.weeklyDay ? ' (weekly digest day)' : ''} — ${plan.digests.length} digest(s), ${plan.reminders.length} reminder email(s)${dryRun ? ' [dry run]' : ''}`,
   );
 
   if (dryRun) {
+    for (const a of activations) console.log(`  activation → ${a.email} (${a.plan})`);
     for (const d of plan.digests) console.log(`  digest   → ${d.email} (${d.premium ? 'premium' : 'free'}): ${d.items.map((o) => o.title).join(' | ')}`);
     for (const r of plan.reminders) console.log(`  reminder → ${r.email}: ${r.items.map(({ opportunity, days }) => `${opportunity.title} (${days}d)`).join(' | ')}`);
     return;
   }
+
+  if (!activations.length && !plan.digests.length && !plan.reminders.length) return;
 
   const from = env('MAIL_FROM', 'Openly <noreply@openlyapply.com>');
   const headers = { 'List-Unsubscribe': `<${SITE}/app/profile?tab=settings>` };
@@ -102,9 +109,9 @@ async function main() {
         });
       })();
 
-  async function sendMail({ to, subject, html, text }) {
+  async function sendMail({ to, subject, html, text, transactional = false, idempotencyKey }) {
     if (!resendKey) {
-      await mailer.sendMail({ from, to, subject, html, text, headers });
+      await mailer.sendMail({ from, to, subject, html, text, headers: transactional ? {} : headers });
       return;
     }
 
@@ -113,8 +120,9 @@ async function main() {
       headers: {
         Authorization: ['Bearer', resendKey].join(' '),
         'Content-Type': 'application/json',
+        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
       },
-      body: JSON.stringify({ from, to, subject, html, text, headers }),
+      body: JSON.stringify({ from, to, subject, html, text, headers: transactional ? {} : headers }),
     });
     if (!response.ok) {
       const detail = await response.text();
@@ -124,6 +132,20 @@ async function main() {
 
   let ok = 0;
   let failed = 0;
+
+  for (const a of activations) {
+    const owned = await claim(a.userId, 'plan_activation', [a.ref]);
+    if (!owned.size) continue;
+    try {
+      const mail = activationEmail({ ...a, site: SITE });
+      await sendMail({ to: a.email, ...mail, transactional: true, idempotencyKey: `plan-activation/${a.ref}` });
+      ok++;
+    } catch (err) {
+      failed++;
+      console.error(`activation to ${a.email} failed:`, err.message);
+      await unclaim(a.userId, 'plan_activation', [a.ref]);
+    }
+  }
 
   for (const d of plan.digests) {
     const owned = await claim(d.userId, 'digest', [d.ref]);

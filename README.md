@@ -202,3 +202,15 @@ Signed-in users see it within 15 seconds while the page is visible, or on their 
 visit. Dismissing it persists across devices. Assigning the same plan again does not
 create another message; cancellation followed by reactivation does. Existing paid
 accounts are not notified retroactively.
+
+Plan activations also send a transactional email to the confirmed account address
+through the existing Resend/SMTP configuration. Apply
+`supabase/migrations/20261015100000_plan_activation_emails.sql` after the in-app
+notification migration. The notification workflow checks activations every five
+minutes (GitHub Actions can delay scheduled runs); daily digests keep their existing
+schedule. To preview locally: `npm run notify -- --activation-only --dry-run`.
+Activation mail ignores digest/reminder opt-outs and in-app dismissal, skips plans
+that are no longer active, and records each activation in `email_log` permanently.
+Failed sends release their claim for a later retry. As with the existing email job,
+a process crash after claiming can require manual receipt cleanup; SMTP cannot
+guarantee exactly-once delivery after an ambiguous transport failure.

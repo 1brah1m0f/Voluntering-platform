@@ -23,7 +23,7 @@ const daysLeft = (d) => (d <= 0 ? 'Bu gün bitir' : d === 1 ? 'Sabah bitir' : `$
 const place = (o) => (o.is_online ? 'Onlayn' : [o.city, o.country].filter(Boolean).join(', '));
 const greet = (name) => `Salam${name ? `, <strong style="color:#0f172a;">${esc(name.split(' ')[0])}</strong>` : ''}! 👋`;
 
-function layout({ preheader, eyebrow, title, body, site }) {
+function layout({ preheader, eyebrow, title, body, site, transactional = false }) {
   return `<!doctype html>
 <html lang="az"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="color-scheme" content="light only" /><title>${esc(title)}</title></head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;">
@@ -46,7 +46,7 @@ function layout({ preheader, eyebrow, title, body, site }) {
     ${body}
   </td></tr>
   <tr><td align="center" style="padding:24px 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#94a3b8;">
-    Bu məktubu Openly hesabındakı bildiriş ayarlarına görə alırsan.<br />
+    ${transactional ? 'Bu məktubu hesabındakı plan aktivləşdirildiyi üçün alırsan.' : 'Bu məktubu Openly hesabındakı bildiriş ayarlarına görə alırsan.'}<br />
     <a href="${site}/app/profile?tab=settings" style="color:#64748b;">Bildiriş ayarlarını dəyiş</a> · <a href="${site}" style="color:#64748b;">openlyapply.com</a>
   </td></tr>
 </table>
@@ -139,4 +139,22 @@ export function reminderEmail({ name, items, site }) {
     `Bildiriş ayarları: ${site}/app/profile?tab=settings`,
   ].join('\n');
   return { subject, html: layout({ preheader: 'Son tarix yaxınlaşır — müraciət etməyi unutma.', eyebrow: 'SON TARİX XATIRLATMASI', title: subject, body, site }), text };
+}
+
+export function activationEmail({ name, plan, site }) {
+  const label = plan === 'student' ? 'Tələbə' : 'Premium';
+  const subject = `🎉 ${label} planın aktivləşdirildi!`;
+  const description = plan === 'student'
+    ? 'Premium imkanları, təqaüdlər, universitetlər, yol xəritəsi və planlayıcı artıq sənin üçün açıqdır.'
+    : 'Limitsiz izləmə, erkən giriş, son tarix xatırlatmaları, ağıllı uyğunlaşdırma və gündə 15 AI istifadəsi artıq sənin üçün açıqdır.';
+  const url = `${site}${plan === 'student' ? '/student/profile' : '/app/profile?tab=premium'}`;
+  const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:24px 32px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#334155;">
+    <p>${greet(name)}</p><p>${esc(subject)}</p><p>${esc(description)}</p>
+    <p><a href="${esc(url)}" style="color:#1b7a85;font-weight:bold;">Hesabına keç →</a></p>
+  </td></tr></table>`;
+  return {
+    subject,
+    html: layout({ preheader: description, eyebrow: 'PLAN AKTİVLƏŞDİRİLDİ', title: subject, body, site, transactional: true }),
+    text: [`Salam${name ? `, ${name.split(' ')[0]}` : ''}!`, subject, description, `Hesabına keç: ${url}`].join('\n\n'),
+  };
 }
