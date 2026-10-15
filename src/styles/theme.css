@@ -69,6 +69,44 @@
   }
 }
 
+/* Semantic surfaces keep the brand colours independent from the page theme.
+   Screen-only dark tokens leave the CV's printed colours unchanged. */
+@layer theme {
+  :root {
+    --surface-base: #ffffff;
+    --surface-card: #ffffff;
+    --surface-muted: #f5f2ea;
+    --surface-raised: #f8fafc;
+    --text-primary: #0f2a2e;
+    --text-secondary: #334155;
+    --text-muted: #566478;
+    --border-subtle: #e4dfd3;
+    --accent-teal: #1b626c;
+    --accent-coral: #c33416;
+  }
+
+  @media screen {
+    :root[data-theme='dark'] {
+      --surface-base: #0b1720;
+      --surface-card: #13262f;
+      --surface-muted: #10212a;
+      --surface-raised: #1b303a;
+      --text-primary: #edf5f5;
+      --text-secondary: #c5d4da;
+      --text-muted: #99adb8;
+      --border-subtle: #2b414c;
+      --accent-teal: #79d6d8;
+      --accent-coral: #ffac97;
+
+      --color-paper: var(--surface-muted);
+      --color-ink: var(--text-primary);
+      --color-line: var(--border-subtle);
+      --shadow-soft: 0 14px 42px -14px rgb(0 0 0 / 0.5);
+      --shadow-card: 0 1px 3px rgb(0 0 0 / 0.12), 0 8px 24px -12px rgb(0 0 0 / 0.32);
+    }
+  }
+}
+
 /* Scale text, rather than the rem root, so phone spacing and touch targets stay usable.
    Screen-only: printed CVs keep the desktop type scale. */
 @layer theme {

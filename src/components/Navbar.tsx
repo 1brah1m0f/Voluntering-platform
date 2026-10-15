@@ -5,6 +5,7 @@ import { BRAND } from '../config';
 import { useLang, type Lang } from '../i18n';
 import { useAuth } from '../app/AuthContext';
 import { Logo } from './Icons';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const { t, lang, setLang } = useLang();
@@ -49,6 +50,7 @@ export default function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <div role="group" aria-label={t.nav.langLabel} className="hidden rounded-full border border-slate-200 bg-white p-0.5 text-xs font-bold sm:flex">
             {(['az', 'en'] as Lang[]).map((l) => (
               <button

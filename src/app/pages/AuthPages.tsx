@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { ArrowLeft, GraduationCap, Loader2, MailCheck, Shield, UserRound } from 'lucide-react';
 import { BRAND } from '../../config';
 import { Logo } from '../../components/Icons';
+import ThemeToggle from '../../components/ThemeToggle';
 import { useLang } from '../../i18n';
 import { backend, BackendError } from '../backend';
 import { DEMO_ACCOUNTS } from '../backend/demoAccounts';
@@ -119,7 +120,10 @@ function AuthLayout({ title, sub, children }: { title: string; sub: string; chil
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {tx.nav.home}
           </Link>
-          <LangToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LangToggle />
+          </div>
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-6 sm:py-10">
           <Link to="/" className="mb-5 inline-flex items-center gap-2 text-lg font-extrabold text-slate-900 sm:mb-8 lg:hidden">
