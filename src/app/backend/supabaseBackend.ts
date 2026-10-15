@@ -62,6 +62,46 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
         : await query.delete().eq('question_id', questionId).eq('user_id', userId);
       if (error) throw dbError(error);
     },
+    async listHackathons() {
+      const { data, error } = await sb.from('hackathons').select('*').order('deadline');
+      if (error) throw dbError(error);
+      return data ?? [];
+    },
+    async getHackathon(id) {
+      const { data, error } = await sb.from('hackathons').select('*').eq('id', id).maybeSingle();
+      if (error) throw dbError(error);
+      return data;
+    },
+    async createHackathon(input) {
+      const { data, error } = await sb.from('hackathons').insert(input).select('*').single();
+      if (error) throw dbError(error);
+      return data;
+    },
+    async updateHackathon(id, input) {
+      const { data, error } = await sb.from('hackathons').update(input).eq('id', id).select('*').single();
+      if (error) throw dbError(error);
+      return data;
+    },
+    async deleteHackathon(id) {
+      const { error } = await sb.from('hackathons').delete().eq('id', id);
+      if (error) throw dbError(error);
+    },
+    async listHackathonEntries() {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const { data, error } = await sb.from('hackathon_entries').select('hackathon_id, stage').eq('user_id', userId);
+      if (error) throw dbError(error);
+      return data ?? [];
+    },
+    async setHackathonStage(id, stage) {
+      const userId = await uid();
+      if (!userId) throw new BackendError('not_allowed');
+      const query = sb.from('hackathon_entries');
+      const { error } = stage === null
+        ? await query.delete().eq('hackathon_id', id).eq('user_id', userId)
+        : await query.upsert({ user_id: userId, hackathon_id: id, stage }, { onConflict: 'user_id,hackathon_id' });
+      if (error) throw dbError(error);
+    },
     mode: 'supabase',
     async listPlanNotifications() {
       const userId = await uid();

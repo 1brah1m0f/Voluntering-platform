@@ -202,3 +202,37 @@ test('activation email receipts are restricted to the worker and deduplicate per
   } catch (err) { await db.exec('rollback'); throw err; }
   await assert.rejects(asUser(paid, "insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', 'forged')", [paid]), /row-level security|permission denied/);
 });
+
+test('hackathon preview is inaccessible to guests and regular paid users', async () => {
+  const hid = id(80);
+  await asUser(admin, `insert into public.hackathons(id,title,organizer,format,deadline,start_date,end_date,description,url,published)
+    values ($1,'Build for good','Openly','online','2030-02-01','2030-02-02','2030-02-03','Build a working prototype','https://example.test/hack',true)`, [hid]);
+  assert.equal((await asUser(admin, 'select id from public.hackathons where id=$1', [hid])).length, 1);
+  assert.deepEqual(await asUser(paid, 'select * from public.hackathons'), []);
+  assert.deepEqual(await asUser(free, 'select * from public.hackathons'), []);
+  await assert.rejects(asUser(paid, `insert into public.hackathons(title,organizer,format,deadline,start_date,end_date,description,url)
+    values ('Forged','User','online','2030-02-01','2030-02-02','2030-02-03','Description','https://example.test')`), /row-level security/);
+  assert.equal((await asUser(free, 'delete from public.hackathons where id=$1 returning id', [hid])).length, 0);
+  await db.exec('begin; set local role anon;');
+  try {
+    await assert.rejects(db.query('select * from public.hackathons'), /permission denied/);
+  } finally { await db.exec('rollback'); }
+});
+
+test('hackathon preparation is private per admin and respects team and date constraints', async () => {
+  const hid = id(80), anotherAdmin = id(81);
+  await db.query('insert into auth.users(id,email) values ($1,$2)', [anotherAdmin,'preview-admin@example.test']);
+  await db.query('update public.profiles set is_admin=true where id=$1', [anotherAdmin]);
+  await asUser(admin, "insert into public.hackathon_entries(user_id,hackathon_id,stage) values ($1,$2,'forming_team')", [admin,hid]);
+  assert.equal((await asUser(admin, 'select stage from public.hackathon_entries'))[0].stage, 'forming_team');
+  assert.deepEqual(await asUser(anotherAdmin, 'select * from public.hackathon_entries'), []);
+  await assert.rejects(asUser(anotherAdmin, "insert into public.hackathon_entries(user_id,hackathon_id) values ($1,$2)", [admin,hid]), /row-level security/);
+  await assert.rejects(asUser(paid, "insert into public.hackathon_entries(user_id,hackathon_id) values ($1,$2)", [paid,hid]), /row-level security/);
+  await assert.rejects(asUser(admin, 'update public.hackathons set team_min=6,team_max=3 where id=$1', [hid]), /hackathon_team/);
+  await assert.rejects(asUser(admin, "update public.hackathons set deadline='2030-03-01' where id=$1", [hid]), /hackathon_dates/);
+  await assert.rejects(asUser(admin, "update public.hackathons set url='javascript:alert(1)' where id=$1", [hid]), /check constraint/);
+  await asUser(admin, "update public.hackathon_entries set stage='submitted' where hackathon_id=$1", [hid]);
+  assert.equal((await asUser(admin, 'select stage from public.hackathon_entries'))[0].stage, 'submitted');
+  await asUser(admin, 'delete from public.hackathons where id=$1', [hid]);
+  assert.deepEqual(await asUser(admin, 'select * from public.hackathon_entries'), []);
+});

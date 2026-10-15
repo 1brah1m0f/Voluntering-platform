@@ -9,6 +9,10 @@ const LoginPage = lazy(() => import('../app/pages/AuthPages').then((m) => ({ def
 const RegisterPage = lazy(() => import('../app/pages/AuthPages').then((m) => ({ default: m.RegisterPage })));
 const ForgotPasswordPage = lazy(() => import('../app/pages/AuthPages').then((m) => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('../app/pages/AuthPages').then((m) => ({ default: m.ResetPasswordPage })));
+const DiscoveryPage = lazy(() => import('../app/hackathons/DiscoveryPage'));
+const HackathonsPage = lazy(() => import('../app/hackathons/HackathonsPage'));
+const HackathonDetailPage = lazy(() => import('../app/hackathons/HackathonDetailPage'));
+const HackathonEditor = lazy(() => import('../app/hackathons/HackathonEditor'));
 const OpportunitiesPage = lazy(() => import('../app/pages/OpportunitiesPage'));
 const HomePage = lazy(() => import('../app/pages/HomePage'));
 const DetailPage = lazy(() => import('../app/pages/DetailPage'));
@@ -73,6 +77,11 @@ export default function AppRoutes() {
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
                   <Route path="/app/premium" element={<Navigate to="/app/profile?tab=premium" replace />} />
                   <Route element={<RequireAdmin />}>
+                    <Route path="/app/discover" element={<DiscoveryPage />} />
+                    <Route path="/app/hackathons" element={<HackathonsPage />} />
+                    <Route path="/app/hackathons/:id" element={<HackathonDetailPage />} />
+                    <Route path="/admin/hackathons/new" element={<HackathonEditor />} />
+                    <Route path="/admin/hackathons/:id/edit" element={<HackathonEditor />} />
                     <Route path="/admin" element={<AdminListPage />} />
                     <Route path="/admin/users" element={<AdminUsersPage />} />
                     <Route path="/admin/new" element={<AdminEditPage />} />

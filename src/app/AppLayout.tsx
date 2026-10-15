@@ -1,13 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { PlanNotification } from './backend';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
+import { Code2, Bookmark, Compass, BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 import { useLang } from '../i18n';
 import { backend } from './backend';
 import { useAuth } from './AuthContext';
+import { hackathonText } from './hackathons/text';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
@@ -184,8 +185,12 @@ export default function AppLayout() {
   // After signing in, come back to the page the guest was looking at.
   const back = { from: location.pathname + location.search };
 
+  const discovery = profile?.is_admin ? profile.prefs?.discovery_mode : undefined;
+  const hackOnly = discovery === 'hackathons';
+  const ht = hackathonText[lang];
+
   type NavItem = { to: string; end: boolean; label: string; Icon: LucideIcon; also?: string; badge?: string };
-  const explore: NavItem[] = [
+  const volunteeringNav: NavItem[] = [
     // The dashboard is a page of its own; /app is the search.
     ...(guest ? [] : [{ to: '/app/home', end: false, label: tx.nav.home, Icon: House }]),
     { to: '/app', end: true, label: tx.nav.opportunities, Icon: Search },
@@ -194,12 +199,18 @@ export default function AppLayout() {
     // Programme pages belong to the guides section.
     { to: '/guides', end: false, label: tx.nav.guides, Icon: BookOpen, also: '/programs/' },
   ];
+  const explore: NavItem[] = hackOnly ? [
+    { to: '/app/hackathons', end: false, label: ht.title, Icon: Code2 },
+  ] : [
+    ...volunteeringNav,
+    ...(profile?.is_admin && discovery === 'both' ? [{ to: '/app/hackathons', end: false, label: ht.title, Icon: Code2 }] : []),
+  ];
   const mine: NavItem[] = guest
     ? []
     : [
-        { to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks },
+        ...(hackOnly ? [{ to: '/app/hackathons?saved=1', end: false, label: ht.savedOnly, Icon: Bookmark }] : [{ to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks }]),
         // The AI tools live on each opportunity page; this is their visible home.
-        { to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : '1/24h' },
+        ...(hackOnly ? [] : [{ to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : '1/24h' }]),
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin
@@ -217,8 +228,15 @@ export default function AppLayout() {
   // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
   // Guides are linked from the dashboard; admin pages are for desktop.
   const pick = (...paths: string[]) => paths.flatMap((p) => [...explore, ...mine].filter((i) => i.to === p));
-  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
-  const activeFor = (item: NavItem, isActive: boolean) => isActive || (!!item.also && location.pathname.startsWith(item.also));
+  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : hackOnly ? pick('/app/hackathons', '/app/hackathons?saved=1', '/app/profile', '/admin') : discovery === 'both' ? pick('/app/home', '/app', '/app/hackathons', '/app/tracker', '/app/profile') : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
+  const activeFor = (item: NavItem, isActive: boolean) => {
+    if (item.to.startsWith('/app/hackathons')) {
+      const savedTab = item.to.includes('?saved=1');
+      const savedView = new URLSearchParams(location.search).get('saved') === '1';
+      return location.pathname.startsWith('/app/hackathons') && savedTab === savedView;
+    }
+    return isActive || (!!item.also && location.pathname.startsWith(item.also));
+  };
   const isPremium = isPaidPlan(profile?.plan);
 
   const logout = async () => {
@@ -229,6 +247,10 @@ export default function AppLayout() {
   if (loading) return <Spinner />;
   // Student accounts don't see the regular app, its public pages included.
   if (isStudentOnly(profile)) return <Navigate to="/student" replace />;
+  if (profile?.is_admin && ['/app', '/app/home'].includes(location.pathname)) {
+    if (!discovery) return <Navigate to="/app/discover" replace />;
+    if (hackOnly) return <Navigate to="/app/hackathons" replace />;
+  }
 
   return (
     <DataProvider>
@@ -236,7 +258,7 @@ export default function AppLayout() {
         {/* desktop sidebar */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white p-5 lg:flex print:hidden!">
           {/* Signed-in users never go back to the landing page from the logo. */}
-          <Link to={guest ? '/' : '/app/home'} className="flex shrink-0 items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
+          <Link to={guest ? '/' : homeFor(profile)} className="flex shrink-0 items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
             {BRAND}
           </Link>
@@ -316,7 +338,7 @@ export default function AppLayout() {
         <div className="min-w-0 flex-1 pb-20 lg:pb-0 print:pb-0">
           {/* mobile top bar */}
           <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white/90 px-4 py-3 backdrop-blur-sm lg:hidden print:hidden">
-            <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
+            <Link to={guest ? '/' : homeFor(profile)} className="flex items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink">
               <Logo className="h-7 w-7" />
               {BRAND}
             </Link>
@@ -346,6 +368,10 @@ export default function AppLayout() {
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800 print:hidden">{tx.demoBanner}</p>}
 
           <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8 print:max-w-none print:p-0">
+            {profile?.is_admin && location.pathname !== '/app/discover' && <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3 text-xs">
+              <span className="inline-flex items-center gap-2 font-semibold text-brand-700"><Compass className="h-4 w-4" aria-hidden="true" />{discovery === 'hackathons' ? ht.hackathons : discovery === 'both' ? ht.both : ht.volunteering}</span>
+              <Link className="font-semibold text-slate-500 hover:text-brand-700" to="/app/discover">{ht.change} →</Link>
+            </div>}
             <PlanNotifications />
             <Outlet />
           </main>

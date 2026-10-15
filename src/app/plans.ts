@@ -22,4 +22,11 @@ export const isStudentOnly = (p: Pick<Profile, 'account_type' | 'is_admin'> | nu
 export const isRegularOnly = (p: Pick<Profile, 'account_type' | 'is_admin'> | null | undefined) => !!p && p.account_type !== 'student' && !p.is_admin;
 
 /** Where an account lands after signing in. */
-export const homeFor = (p: Pick<Profile, 'account_type' | 'is_admin'> | null | undefined) => (isStudentOnly(p) ? '/student' : '/app/home');
+export const homeFor = (p: (Pick<Profile, 'account_type' | 'is_admin'> & Partial<Pick<Profile, 'prefs'>>) | null | undefined) => {
+  if (isStudentOnly(p)) return '/student';
+  if (p?.is_admin) {
+    if (!p.prefs?.discovery_mode) return '/app/discover';
+    if (p.prefs.discovery_mode === 'hackathons') return '/app/hackathons';
+  }
+  return '/app/home';
+};
