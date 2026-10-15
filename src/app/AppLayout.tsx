@@ -82,7 +82,7 @@ export function StudentLayout() {
               to="/student/profile"
               title={tx.nav.profile}
               className={({ isActive }) =>
-                `flex items-center gap-2 rounded-full py-1 pl-1 pr-1 text-sm font-bold transition sm:pr-3 ${isActive ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-paper hover:text-ink'}`
+                `flex items-center gap-2 rounded-full py-1 pl-1 pr-1 text-sm font-bold transition sm:pr-3 ${isActive ? 'bg-brand-50 text-brand-900' : 'text-slate-600 hover:bg-paper hover:text-ink'}`
               }
             >
               <Avatar profile={profile} className="h-8 w-8 text-[11px]" />
@@ -173,7 +173,7 @@ export default function AppLayout() {
     <DataProvider>
       <div className="app-surface min-h-screen lg:flex">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white/90 p-5 shadow-[8px_0_30px_-28px_rgba(15,58,66,0.35)] backdrop-blur-sm lg:flex print:hidden!">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white p-5 lg:flex print:hidden!">
           {/* Signed-in users never go back to the landing page from the logo. */}
           <Link to={guest ? '/' : '/app/home'} className="flex items-center gap-2 font-display text-[1.375rem] font-extrabold tracking-tight text-ink">
             <Logo className="h-8 w-8" />
@@ -191,7 +191,7 @@ export default function AppLayout() {
                       end={item.end}
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                          activeFor(item, isActive) ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-100' : 'text-slate-600 hover:bg-paper hover:text-ink'
+                          activeFor(item, isActive) ? 'bg-brand-50 text-brand-900' : 'text-slate-600 hover:bg-paper hover:text-ink'
                         }`
                       }
                     >
@@ -282,7 +282,7 @@ export default function AppLayout() {
 
           {backend.mode === 'demo' && <p className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-800 print:hidden">{tx.demoBanner}</p>}
 
-          <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-12 print:max-w-none print:p-0">
+          <main className="mx-auto w-full max-w-6xl px-3.5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8 print:max-w-none print:p-0">
             <Outlet />
           </main>
         </div>
