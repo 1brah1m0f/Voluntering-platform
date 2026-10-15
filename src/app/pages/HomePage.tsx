@@ -1,3 +1,4 @@
+import { HackathonHomeSection } from '../hackathons/HackathonHomeSection';
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bookmark, CalendarDays, ChevronRight, Map as MapIcon, PartyPopper, Search, Send, Sparkles, type LucideIcon } from 'lucide-react';
@@ -126,6 +127,8 @@ export default function HomePage() {
           </div>
         ))}
       </Link>
+
+      {profile.is_admin && profile.prefs?.discovery_mode === 'both' && <HackathonHomeSection />}
 
       {/* Phones: right under the numbers; on wide screens it sits in the side column. */}
       <InstallCard className="lg:hidden" />
