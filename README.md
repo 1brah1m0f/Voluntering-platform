@@ -214,3 +214,28 @@ that are no longer active, and records each activation in `email_log` permanentl
 Failed sends release their claim for a later retry. As with the existing email job,
 a process crash after claiming can require manual receipt cleanup; SMTP cannot
 guarantee exactly-once delivery after an ambiguous transport failure.
+
+## Hackathon admin preview
+
+Admins are asked to choose **Volunteering**, **Hackathons**, or **Both** on their
+next visit to the app home. The selection is saved in `profiles.prefs.discovery_mode`
+and can be changed using the interests link above the page. Other accounts retain
+the existing experience. Hackathon pages, editor routes and database policies all
+require an admin account; buying Premium does not enable this preview.
+
+- `/app/discover`: choose a discovery mode.
+- `/app/hackathons`: search by title/organiser/technology, filter by format,
+  experience level and technology, and view saved/closed events.
+- `/app/hackathons/:id`: team requirements, prizes, dates, eligibility, official
+  registration link and personal preparation stage.
+- `/admin/hackathons/new` and `/admin/hackathons/:id/edit`: create, edit or publish
+  an event. Events can be deleted from their detail page.
+
+Apply `supabase/migrations/20261015165208_admin_hackathon_preview.sql` to an existing
+database, or use `supabase/app.sql` for setup. The migration has been applied to
+Openly-Apply. No public launch or real event content is included. Demo mode stores
+hackathons locally, without external registrations or emails.
+
+Validation: `npm run build` and `npm run test:security`. Browser verification covered
+all three discovery modes, create/edit/delete, persistent preparation stages,
+non-admin redirects, dark mode, and widths of 320, 768, 1024 and 1440 pixels.
