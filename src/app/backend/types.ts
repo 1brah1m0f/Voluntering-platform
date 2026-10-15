@@ -1,3 +1,4 @@
+import type { Hackathon, HackathonInput, HackathonEntry, HackathonStage } from '../hackathons/types';
 import type { AcceptanceRequest, AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
 export interface PlanNotification { id: string; plan: 'premium' | 'student'; created_at: string }
@@ -55,6 +56,15 @@ export interface DiscussionQuestion {
 }
 
 export interface Backend {
+  /** Admin-only hackathon preview. Enforced by database RLS as well. */
+  listHackathons(): Promise<Hackathon[]>;
+  getHackathon(id: string): Promise<Hackathon | null>;
+  createHackathon(input: HackathonInput): Promise<Hackathon>;
+  updateHackathon(id: string, input: HackathonInput): Promise<Hackathon>;
+  deleteHackathon(id: string): Promise<void>;
+  listHackathonEntries(): Promise<HackathonEntry[]>;
+  setHackathonStage(id: string, stage: HackathonStage | null): Promise<void>;
+
   listQuestions(scope: string): Promise<DiscussionQuestion[]>;
   askQuestion(scope: string, title: string, body: string): Promise<void>;
   answerQuestion(questionId: string, body: string): Promise<void>;
