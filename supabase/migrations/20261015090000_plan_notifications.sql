@@ -1,3 +1,9 @@
+-- Compatibility with older profiles tables where CREATE TABLE IF NOT EXISTS
+-- in app.sql does not add newly introduced columns.
+alter table public.profiles
+  add column if not exists plan text not null default 'basic'
+  check (plan in ('basic', 'premium', 'student'));
+
 -- Persist plan activation messages, including grants made directly through SQL.
 create table if not exists public.plan_notifications (
   id uuid primary key default gen_random_uuid(),

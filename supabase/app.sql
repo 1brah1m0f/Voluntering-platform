@@ -1033,6 +1033,12 @@ drop policy if exists "unstar as self" on public.discussion_stars;
 create policy "unstar as self" on public.discussion_stars for delete to authenticated
   using (user_id = (select auth.uid()));
 
+-- Compatibility with older profiles tables where CREATE TABLE IF NOT EXISTS
+-- in app.sql does not add newly introduced columns.
+alter table public.profiles
+  add column if not exists plan text not null default 'basic'
+  check (plan in ('basic', 'premium', 'student'));
+
 -- Persist plan activation messages, including grants made directly through SQL.
 create table if not exists public.plan_notifications (
   id uuid primary key default gen_random_uuid(),
@@ -1065,6 +1071,17 @@ revoke all on function private.notify_plan_activation() from public, anon, authe
 drop trigger if exists notify_plan_activation on public.profiles;
 create trigger notify_plan_activation after update of plan on public.profiles
 for each row execute function private.notify_plan_activation();
+
+-- Older databases may not have run the email section of app.sql yet.
+create table if not exists public.email_log (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  kind text not null check (kind in ('digest', 'reminder', 'plan_activation')),
+  ref text not null,
+  sent_at timestamptz not null default now(),
+  primary key (user_id, kind, ref)
+);
+alter table public.email_log enable row level security;
+revoke all on public.email_log from public, anon, authenticated;
 
 -- Keep activation email receipts permanently so repeat jobs cannot resend them.
 alter table public.email_log drop constraint if exists email_log_kind_check;
