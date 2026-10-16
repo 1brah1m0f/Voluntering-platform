@@ -182,3 +182,57 @@
   .openly-map .map-country-chips { scroll-behavior: auto; }
   .openly-map .map-tile-layer, .openly-map .leaflet-zoom-animated, .openly-map .leaflet-tile { transition: none !important; }
 }
+
+/* Calm surfaces keep the map and opportunity titles in focus. */
+.openly-map .map-heading-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border-color: var(--color-line);
+  background: var(--map-surface);
+  box-shadow: none;
+}
+.openly-map .map-heading-icon:hover svg { transform: none; }
+.openly-map .map-stat { border: 0; background: transparent; padding: 4px 0; font-weight: 500; color: var(--color-slate-500); }
+.openly-map .map-stats { gap: 16px; }
+.openly-map .map-frame { border-radius: 16px; border-color: var(--color-line); box-shadow: none; animation: none; }
+.openly-map .map-country-bar {
+  position: static;
+  max-width: 100%;
+  margin-bottom: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.openly-map .map-country-bar-icon { display: none; }
+.openly-map .map-country-chips { width: 100%; gap: 8px; padding: 4px 2px; }
+.openly-map .map-country-chip { min-height: 40px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--map-surface); font-weight: 500; }
+.openly-map .map-country-chip:hover { background: var(--color-brand-50); box-shadow: none; transform: none; }
+.openly-map .map-country-chip.is-active { border-color: var(--color-brand-700); background: var(--color-brand-700); box-shadow: none; }
+.openly-map .map-controls { border-color: var(--color-line); border-radius: 10px; background: var(--map-surface); box-shadow: 0 2px 8px #0f2a2e0d; backdrop-filter: none; }
+.openly-map .map-controls button { width: 40px; height: 40px; border-radius: 6px; }
+.openly-map .map-controls button:hover { transform: none; }
+.openly-map .map-style-picker { padding: 0; border-color: var(--color-line); border-radius: 10px; background: var(--map-surface); box-shadow: none; backdrop-filter: none; }
+.openly-map .map-style-select { min-height: 44px; max-width: 180px; padding: 8px 12px; color: var(--color-ink); font-size: 13px; cursor: pointer; }
+.openly-map .map-pin { animation: none; }
+.openly-map .map-pin-body { border-radius: 10px; box-shadow: 0 2px 6px #0f2a2e26; }
+.openly-map .map-pin-flag { background: transparent; }
+.openly-map .openly-map-marker.is-selected .map-pin-body { background: var(--color-brand-700); border-color: var(--map-pin-border); box-shadow: 0 2px 8px #0f2a2e26; transform: none; }
+.openly-map .is-selected .map-pin-tip { background: var(--color-brand-700); transform: rotate(45deg); }
+.openly-map .openly-map-marker.is-selected::before { display: none; }
+.openly-map .map-opportunity-panel { border-color: var(--color-line); border-radius: 16px 16px 0 0; background: var(--map-surface); backdrop-filter: none; box-shadow: 0 -4px 16px #0f2a2e0d; }
+.openly-map .map-destination-badge { border: 0; border-radius: 10px; background: var(--color-brand-50); box-shadow: none; }
+.openly-map .map-destination-label { display: none; }
+.openly-map .map-event { animation: none; }
+.openly-map .map-event-link { box-shadow: none; border-radius: 12px; }
+.openly-map .map-event-link:hover { transform: none; box-shadow: none; }
+.openly-map .map-panel-close:hover { transform: none; }
+.openly-map .map-panel-link { border-radius: 10px; font-size: 13px; }
+.openly-map :is(button, select):focus-visible { outline: 2px solid var(--color-brand-700); outline-offset: 3px; }
+@media (min-width: 1024px) {
+  .openly-map .map-opportunity-panel { top: 16px; max-height: calc(100% - 32px); border-radius: 12px; }
+  .openly-map .has-selection .map-controls { top: 16px; }
+}

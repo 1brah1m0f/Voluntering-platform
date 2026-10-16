@@ -192,3 +192,50 @@ src/
     text.ts             app AZ/EN strings
 supabase/app.sql        app tables, RLS, triggers
 ```
+
+## Plan activation messages
+
+Apply `supabase/migrations/20261015090000_plan_notifications.sql` to an existing database
+(or use the updated `supabase/app.sql` for setup). Changing a profile to Premium or
+Student creates a private in-app activation message, including changes through SQL.
+Signed-in users see it within 15 seconds while the page is visible, or on their next
+visit. Dismissing it persists across devices. Assigning the same plan again does not
+create another message; cancellation followed by reactivation does. Existing paid
+accounts are not notified retroactively.
+
+Plan activations also send a transactional email to the confirmed account address
+through the existing Resend/SMTP configuration. Apply
+`supabase/migrations/20261015100000_plan_activation_emails.sql` after the in-app
+notification migration. The notification workflow checks activations every five
+minutes (GitHub Actions can delay scheduled runs); daily digests keep their existing
+schedule. To preview locally: `npm run notify -- --activation-only --dry-run`.
+Activation mail ignores digest/reminder opt-outs and in-app dismissal, skips plans
+that are no longer active, and records each activation in `email_log` permanently.
+Failed sends release their claim for a later retry. As with the existing email job,
+a process crash after claiming can require manual receipt cleanup; SMTP cannot
+guarantee exactly-once delivery after an ambiguous transport failure.
+
+## Hackathon admin preview
+
+Admins are asked to choose **Volunteering**, **Hackathons**, or **Both** on their
+next visit to the app home. The selection is saved in `profiles.prefs.discovery_mode`
+and can be changed using the interests link above the page. Other accounts retain
+the existing experience. Hackathon pages, editor routes and database policies all
+require an admin account; buying Premium does not enable this preview.
+
+- `/app/discover`: choose a discovery mode.
+- `/app/hackathons`: search by title/organiser/technology, filter by format,
+  experience level and technology, and view saved/closed events.
+- `/app/hackathons/:id`: team requirements, prizes, dates, eligibility, official
+  registration link and personal preparation stage.
+- `/admin/hackathons/new` and `/admin/hackathons/:id/edit`: create, edit or publish
+  an event. Events can be deleted from their detail page.
+
+Apply `supabase/migrations/20261015165208_admin_hackathon_preview.sql` to an existing
+database, or use `supabase/app.sql` for setup. The migration has been applied to
+Openly-Apply. No public launch or real event content is included. Demo mode stores
+hackathons locally, without external registrations or emails.
+
+Validation: `npm run build` and `npm run test:security`. Browser verification covered
+all three discovery modes, create/edit/delete, persistent preparation stages,
+non-admin redirects, dark mode, and widths of 320, 768, 1024 and 1440 pixels.

@@ -26,17 +26,11 @@
 }
 
 @utility app-surface {
-  background:
-    radial-gradient(
-      circle at 90% 0%,
-      rgba(213, 243, 243, 0.55),
-      transparent 30rem
-    ),
-    linear-gradient(180deg, #fbfcfb 0%, #f5f2ea 100%);
+  background: #f7f8fa;
 }
 
 @utility surface-card {
-  @apply rounded-3xl border border-line bg-white shadow-card;
+  @apply rounded-2xl border border-line bg-white;
 }
 
 @utility btn-primary {
@@ -312,3 +306,14 @@
   border: none !important;
 }
 
+
+/* Shared app controls use quiet surfaces and clear text. */
+.app-surface .btn-primary {
+  border-radius: 12px;
+  box-shadow: none;
+}
+.app-surface .btn-primary:hover { transform: none; }
+.app-surface .btn-primary::after { display: none; }
+.app-surface .btn-secondary { border-radius: 12px; }
+.app-surface .field-surface { border-radius: 10px; box-shadow: none; }
+.app-surface p { line-height: 1.6; }

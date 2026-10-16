@@ -16,6 +16,7 @@ export function AdminTabs() {
   const tabs = [
     { to: '/admin', label: tx.list.title },
     { to: '/admin/users', label: tx.users.title },
+    { to: '/app/hackathons', label: 'Hackathon' },
   ];
   return (
     <nav className="mb-5 inline-flex rounded-full bg-white p-1 shadow-xs ring-1 ring-slate-200" aria-label={tx.nav.admin}>

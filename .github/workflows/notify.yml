@@ -5,6 +5,7 @@ name: Email notifications
 on:
   schedule:
     - cron: '0 4 * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -46,11 +47,13 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           SITE_URL: https://www.openlyapply.com
+          NOTIFY_SCHEDULE: ${{ github.event.schedule }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
           INPUT_ONLY: ${{ inputs.only }}
           INPUT_FORCE_WEEKLY: ${{ inputs.force_weekly }}
         run: |
           args=()
+          if [ "$NOTIFY_SCHEDULE" = "*/5 * * * *" ]; then args+=(--activation-only); fi
           if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
           if [ -n "$INPUT_ONLY" ]; then args+=("--only=$INPUT_ONLY"); fi
           if [ "$INPUT_FORCE_WEEKLY" = "true" ]; then args+=(--force-weekly); fi

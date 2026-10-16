@@ -1,7 +1,8 @@
+import type { Hackathon, HackathonEntry } from '../hackathons/types';
 import { DEMO_ACCOUNTS } from './demoAccounts';
 import { FREE_EVENT_LIMIT } from '../../config';
 import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
-import { BackendError, type Backend, type DiscussionQuestion } from './types';
+import { BackendError, type Backend, type DiscussionQuestion, type PlanNotification } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
 // Stable ids so the shortlist survives reloads.
@@ -20,6 +21,7 @@ const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).ge
 
 
 const K = {
+  notifications: 'openly_demo_plan_notifications',
   users: 'openly_demo_users',
   verifications: 'openly_demo_verifications',
   session: 'openly_demo_session',
@@ -280,6 +282,40 @@ export function createDemoBackend(): Backend {
       if (starred) q.voters.push(u.id);
       write('openly_demo_discussions_v1', rows);
     },
+    async listHackathons() { requireAdmin(); return read<Hackathon[]>('openly_demo_hackathons_v1', []).sort((a,b) => a.deadline.localeCompare(b.deadline)); },
+    async getHackathon(id) { requireAdmin(); return read<Hackathon[]>('openly_demo_hackathons_v1', []).find(h => h.id === id) ?? null; },
+    async createHackathon(input) {
+      requireAdmin();
+      const h: Hackathon = { ...input, id: uuid(), created_at: new Date().toISOString() };
+      write('openly_demo_hackathons_v1', [...read<Hackathon[]>('openly_demo_hackathons_v1', []), h]);
+      return h;
+    },
+    async updateHackathon(id, input) {
+      requireAdmin();
+      const rows = read<Hackathon[]>('openly_demo_hackathons_v1', []);
+      const old = rows.find(h => h.id === id);
+      if (!old) throw new BackendError('not_allowed');
+      const h = { ...old, ...input };
+      write('openly_demo_hackathons_v1', rows.map(row => row.id === id ? h : row));
+      return h;
+    },
+    async deleteHackathon(id) {
+      requireAdmin();
+      write('openly_demo_hackathons_v1', read<Hackathon[]>('openly_demo_hackathons_v1', []).filter(h => h.id !== id));
+      const all = read<Record<string, HackathonEntry[]>>('openly_demo_hackathon_entries_v1', {});
+      for (const key of Object.keys(all)) all[key] = all[key].filter(e => e.hackathon_id !== id);
+      write('openly_demo_hackathon_entries_v1', all);
+    },
+    async listHackathonEntries() { requireAdmin(); return read<Record<string, HackathonEntry[]>>('openly_demo_hackathon_entries_v1', {})[requireUser().id] ?? []; },
+    async setHackathonStage(id, stage) {
+      requireAdmin();
+      if (!read<Hackathon[]>('openly_demo_hackathons_v1', []).some(h => h.id === id)) throw new BackendError('not_allowed');
+      const all = read<Record<string, HackathonEntry[]>>('openly_demo_hackathon_entries_v1', {});
+      const userId = requireUser().id;
+      const rows = (all[userId] ?? []).filter(e => e.hackathon_id !== id);
+      all[userId] = stage === null ? rows : [...rows, { hackathon_id: id, stage }];
+      write('openly_demo_hackathon_entries_v1', all);
+    },
     mode: 'demo',
     supportsGoogle: false,
 
@@ -472,8 +508,24 @@ export function createDemoBackend(): Backend {
       write(K.verifications, verified ? [...approvals, key] : approvals);
     },
 
+    async listPlanNotifications() {
+      const u = requireUser();
+      return read<Record<string, PlanNotification[]>>(K.notifications, {})[u.id] ?? [];
+    },
+    async dismissPlanNotification(id) {
+      const u = requireUser();
+      const all = read<Record<string, PlanNotification[]>>(K.notifications, {});
+      all[u.id] = (all[u.id] ?? []).filter(n => n.id !== id);
+      write(K.notifications, all);
+    },
     async setUserPlan(userId, plan) {
       requireAdmin();
+      const target = users().find(u => u.id === userId);
+      if (target && target.plan !== plan && (plan === 'premium' || plan === 'student')) {
+        const all = read<Record<string, PlanNotification[]>>(K.notifications, {});
+        all[userId] = [{ id: uuid(), plan, created_at: new Date().toISOString() }, ...(all[userId] ?? [])];
+        write(K.notifications, all);
+      }
       write(
         K.users,
         users().map((u) => (u.id === userId ? { ...u, plan } : u)),

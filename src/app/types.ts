@@ -46,6 +46,8 @@ export interface Experience {
 
 /** profiles.prefs — every field optional; the UI treats missing as "not set". */
 export interface UserPrefs {
+  /** Admin-only discovery preview, ignored for regular users. */
+  discovery_mode?: import('./hackathons/types').DiscoveryMode;
   birth_year?: number;
   occupation?: Occupation;
   school?: string;

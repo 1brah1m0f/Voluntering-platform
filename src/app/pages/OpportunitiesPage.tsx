@@ -30,7 +30,7 @@ export function OpportunityCard({ o, match }: { o: Opportunity; match?: { score:
   const closed = daysUntil(o.deadline) < 0;
   return (
     <article
-      className={`group relative flex flex-col rounded-3xl border border-line bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card sm:p-5 ${closed ? 'opacity-60' : ''}`}
+      className={`group relative flex flex-col rounded-2xl border border-line bg-white p-4 shadow-xs transition hover:border-brand-300 sm:p-5 ${closed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3">
         <ProgramBadge program={o.program} />
@@ -230,7 +230,7 @@ export default function OpportunitiesPage() {
       {/* One strip at a time, so the list starts sooner; closing one shows the next. */}
       {notices.length > 0 && <div className="mt-4">{notices[0]}</div>}
 
-      <div className="mt-4 space-y-3 rounded-3xl border border-line bg-white p-4 shadow-xs sm:p-5">
+      <div className="mt-4 space-y-3 rounded-2xl border border-line bg-white p-4 shadow-xs sm:p-5">
         <div className="flex gap-2">
           <label className="relative block min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -378,7 +378,7 @@ export default function OpportunitiesPage() {
       </div>
 
       {results.length === 0 ? (
-        <p className="mt-3 rounded-3xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
+        <p className="mt-3 rounded-2xl border border-dashed border-line py-14 text-center text-slate-500">{tx.list.empty}</p>
       ) : (
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {ordered.map((o) => (

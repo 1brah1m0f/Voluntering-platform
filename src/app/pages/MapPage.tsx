@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowRight, ChevronRight, Compass, Crosshair, Globe2, Hand, Layers, Map as MapIcon, MapPin, Minus, Mountain, Plus, Satellite, Sparkles, Wallet, X } from 'lucide-react';
+import { ArrowRight, ChevronRight, Compass, Crosshair, Globe2, MapPin, Minus, Plus, Wallet, X } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapPage.css';
@@ -19,10 +19,9 @@ const HOME: L.LatLngTuple = [48, 16];
 const KIND_KEY = 'openly_map_kind';
 type MapKind = 'standard' | 'terrain' | 'satellite' | 'clean';
 const MAP_KINDS: MapKind[] = ['clean', 'standard', 'terrain', 'satellite'];
-const STYLE_ICONS = { clean: Layers, standard: MapIcon, terrain: Mountain, satellite: Satellite };
 const COPY = {
-  az: { subtitle: 'Növbəti macəran bir pin uzaqdadır.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq', tilesError: 'Xəritə fonu yüklənmədi. İmkanlar ölkə düymələrində əlçatandır.' },
-  en: { subtitle: 'Your next adventure is one pin away.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop', tilesError: 'The map background could not load. Opportunities are still available through the country buttons.' },
+  az: { subtitle: 'Ölkə seç, açıq fürsətlərə bax.', explore: 'Dünyanı kəşf et', reset: 'Xəritəni mərkəzlə', zoomIn: 'Yaxınlaşdır', zoomOut: 'Uzaqlaşdır', destination: 'Növbəti dayanacaq', tilesError: 'Xəritə fonu yüklənmədi. İmkanlar ölkə düymələrində əlçatandır.' },
+  en: { subtitle: 'Choose a country to see open opportunities.', explore: 'Explore the world', reset: 'Reset view', zoomIn: 'Zoom in', zoomOut: 'Zoom out', destination: 'Your next stop', tilesError: 'The map background could not load. Opportunities are still available through the country buttons.' },
 };
 const isPhone = () => window.matchMedia('(max-width: 639px)').matches;
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -316,9 +315,20 @@ export default function MapPage() {
         </div>
       </header>
 
+        {chips.length > 0 && <div className="map-country-bar">
+          <span className="map-country-bar-icon"><Compass className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="map-country-chips" role="group" aria-label={m.pick}>
+            {chips.map((chip) => (
+              <button key={chip.id} type="button" aria-pressed={selected === chip.id} onClick={() => select(selected === chip.id ? '' : chip.id)} className={`map-country-chip ${selected === chip.id ? 'is-active' : ''}`}>
+                {chip.id === ONLINE ? <Globe2 className="h-4 w-4" aria-hidden="true" /> : <span className="map-chip-flag" aria-hidden="true">{flagFor(chip.id)}</span>}
+                {chip.label}<span className="map-chip-count">{chip.n}</span>
+              </button>
+            ))}
+          </div>
+        </div>}
+
       <div ref={frameEl} className={`map-frame ${selected ? 'has-selection' : ''}`}>
         <div ref={mapEl} className="map-canvas" aria-label={m.title} />
-        <div className="map-vignette" aria-hidden="true" />
 
         {(!opportunities || mapState === 'loading') && !error && (
           <div className="map-loading">
@@ -332,17 +342,7 @@ export default function MapPage() {
         )}
         {tilesFailed && mapState === 'ready' && <p className="map-tile-notice" role="status">{copy.tilesError}</p>}
 
-        {chips.length > 0 && <div className="map-country-bar">
-          <span className="map-country-bar-icon"><Compass className="h-4 w-4" aria-hidden="true" /></span>
-          <div className="map-country-chips" role="group" aria-label={m.pick}>
-            {chips.map((chip) => (
-              <button key={chip.id} type="button" aria-pressed={selected === chip.id} onClick={() => select(selected === chip.id ? '' : chip.id)} className={`map-country-chip ${selected === chip.id ? 'is-active' : ''}`}>
-                {chip.id === ONLINE ? <Globe2 className="h-4 w-4" aria-hidden="true" /> : <span className="map-chip-flag" aria-hidden="true">{flagFor(chip.id)}</span>}
-                {chip.label}<span className="map-chip-count">{chip.n}</span>
-              </button>
-            ))}
-          </div>
-        </div>}
+
 
         {opportunities && !error && !selected && open.length === 0 && <div className="map-empty-state" role="status"><span className="map-empty-icon"><Compass className="h-6 w-6" aria-hidden="true" /></span><p>{m.empty}</p></div>}
 
@@ -353,12 +353,10 @@ export default function MapPage() {
               <button type="button" onClick={() => mapRef.current?.zoomOut(undefined, { animate: !prefersReducedMotion() })} aria-label={copy.zoomOut} title={copy.zoomOut}><Minus className="h-4.5 w-4.5" aria-hidden="true" /></button>
               <button type="button" onClick={resetView} aria-label={copy.reset} title={copy.reset}><Crosshair className="h-4.5 w-4.5" aria-hidden="true" /></button>
             </div>
-            {!selected && open.length > 0 && !tilesFailed && <div className="map-explore-hint"><span className="map-hint-icon"><Hand className="h-4 w-4" aria-hidden="true" /></span><div><p className="text-xs font-extrabold text-brand-800">{copy.explore}</p><p className="mt-0.5 text-xs text-slate-500">{m.hint}</p></div><Sparkles className="ml-2 h-4 w-4 text-coral-500" aria-hidden="true" /></div>}
-            <div role="group" aria-label={m.kindLabel} className="map-style-picker">
-              {MAP_KINDS.map((style) => {
-                const Icon = STYLE_ICONS[style];
-                return <button key={style} type="button" aria-pressed={kind === style} onClick={() => changeKind(style)} className={`map-style-option ${kind === style ? 'is-active' : ''}`}><span className={`map-style-swatch map-style-swatch-${style}`}><Icon className="h-4 w-4" aria-hidden="true" /></span><span>{m.kinds[style]}</span></button>;
-              })}
+            <div className="map-style-picker">
+              <select aria-label={m.kindLabel} value={kind} onChange={(event) => changeKind(event.target.value as MapKind)} className="map-style-select">
+                {MAP_KINDS.map((style) => <option key={style} value={style}>{m.kinds[style]}</option>)}
+              </select>
             </div>
           </>
         )}
