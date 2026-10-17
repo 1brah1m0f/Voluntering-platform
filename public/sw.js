@@ -42,7 +42,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/') || url.pathname === '/sitemap.xml' || url.pathname === '/sw.js') return;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_vercel/insights/') || url.pathname === '/sitemap.xml' || url.pathname === '/sw.js') return;
 
   if (req.mode === 'navigate') {
     event.respondWith(networkFirstPage(req));

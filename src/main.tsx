@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { LangProvider } from './LangProvider';
 import { ThemeProvider } from './ThemeProvider';
 import { AuthProvider } from './app/AuthContext';
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <BrowserRouter>
             <AppRoutes />
+            <Analytics />
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
