@@ -47,9 +47,9 @@ export default function AppRoutes() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              {/* Student accounts sign in on the same pages, with the Student tab picked. */}
-              <Route path="/student/login" element={<Navigate to="/login?as=student" replace />} />
-              <Route path="/student/register" element={<Navigate to="/register?as=student" replace />} />
+              {/* Legacy student auth links use the shared authentication pages. */}
+              <Route path="/student/login" element={<Navigate to="/login" replace />} />
+              <Route path="/student/register" element={<Navigate to="/register" replace />} />
               {/* The student section: its own shell, only for student accounts (and admins). */}
               <Route element={<RequireStudentAuth />}>
                 <Route element={<StudentLayout />}>

@@ -100,7 +100,7 @@ export function RequireAdmin() {
 export function RequireStudentAuth() {
   const { loading, userId, profile } = useAuth();
   if (loading) return <Spinner />;
-  if (!userId) return <Navigate to="/login?as=student" replace />;
+  if (!userId) return <Navigate to="/login" replace />;
   if (isRegularOnly(profile)) return <Navigate to="/app/home" replace />;
   return <Outlet />;
 }
@@ -113,7 +113,7 @@ export function StudentLayout() {
   const navigate = useNavigate();
   const logout = async () => {
     await backend.signOut();
-    navigate('/login?as=student', { replace: true });
+    navigate('/login', { replace: true });
   };
   return (
     <div className="app-surface min-h-screen">
