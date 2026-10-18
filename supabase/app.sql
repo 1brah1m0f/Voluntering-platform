@@ -190,13 +190,12 @@ as $$
   select coalesce((select plan in ('premium', 'student') from public.profiles where id = auth.uid()), false);
 $$;
 
--- Premium early access: new opportunities are visible to Premium users (and
--- admins) right away, to everyone else 24 hours after they are published.
+-- Published opportunities are immediately visible to everyone.
 drop policy if exists "read published opportunities" on public.opportunities;
 create policy "read published opportunities" on public.opportunities
   for select to anon, authenticated using (
     public.is_admin()
-    or (published and (created_at <= now() - interval '24 hours' or public.is_premium()))
+    or published
   );
 
 -- How many opportunities are currently in the Premium-only 24h window
@@ -233,23 +232,14 @@ drop trigger if exists saved_touch on public.saved_opportunities;
 create trigger saved_touch before update on public.saved_opportunities
   for each row execute function public.touch_updated_at();
 
--- Free plan: at most 3 tracked opportunities at a time.
+-- All accounts can track unlimited published opportunities.
 create or replace function public.enforce_saved_limit()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  user_plan text;
-  n int;
+returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-  select plan into user_plan from public.profiles where id = new.user_id;
-  if coalesce(user_plan, 'basic') = 'basic' then
-    select count(*) into n from public.saved_opportunities where user_id = new.user_id;
-    if n >= 3 then
-      raise exception 'FREE_LIMIT_REACHED' using errcode = 'P0001';
-    end if;
+  perform id from public.profiles where id = new.user_id for update;
+  if not exists (select 1 from public.opportunities o where o.id = new.opportunity_id
+    and (public.is_admin() or o.published)) then
+    raise exception 'NOT_ALLOWED' using errcode = '42501';
   end if;
   return new;
 end;
@@ -428,13 +418,8 @@ create trigger saved_search_limit before insert on public.saved_searches
 -- the app. Content comes from supabase/seed-student.sql; admins can edit rows.
 -- ---------------------------------------------------------------------------
 create or replace function public.is_student()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select coalesce((select plan = 'student' or is_admin from public.profiles where id = auth.uid()), false);
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists(select 1 from public.profiles where id = auth.uid());
 $$;
 
 create table if not exists public.scholarships (
@@ -602,13 +587,8 @@ $$;
 
 -- The student catalogue is for student accounts on the Student plan (and admins).
 create or replace function public.is_student()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select coalesce((select (account_type = 'student' and plan = 'student') or is_admin from public.profiles where id = auth.uid()), false);
+returns boolean language sql stable security definer set search_path = '' as $$
+  select coalesce((select account_type = 'student' or is_admin from public.profiles where id = auth.uid()), false);
 $$;
 
 -- Plans follow the account type: regular → basic/premium, student → basic/student.
@@ -774,14 +754,14 @@ begin
   select * into p from public.profiles where id = target for update;
   if not found then raise exception 'PROFILE_REQUIRED'; end if;
   if not p.is_admin then
-    if request_action like 'student_%' and not (p.account_type = 'student' and p.plan = 'student') then
+    if request_action like 'student_%' and not (p.account_type = 'student') then
       return jsonb_build_object('allowed', false, 'error', 'student_required');
     elsif request_action not like 'student_%' and p.account_type = 'student' then
       return jsonb_build_object('allowed', false, 'error', 'premium_required');
     end if;
   end if;
-  daily_limit := case when p.is_admin then 100 when p.plan = 'basic' then 1 else 15 end;
-  question_limit := case when p.is_admin then 100 when p.plan = 'basic' then 3 else 30 end;
+  daily_limit := 10;
+  question_limit := 10;
   burst_limit := case when p.is_admin then 30 else 6 end;
   select count into used from public.ai_usage where user_id = target and day = today;
   used := coalesce(used, 0);
@@ -805,11 +785,10 @@ begin
   if request_action = 'questions' then
     insert into public.ai_question_usage(user_id, day, count) values (target, today, 1)
     on conflict (user_id, day) do update set count = public.ai_question_usage.count + 1;
-  else
-    insert into public.ai_usage(user_id, day, count) values (target, today, 1)
-    on conflict (user_id, day) do update set count = public.ai_usage.count + 1;
-    used := used + 1;
   end if;
+  insert into public.ai_usage(user_id, day, count) values (target, today, 1)
+    on conflict (user_id, day) do update set count = public.ai_usage.count + 1;
+  used := used + 1;
   return jsonb_build_object('allowed', true, 'remaining', greatest(0, daily_limit - used));
 end;
 $$;
@@ -821,15 +800,11 @@ revoke all on function public.bump_ai_usage(uuid) from public, anon, authenticat
 -- Lock the same profile row before checking counts, including multi-row inserts.
 create or replace function public.enforce_saved_limit()
 returns trigger language plpgsql security definer set search_path = '' as $$
-declare p public.profiles%rowtype;
 begin
-  select * into p from public.profiles where id = new.user_id for update;
+  perform id from public.profiles where id = new.user_id for update;
   if not exists (select 1 from public.opportunities o where o.id = new.opportunity_id
-    and (p.is_admin or (o.published and (o.created_at <= now() - interval '24 hours' or p.plan in ('premium', 'student'))))) then
+    and (public.is_admin() or o.published)) then
     raise exception 'NOT_ALLOWED' using errcode = '42501';
-  end if;
-  if p.plan = 'basic' and (select count(*) from public.saved_opportunities where user_id = new.user_id) >= 3 then
-    raise exception 'FREE_LIMIT_REACHED' using errcode = 'P0001';
   end if;
   return new;
 end;
@@ -1140,3 +1115,15 @@ drop policy if exists hackathon_entries_admin_own on public.hackathon_entries;
 create policy hackathon_entries_admin_own on public.hackathon_entries for all to authenticated
   using ((select public.is_admin()) and user_id = (select auth.uid()))
   with check ((select public.is_admin()) and user_id = (select auth.uid()));
+
+-- Free access for all accounts; daily AI allowance is shared by all actions.
+-- Keep the legacy RPC available for older clients; no delayed opportunities remain.
+create or replace function public.premium_early_count()
+returns integer language sql stable as $$ select 0; $$;
+-- Old plan values remain for compatibility; no longer send activation notices.
+create or replace function private.notify_plan_activation()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  return new;
+end;
+$$;

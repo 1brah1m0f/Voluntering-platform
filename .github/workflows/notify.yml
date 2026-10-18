@@ -1,11 +1,9 @@
 name: Email notifications
 
-# Every day at 08:00 Baku time (04:00 UTC): Premium digests + deadline
-# reminders every day, free-plan digests on Mondays. See jobs/notify.mjs.
+# Every day at 08:00 Baku time (04:00 UTC): free daily digests and reminders.
 on:
   schedule:
     - cron: '0 4 * * *'
-    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:

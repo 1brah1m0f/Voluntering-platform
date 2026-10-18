@@ -5,7 +5,7 @@ European Solidarity Corps, UN Volunteers, national programs) in one place. This 
 
 - **Landing page** at `/` (Azerbaijani, with EN toggle) that leads to sign-up and log-in.
 - **Web app** at `/app`: sign up / log in, pick interests, browse and filter opportunities, save
-  them and track application status (free plan: 3 at a time).
+  them and track application status (unlimited, free).
 - **Admin panel** at `/admin`: add, edit, publish/hide and delete opportunities.
 
 Stack: React 18 + TypeScript + Vite 8 + Tailwind CSS 4 + React Router 7, Supabase for auth and data.
@@ -35,7 +35,7 @@ into the browser-only demo.
 1. Create a project at [supabase.com](https://supabase.com).
 2. SQL Editor → run [`supabase/app.sql`](supabase/app.sql). It creates `profiles`,
    `opportunities` and `saved_opportunities` with row-level security, a sign-up trigger that
-   creates the profile, and the 3-item free-plan limit.
+   creates the profile. Opportunity tracking is unlimited.
 3. Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
    (Project Settings → API). Restart `npm run dev`. Set the same variables on your host.
 4. Authentication → URL Configuration: set **Site URL** to `https://www.openlyapply.com` and add
@@ -43,12 +43,11 @@ into the browser-only demo.
    to the redirect URLs (used by the confirmation email link).
 5. Register in the app, then make yourself admin in the SQL Editor:
    `update public.profiles set is_admin = true where email = 'you@example.com';`
-   Premium is set the same way: `set plan = 'premium'`.
 
-## Premium AI assistant
+## Free AI assistant
 
 Every regular account gets two extra tabs on every opportunity page (`/o/<id>?tab=letter|review`),
-free users 1 draft/review a day, Premium users 15:
+all accounts get 10 AI uses per day:
 
 - **Motivation letter assistant** — the AI first asks 4–6 questions tailored to the opportunity
   and the user's profile, then builds a draft *only* from the answers (placeholders in
@@ -61,10 +60,7 @@ for you"), see `src/app/match.ts`.
 
 The AI runs in the Supabase Edge Function `supabase/functions/ai` and calls Google Gemini
 (`gemini-3.1-flash-lite` by default, thinking set to minimal: $0.25 / $1.50 per 1M tokens,
-roughly $1–2 per 1000 requests; `gemini-2.5-flash-lite` is no longer open to new API users). It checks that the caller is signed in; free users get 1 use a day, Premium (and Student) 15 —
-a letter draft or a review is one use. Question generation has its own daily cap
-(free: 3, paid: 30), and every generation is limited to 6 requests a minute per
-regular user. Quotas are reserved atomically in the database. The API key never reaches the browser. **Until the key is set, the
+roughly $1–2 per 1000 requests; `gemini-2.5-flash-lite` is no longer open to new API users). It checks that the caller is signed in. All accounts get 10 uses a day shared by question generation, drafts, reviews and student advice. Every generation is limited to 6 requests a minute per regular user. Quotas are reserved atomically in the database. The API key never reaches the browser. **Until the key is set, the
 tabs are visible but disabled with a "coming soon" note.**
 
 Setup:
@@ -80,7 +76,7 @@ Type-check locally: `deno check supabase/functions/ai/index.ts`.
 Security tests: `npm run test:security` (run `npm run build` first).
 Existing installations also need the [security migration](supabase/migrations/20261012160713_security_hardening.sql) and a full Edge Function redeploy.
 
-## Student plan (7 ₼)
+## Free student section
 
 Student accounts are a separate account type (`profiles.account_type = 'student'`), picked with
 the **Regular | Student** switch on `/login` and `/register` (`?as=student`; the old
@@ -90,18 +86,16 @@ redirected there from every regular page; a regular account is redirected away f
 Admins see both. Google sign-in works on both tabs; Google can't pass the account type, so from the
 Student tab it returns to `/login?as=student&claim=student` and the app calls
 `claim_student_account()`, which turns a brand-new (15 min), free, regular account into a student
-account. Existing accounts keep their type. Plans follow the type: regular → basic/premium, student → basic/student (the student
-section is locked until the Student plan). The student section has its own shell. It includes
+account. Existing accounts keep their type. Account types select the section; both sections are free. The student section has its own shell. It includes
 scholarships, universities (fields, tuition, application fees, requirements), a 16-step
 study-abroad roadmap (progress saved in `profiles.roadmap`) and a planner that matches
 universities to the user's level, field, IELTS score and budget, with a shortlist that adds up
 application fees and first-year costs.
 
 The catalogue lives only in the database (`scholarships`, `universities`), readable by
-Student-plan users and admins through RLS (`is_student()`); other users see a preview with counts
+Student accounts and admins through RLS (`is_student()`); other users see a preview with counts
 (`student_catalog_counts()`). Setup: re-run `supabase/app.sql`, then run
-`supabase/seed-student.sql` (safe to re-run; rows are matched by name). Switch a user's plan in
-Admin → Users. Fees and deadlines are estimates researched in September 2026 — review them each
+`supabase/seed-student.sql` (safe to re-run; rows are matched by name). Fees and deadlines are estimates researched in September 2026 — review them each
 year.
 
 ## Personalisation
@@ -134,8 +128,8 @@ duration, funded only, passport, destination countries and the profile colour. R
 `jobs/notify.mjs` runs daily from GitHub Actions (`.github/workflows/notify.yml`, 08:00 Baku):
 
 - **New-opportunities digest** — opportunities published since the user's last digest that match
-  their interests, linking to `/app/o/<id>`. Free plan: Mondays; Premium: every day.
-- **Deadline reminders** (Premium) — saved (not yet applied) opportunities closing in 7, 3 or 1 days.
+  their interests, linking to `/app/o/<id>`. Every day for all regular accounts.
+- **Deadline reminders** (free) — saved (not yet applied) opportunities closing in 7, 3 or 1 days.
 
 Users can switch either off under Profile → Email notifications. Every email sent is recorded in
 `email_log`, so re-running the job never sends twice.
@@ -182,7 +176,7 @@ src/
   App.tsx               landing page composition
   LangProvider.tsx      site-wide AZ/EN state
   i18n.ts               landing AZ/EN dictionaries
-  config.ts             brand, free-plan limit
+  config.ts             brand and contact configuration
   components/           landing sections
   lib/                  programs list, Supabase client
   app/
@@ -193,27 +187,18 @@ src/
 supabase/app.sql        app tables, RLS, triggers
 ```
 
-## Plan activation messages
+## Free access deployment
 
-Apply `supabase/migrations/20261015090000_plan_notifications.sql` to an existing database
-(or use the updated `supabase/app.sql` for setup). Changing a profile to Premium or
-Student creates a private in-app activation message, including changes through SQL.
-Signed-in users see it within 15 seconds while the page is visible, or on their next
-visit. Dismissing it persists across devices. Assigning the same plan again does not
-create another message; cancellation followed by reactivation does. Existing paid
-accounts are not notified retroactively.
+All platform features are free, including the student section, tracking, filters,
+smart matching, daily digests and deadline reminders. Every account has a shared
+limit of 10 AI generations per UTC day. Legacy plan values are retained for data
+compatibility and no longer control paid access; activation notices and emails
+are retired.
 
-Plan activations also send a transactional email to the confirmed account address
-through the existing Resend/SMTP configuration. Apply
-`supabase/migrations/20261015100000_plan_activation_emails.sql` after the in-app
-notification migration. The notification workflow checks activations every five
-minutes (GitHub Actions can delay scheduled runs); daily digests keep their existing
-schedule. To preview locally: `npm run notify -- --activation-only --dry-run`.
-Activation mail ignores digest/reminder opt-outs and in-app dismissal, skips plans
-that are no longer active, and records each activation in `email_log` permanently.
-Failed sends release their claim for a later retry. As with the existing email job,
-a process crash after claiming can require manual receipt cleanup; SMTP cannot
-guarantee exactly-once delivery after an ambiguous transport failure.
+For an existing database, apply
+`supabase/migrations/20261018125836_free_platform.sql`, then deploy the updated
+`supabase/functions/ai` Edge Function and frontend together. Fresh databases use
+`supabase/app.sql`. Keep the updated email job in sync with this release.
 
 ## Hackathon admin preview
 
@@ -221,7 +206,7 @@ Admins are asked to choose **Volunteering**, **Hackathons**, or **Both** on thei
 next visit to the app home. The selection is saved in `profiles.prefs.discovery_mode`
 and can be changed using the interests link above the page. Other accounts retain
 the existing experience. Hackathon pages, editor routes and database policies all
-require an admin account; buying Premium does not enable this preview.
+require an admin account.
 
 - `/app/discover`: choose a discovery mode.
 - `/app/hackathons`: search by title/organiser/technology, filter by format,

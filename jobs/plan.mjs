@@ -7,10 +7,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Free-plan digests go out on this weekday (0 = Sunday … 1 = Monday). */
 export const FREE_DIGEST_WEEKDAY = 1;
-/** Premium deadline reminders fire when a saved opportunity closes in this many days. */
+/** Deadline reminders fire when a saved opportunity closes in this many days. */
 export const REMINDER_DAYS = [7, 3, 1];
-/** New opportunities are Premium-only for this long (mirrors the RLS policy in app.sql). */
-export const PREMIUM_EARLY_HOURS = 24;
 /** At most this many opportunities are listed in one digest. */
 export const DIGEST_MAX_ITEMS = 10;
 
@@ -57,26 +55,23 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
     if (!email) continue; // unconfirmed or deleted account
     if (only && email.toLowerCase() !== only.toLowerCase()) continue;
     if (p.account_type === 'student') continue; // student accounts don't use the volunteering app
-    const premium = p.plan === 'premium';
     const name = p.full_name || '';
 
     // --- new-opportunities digest -------------------------------------------
-    if (!p.digest_opt_out && (premium || weeklyDay) && !sent.has(logKey(p.id, 'digest', today))) {
-      const since = p.last_digest_at ? new Date(p.last_digest_at) : new Date(now.getTime() - (premium ? 1 : 7) * DAY_MS);
+    if (!p.digest_opt_out && !sent.has(logKey(p.id, 'digest', today))) {
+      const since = p.last_digest_at ? new Date(p.last_digest_at) : new Date(now.getTime() - DAY_MS);
       const interests = p.interests ?? [];
-      // Free users can't open opportunities that are still in the Premium window yet.
-      const visibleFrom = premium ? Infinity : now.getTime() - PREMIUM_EARLY_HOURS * 3_600_000;
       const items = open
-        .filter((o) => new Date(o.created_at) > since && new Date(o.created_at).getTime() <= visibleFrom)
+        .filter((o) => new Date(o.created_at) > since)
         .filter((o) => interests.length === 0 || (o.interests ?? []).some((i) => interests.includes(i)))
         .sort((a, b) => a.deadline.localeCompare(b.deadline));
       if (items.length) {
-        digests.push({ userId: p.id, email, name, premium, ref: today, items: items.slice(0, DIGEST_MAX_ITEMS), total: items.length });
+        digests.push({ userId: p.id, email, name, ref: today, items: items.slice(0, DIGEST_MAX_ITEMS), total: items.length });
       }
     }
 
-    // --- deadline reminders (Premium) ---------------------------------------
-    if (premium && !p.reminders_opt_out) {
+    // --- deadline reminders (free) ---------------------------------------
+    if (!p.reminders_opt_out) {
       const due = saved
         .filter((s) => s.user_id === p.id && s.status === 'saved')
         .map((s) => byId.get(s.opportunity_id))
@@ -93,15 +88,5 @@ export function planNotifications({ now, profiles, confirmedEmails, opportunitie
   return { today, weeklyDay, digests, reminders };
 }
 
-/** Transactional plan emails ignore marketing opt-outs and in-app dismissal. */
-export function planActivationEmails({ notifications, profiles, confirmedEmails, sent, only = null }) {
-  const byId = new Map(profiles.map(p => [p.id, p]));
-  return notifications.flatMap(n => {
-    const p = byId.get(n.user_id);
-    const email = confirmedEmails.get(n.user_id);
-    if (!p || !email || p.plan !== n.plan || !['premium', 'student'].includes(n.plan)) return [];
-    if (only && email.toLowerCase() !== only.toLowerCase()) return [];
-    if (sent.has(logKey(p.id, 'plan_activation', n.id))) return [];
-    return [{ userId: p.id, email, name: p.full_name || '', plan: n.plan, ref: n.id }];
-  });
-}
+/** Legacy paid-plan events must not send purchase or activation emails. */
+export function planActivationEmails(_input) { return []; }

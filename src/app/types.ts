@@ -16,7 +16,7 @@ export interface Profile {
   is_admin: boolean;
   /** Opted out of the new-opportunities digest email. */
   digest_opt_out: boolean;
-  /** Opted out of deadline reminder emails (Premium). */
+  /** Opted out of deadline reminder emails. */
   reminders_opt_out: boolean;
   /** Education, experience, skills — context for the AI assistant. */
   about: string;
@@ -94,7 +94,7 @@ export interface Opportunity {
 
 export type OpportunityInput = Omit<Opportunity, 'id' | 'created_at'>;
 
-// --- Premium AI assistant (supabase/functions/ai) ---------------------------
+// --- Free AI assistant (supabase/functions/ai) ---------------------------
 
 export type AiRequest =
   | { action: 'questions'; opportunityId: string; lang: 'az' | 'en' }

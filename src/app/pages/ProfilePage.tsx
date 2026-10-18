@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bell, Briefcase, Camera, Crown, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, StickyNote, UserRound, Wrench } from 'lucide-react';
+import { Bell, Briefcase, Camera, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, StickyNote, UserRound, Wrench } from 'lucide-react';
 import { NotesBoard } from '../Notes';
 import { NewPasswordForm } from './AuthPages';
 import PremiumPlan from './PremiumPage';
@@ -16,7 +16,6 @@ import { useAppText } from '../text';
 import type { Occupation, UserPrefs } from '../types';
 import { Avatar, Chip, Field, Spinner, inputClass } from '../ui';
 import { squareImage } from '../util';
-import { isPaidPlan } from '../plans';
 
 type Tab = 'profile' | 'notes' | 'journey' | 'match' | 'premium' | 'settings';
 const TABS: Tab[] = ['profile', 'notes', 'journey', 'match', 'premium', 'settings'];
@@ -350,7 +349,6 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   if (!profile) return null;
-  const premium = isPaidPlan(profile.plan);
 
   const change = async (image: Blob | null) => {
     setBusy(true);
@@ -411,10 +409,9 @@ export function ProfileHeader({ progress, stats }: { progress?: number; stats?: 
         <p className="mt-0.5 truncate text-sm text-slate-500">{profile.email}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${premium ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}
+            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600"
           >
-            {premium && <Crown className="h-3.5 w-3.5" aria-hidden="true" />}
-            {profile.plan === 'student' ? tx.profile.student : premium ? tx.profile.premium : tx.profile.basic}
+            {tx.profile.basic}
           </span>
           {profile.avatar_url && (
             <button type="button" onClick={() => change(null)} disabled={busy} className="text-xs font-semibold text-slate-500 hover:text-rose-600">
@@ -464,7 +461,6 @@ function NotificationSettings() {
   const { profile, setProfile } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   if (!profile) return null;
-  const premium = isPaidPlan(profile.plan);
 
   const toggle = async (key: 'digest_opt_out' | 'reminders_opt_out') => {
     setBusy(key);
@@ -479,8 +475,8 @@ function NotificationSettings() {
   };
 
   const rows = [
-    { key: 'digest_opt_out' as const, title: tx.profile.digest, sub: premium ? tx.profile.digestPremium : tx.profile.digestFree, available: true },
-    { key: 'reminders_opt_out' as const, title: tx.profile.reminders, sub: premium ? tx.profile.remindersPremium : tx.profile.remindersFree, available: premium },
+    { key: 'digest_opt_out' as const, title: tx.profile.digest, sub: tx.profile.digestFree, available: true },
+    { key: 'reminders_opt_out' as const, title: tx.profile.reminders, sub: tx.profile.remindersFree, available: true },
   ];
 
   return (
@@ -520,7 +516,7 @@ function AccountSettings() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   if (!profile) return null;
-  const planName = profile.plan === 'student' ? tx.profile.student : profile.plan === 'premium' ? tx.profile.premium : tx.profile.basic;
+  const planName = tx.profile.basic;
 
   const logout = async () => {
     await backend.signOut();

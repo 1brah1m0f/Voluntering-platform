@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// Daily notification job: new-opportunity digests (free: weekly on Monday,
-// Premium: daily) and Premium deadline reminders (7/3/1 days before).
+// Free daily opportunity digests and deadline reminders (7/3/1 days before).
 //
 // Runs from GitHub Actions (.github/workflows/notify.yml) or locally:
 //   npm run notify -- --dry-run                 # show what would be sent, send nothing
@@ -87,7 +86,7 @@ async function main() {
 
   if (dryRun) {
     for (const a of activations) console.log(`  activation → ${a.email} (${a.plan})`);
-    for (const d of plan.digests) console.log(`  digest   → ${d.email} (${d.premium ? 'premium' : 'free'}): ${d.items.map((o) => o.title).join(' | ')}`);
+    for (const d of plan.digests) console.log(`  digest   → ${d.email}: ${d.items.map((o) => o.title).join(' | ')}`);
     for (const r of plan.reminders) console.log(`  reminder → ${r.email}: ${r.items.map(({ opportunity, days }) => `${opportunity.title} (${days}d)`).join(' | ')}`);
     return;
   }

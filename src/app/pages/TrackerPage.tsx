@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Crown, Trash2 } from 'lucide-react';
-import { FREE_EVENT_LIMIT } from '../../config';
-import { useAuth } from '../AuthContext';
+import { Trash2 } from 'lucide-react';
 import { useData } from '../DataContext';
 import { STATUSES, STATUS_ORDER } from '../taxonomy';
 import { useAppText } from '../text';
@@ -10,11 +8,9 @@ import { prepProgress } from '../checklist';
 import type { Status } from '../types';
 import { DeadlineChip, ErrorState, ProgramBadge, Spinner, statusClass } from '../ui';
 import { daysUntil, formatDate } from '../util';
-import { isPaidPlan } from '../plans';
 
 export default function TrackerPage() {
   const { tx, lang } = useAppText();
-  const { profile } = useAuth();
   const { opportunities, saved, setStatus, unsave, error, reload } = useData();
   const [tab, setTab] = useState<Status | 'all'>('all');
 
@@ -26,7 +22,6 @@ export default function TrackerPage() {
     .map((o) => ({ o, item: saved.get(o.id)! }))
     .sort((a, b) => a.o.deadline.localeCompare(b.o.deadline));
   const visible = tab === 'all' ? rows : rows.filter((r) => r.item.status === tab);
-  const isFree = !isPaidPlan(profile?.plan);
 
   const run = async (fn: () => Promise<void>) => {
     try {
@@ -41,24 +36,6 @@ export default function TrackerPage() {
     <div>
       <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.tracker.title}</h1>
       <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.tracker.sub}</p>
-
-      {isFree && (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="font-semibold text-slate-800">{tx.tracker.usage(rows.length)}</span>
-            <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:underline">
-              <Crown className="h-4 w-4" aria-hidden="true" />
-              {tx.tracker.upgrade}
-            </Link>
-          </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className={`h-full rounded-full bg-linear-to-r ${rows.length >= FREE_EVENT_LIMIT ? 'from-coral-400 to-coral-600' : 'from-brand-400 to-brand-600'}`}
-              style={{ width: `${Math.min(100, (rows.length / FREE_EVENT_LIMIT) * 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Phones: the five tabs wrap onto a second row instead of scrolling out of sight. */}
       <div role="tablist" className="mt-6 flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-xs ring-1 ring-slate-200 sm:rounded-full">

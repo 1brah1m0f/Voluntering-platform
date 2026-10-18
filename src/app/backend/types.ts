@@ -115,7 +115,7 @@ export interface Backend {
   /** Also resets a plan the new type doesn't have (premium ↔ student) to basic. */
   setAccountType(userId: string, type: AccountType): Promise<void>;
 
-  /** Premium AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
+  /** Free AI assistant; `result` shape depends on the action (see AiQuestions/AiDraft/AiReview). */
   ai(request: AiRequest): Promise<{ result: unknown; remaining: number }>;
   /**
    * Whether the AI assistant is deployed with an API key (false until it's set up),

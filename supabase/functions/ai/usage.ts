@@ -2,7 +2,7 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js@2.117.3';
 import type { Action } from './schema.ts';
 import { json } from './http.ts';
 
-export const dailyLimit = (p: { plan?: string; is_admin?: boolean }) => p.is_admin ? 100 : p.plan === 'basic' ? 1 : 15;
+export const dailyLimit = (_p: { plan?: string; is_admin?: boolean }) => 10;
 
 export async function reserveRequest(admin: SupabaseClient, userId: string, action: Action): Promise<{ response?: Response; remaining: number }> {
   const { data, error } = await admin.rpc('reserve_ai_request', { target: userId, request_action: action });

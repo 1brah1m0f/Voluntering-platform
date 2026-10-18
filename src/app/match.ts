@@ -5,7 +5,7 @@ export type MatchReason = 'interests' | 'funded' | 'partlyFunded' | 'online' | '
 
 /**
  * How well an opportunity fits a user's profile, 0–100, with the reasons that
- * contributed (Premium "smart matching"). Rule-based so it's instant and explainable:
+ * contributed (smart matching). Rule-based so it's instant and explainable:
  * shared interests weigh most, then costs covered, then being reachable (online
  * or in the user's own country). The preferences from the profile (types,
  * destinations, funded only, duration, age) nudge the score up or down.

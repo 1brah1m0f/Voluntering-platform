@@ -163,7 +163,7 @@ export const GUIDES: Guide[] = [
             h: '5. Qısa və səmimi saxla',
             p: [
               '250–400 söz kifayətdir. Klişelərdən (“uşaqlıqdan arzum idi…”) qaç, sadə ingilis dilində yaz və göndərməzdən əvvəl kiməsə oxut.',
-              'Premium-da AI köməkçi əvvəlcə sənə suallar verir və məktubun skeletini yalnız sənin cavablarından qurur — heç nə uydurmur.',
+              'Pulsuz AI köməkçi əvvəlcə sənə suallar verir və məktubun skeletini yalnız sənin cavablarından qurur — heç nə uydurmur.',
             ],
           },
         ],
@@ -192,7 +192,7 @@ export const GUIDES: Guide[] = [
             h: '5. Keep it short and honest',
             p: [
               '250–400 words is enough. Avoid clichés (“it has been my dream since childhood…”), write in plain English and have someone read it before you send it.',
-              'With Premium, the AI assistant first asks you questions and builds a draft only from your answers — it never makes things up.',
+              'The free AI assistant first asks you questions and builds a draft only from your answers — it never makes things up.',
             ],
           },
         ],

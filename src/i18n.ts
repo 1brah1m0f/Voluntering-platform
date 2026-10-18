@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { BRAND, FREE_EVENT_LIMIT } from './config';
+import { BRAND } from './config';
 
 export type Lang = 'az' | 'en';
 
@@ -156,7 +156,7 @@ const az = {
     items: [
       {
         q: `${BRAND} pulsuzdur?`,
-        a: `Bəli. Fürsətlər siyahısı, filtrlər, ${FREE_EVENT_LIMIT} fürsətə qədər izləmə və həftəlik xülasə pulsuzdur. Premium (ayda 3 ₼) limitsiz izləmə, gündəlik xülasə, son tarix xatırlatmaları, erkən giriş əlavə edir, AI köməkçi isə pulsuz planda gündə 1, Premium-da 15 dəfə istifadə olunur.`,
+        a: 'Bəli. Bütün imkanlar pulsuzdur: limitsiz izləmə, bütün filtrlər, gündəlik xülasə və xatırlatmalar. AI köməkçi gündə 10 dəfə istifadə olunur.',
       },
       {
         q: 'Müraciəti özüm edə bilərəm? Siz mənim adımdan müraciət edirsiniz?',
@@ -167,8 +167,8 @@ const az = {
         a: 'SALTO-Youth təlim kursları, Erasmus+ gənclər mübadilələri, Avropa Həmrəylik Korpusu (ESC), BMT Könüllüləri (UNV) və milli proqramlar. Fürsətləri komandamız rəsmi mənbələrdən əl ilə əlavə edir.',
       },
       {
-        q: 'Premium-u necə ləğv edə bilərəm?',
-        a: 'Profil → Plan bölməsində bir kliklə. Saxladığın fürsətlər itmir, sadəcə pulsuz plana keçirsən.',
+        q: 'AI köməkçinin gündəlik limiti nə qədərdir?',
+        a: 'AI köməkçidən gündə 10 dəfə pulsuz istifadə edə bilərsən. Limit növbəti gün yenilənir.',
       },
       {
         q: 'Məlumatlarım təhlükəsizdir?',
@@ -178,8 +178,8 @@ const az = {
   },
   pricing: {
     eyebrow: 'Qiymətlər',
-    title: 'Əsas hər şey pulsuzdur',
-    subtitle: 'Premium daha çox köməyə ehtiyacı olanlar üçündür — ayda 3 ₼, istədiyin vaxt ləğv edə bilərsən.',
+    title: 'Hər şey pulsuzdur',
+    subtitle: 'Bütün imkanlar hamı üçün pulsuzdur. AI köməkçi: gündə 10 istifadə.',
     perMonth: '/ ay',
     popular: 'Ən sərfəli',
     free: {
@@ -187,41 +187,15 @@ const az = {
       desc: 'Könüllülüyə başlayanlar üçün hər şey.',
       price: '0 ₼',
       features: [
-        'Həftəlik xülasə e-poçtu',
+        'Gündəlik xülasə və son tarix xatırlatmaları',
         'Maraq sahələri və ölkə seçimi',
-        `Eyni anda ${FREE_EVENT_LIMIT} fürsətə qədər saxlama və izləmə`,
-        'AI köməkçi: gündə 1 istifadə',
-      ],
-    },
-    premium: {
-      name: 'Premium',
-      price: '3 ₼',
-      desc: 'Aktiv müraciət edən və heç nəyi qaçırmaq istəməyənlər üçün.',
-      features: [
-        'AI məktub köməkçisi və müraciət yoxlanışı: gündə 15 istifadə',
-        'Ağıllı uyğunlaşdırma: hər fürsət üçün uyğunluq faizi',
-        'Gündəlik xülasə e-poçtu',
-        'Limitsiz saxlama və müraciət izləmə',
-        'Yeni fürsətləri 24 saat əvvəl gör',
-        'Təkmil filtrlər: xərclər qarşılanır, son 7 gün',
-        'Son tarix xatırlatmaları e-poçtla (7, 3 və 1 gün əvvəl)',
+        'Limitsiz saxlama və izləmə',
+        'AI köməkçi: gündə 10 istifadə',
+        'Bütün filtrlər və ağıllı uyğunlaşdırma',
+        'Təqaüdlər, universitetlər və tələbə planlayıcısı',
       ],
     },
     cta: 'Pulsuz başla',
-    premiumCta: 'Premium ilə başla',
-    student: {
-      name: 'Tələbə',
-      price: '7 ₼',
-      desc: 'Xaricdə bakalavr və ya magistr oxumaq istəyənlər üçün.',
-      features: [
-        'Ayrıca tələbə hesabı və bölməsi',
-        'Təqaüdlər: kim üçündür, nəyi qarşılayır, son tarixlər',
-        'Universitetlər: ixtisaslar, təhsil və müraciət haqları, tələblər',
-        '16 addımlıq müraciət yol xəritəsi',
-        'Planlayıcı: balına və büdcənə uyğun universitetlər',
-      ],
-      cta: 'Nələr daxildir?',
-    },
   },
   finalCta: {
     title: 'İlk fürsətini bu gün tap',
@@ -244,7 +218,6 @@ const az = {
     plan: 'Plan seç',
     planOptions: [
       { id: 'basic', label: 'Sadə', price: 'Pulsuz' },
-      { id: 'premium', label: 'Premium', price: '3 ₼ / ay' },
     ],
     submit: 'Siyahıya qoşul',
     submitting: 'Göndərilir…',
@@ -405,7 +378,7 @@ const en: Dict = {
     items: [
       {
         q: `Is ${BRAND} free?`,
-        a: `Yes. The opportunity list, filters, tracking up to ${FREE_EVENT_LIMIT} opportunities and the weekly digest are free. Premium (3 ₼ a month) adds unlimited tracking, a daily digest, deadline reminders, and early access; the AI assistant gives you 1 use a day on the free plan and 15 with Premium.`,
+        a: 'Yes. All features are free: unlimited tracking, all filters, daily digests and reminders. The AI assistant allows 10 uses per day.',
       },
       {
         q: 'Can I apply myself? Do you apply on my behalf?',
@@ -416,8 +389,8 @@ const en: Dict = {
         a: 'SALTO-Youth training courses, Erasmus+ youth exchanges, the European Solidarity Corps (ESC), UN Volunteers (UNV) and national programmes. Our team adds opportunities by hand from official sources.',
       },
       {
-        q: 'How do I cancel Premium?',
-        a: 'In one click under Profile → Plan. Your saved opportunities stay; you just move to the free plan.',
+        q: 'What is the daily AI limit?',
+        a: 'You can use the AI assistant 10 times per day for free. Your allowance resets the next day.',
       },
       {
         q: 'Is my data safe?',
@@ -427,8 +400,8 @@ const en: Dict = {
   },
   pricing: {
     eyebrow: 'Pricing',
-    title: 'The essentials are free',
-    subtitle: 'Premium is for when you want more help — 3 ₼ a month, cancel anytime.',
+    title: 'Everything is free',
+    subtitle: 'Every feature is free for everyone. AI assistant: 10 uses per day.',
     perMonth: '/ month',
     popular: 'Best value',
     free: {
@@ -436,41 +409,15 @@ const en: Dict = {
       desc: 'Everything you need to start volunteering.',
       price: '₼0',
       features: [
-        'Weekly digest email',
+        'Daily digests and deadline reminders',
         'Interest areas and country selection',
-        `Save and track up to ${FREE_EVENT_LIMIT} opportunities at a time`,
-        'AI assistant: 1 use a day',
-      ],
-    },
-    premium: {
-      name: 'Premium',
-      price: '3 ₼',
-      desc: 'For active applicants who don’t want to miss anything.',
-      features: [
-        'AI letter assistant and application review: 15 uses a day',
-        'Smart matching: a fit score for every opportunity',
-        'Daily digest email',
-        'Unlimited saved & tracked opportunities',
-        'See new opportunities 24 hours earlier',
-        'Advanced filters: funded, closing in 7 days',
-        'Deadline reminders by email (7, 3 and 1 day before)',
+        'Unlimited saving and tracking',
+        'AI assistant: 10 uses per day',
+        'All filters and smart matching',
+        'Scholarships, universities and student planner',
       ],
     },
     cta: 'Start free',
-    premiumCta: 'Start with Premium',
-    student: {
-      name: 'Student',
-      price: '7 ₼',
-      desc: 'For anyone who wants a bachelor’s or master’s abroad.',
-      features: [
-        'A separate student account and section',
-        'Scholarships: who they’re for, what they cover, deadlines',
-        'Universities: fields, tuition and application fees, requirements',
-        'A 16-step application roadmap',
-        'Planner: universities that fit your score and budget',
-      ],
-      cta: 'See what’s inside',
-    },
   },
   finalCta: {
     title: 'Find your first opportunity today',
@@ -493,7 +440,6 @@ const en: Dict = {
     plan: 'Choose a plan',
     planOptions: [
       { id: 'basic', label: 'Basic', price: 'Free' },
-      { id: 'premium', label: 'Premium', price: '3 ₼ / mo' },
     ],
     submit: 'Join the waitlist',
     submitting: 'Sending…',

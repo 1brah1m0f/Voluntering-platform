@@ -1,12 +1,11 @@
+import { useLang } from '../../i18n';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, GraduationCap, KeyRound, Loader2, Lock, MessageCircle } from 'lucide-react';
-import { PAYMENT_LINK } from '../../config';
+import { ArrowLeft, KeyRound, Loader2 } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { backend } from '../backend';
 import { NewPasswordForm } from '../pages/AuthPages';
 import { ProfileHeader } from '../pages/ProfilePage';
-import { hasStudent } from '../plans';
 import { useAppText } from '../text';
 import { Field, Spinner, inputClass } from '../ui';
 
@@ -110,75 +109,9 @@ export default function StudentProfilePage() {
 
 /** Whether the Student plan is on; active plans can be cancelled, locked ones point to what's inside. */
 function StudentPlanCard() {
-  const { tx } = useAppText();
-  const s = tx.student;
-  const { profile, setProfile } = useAuth();
-  const [busy, setBusy] = useState(false);
-  if (!profile) return null;
-  const active = hasStudent(profile);
-  // Admins have access without the plan; only a real plan can be cancelled.
-  const cancellable = profile.plan === 'student';
-
-  const cancel = async () => {
-    if (!confirm(s.cancelPlanConfirm)) return;
-    setBusy(true);
-    try {
-      setProfile(await backend.cancelPremium()); // back to the free plan
-      alert(s.planCancelled);
-    } catch (err) {
-      console.error('[student profile] cancel failed', err);
-      alert(tx.saveError);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <section className="mt-6 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
-      <div className={`relative p-5 text-white sm:p-7 ${active ? 'bg-linear-to-br from-brand-700 via-brand-800 to-brand-950' : 'bg-brand-900'}`}>
-        <span className="pointer-events-none absolute -right-14 -top-20 h-48 w-48 rounded-full bg-coral-500/80" aria-hidden="true" />
-        <p className="relative inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-brand-100">
-          {active ? <GraduationCap className="h-4 w-4" aria-hidden="true" /> : <Lock className="h-4 w-4" aria-hidden="true" />}
-          {s.planTitle} · {s.badge}
-        </p>
-        <h2 className="relative mt-2 text-2xl font-extrabold text-white!">{active ? s.planActive : s.planLocked}</h2>
-        <p className="relative mt-2 max-w-lg text-brand-100">{active ? s.planActiveSub : s.planLockedSub}</p>
-        {!active && (
-          <>
-            <div className="relative mt-4 flex flex-wrap gap-2">
-              <a
-                href={PAYMENT_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-800"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                {s.lockCta}
-              </a>
-              <Link to="/student" className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
-                {s.planSeeInside}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-            <p className="relative mt-3 text-sm text-brand-100">{s.lockNote}</p>
-          </>
-        )}
-      </div>
-      {cancellable && (
-        <div className="p-5 sm:p-7">
-          <h3 className="font-bold">{s.cancelPlan}</h3>
-          <p className="mt-1 text-sm text-slate-500">{s.cancelPlanSub}</p>
-          <button
-            type="button"
-            onClick={cancel}
-            disabled={busy}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-rose-200 px-5 py-2.5 text-sm font-bold text-rose-700 transition hover:bg-rose-50 disabled:opacity-60"
-          >
-            {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-            {s.cancelPlan}
-          </button>
-        </div>
-      )}
-    </section>
-  );
+  const { lang } = useLang();
+  return <section className="mt-6 rounded-3xl border border-line bg-white p-6">
+    <h2 className="text-xl font-bold">{lang === 'az' ? 'Tamamilə pulsuz' : 'Completely free'}</h2>
+    <p className="mt-2 text-slate-600">{lang === 'az' ? 'Bütün tələbə imkanları açıqdır. AI məsləhətçi: gündə 10 istifadə.' : 'All student features are available. AI advisor: 10 uses per day.'}</p>
+  </section>;
 }

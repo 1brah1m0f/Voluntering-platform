@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Check, ClipboardCheck, Clock, Copy, Crown, FileText, Info, Loader2, PenLine, RotateCcw, Save, Sparkles, Upload, UserRound, X } from 'lucide-react';
+import { Check, ClipboardCheck, Clock, Copy, FileText, Info, Loader2, PenLine, RotateCcw, Save, Sparkles, Upload, UserRound, X } from 'lucide-react';
 import { backend, BackendError } from './backend';
 import { MAX_DOC_BYTES, docKind, docxText, fileToBase64 } from './docText';
 import { useAuth } from './AuthContext';
@@ -8,7 +8,6 @@ import { useAppText } from './text';
 import type { AiDraft, AiQuestions, AiRequest, AiReview, SavedLetter } from './types';
 import { inputClass } from './ui';
 import { formatDateTime } from './util';
-import { hasPremium } from './plans';
 
 type Lang = 'az' | 'en';
 
@@ -520,31 +519,24 @@ export function useAiReady(enabled: boolean): boolean | null {
 
 export type AiTool = 'letter' | 'review';
 
-/** "1 of 1 uses left today" plus, for the free plan, what Premium gives. */
+/** Shared daily allowance for every signed-in account. */
 export function AiQuota({ info }: { info: AiInfo | null }) {
   const { tx } = useAppText();
-  const { profile } = useAuth();
   if (!info?.configured || info.limit === null || info.remaining === null) return null;
-  const free = !hasPremium(profile);
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-4 py-3 text-sm ${free ? 'border border-amber-200 bg-amber-50 text-amber-950' : 'bg-violet-50 text-violet-900'}`}>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-violet-50 px-4 py-3 text-sm text-violet-900">
       <span className="inline-flex items-center gap-1.5 font-bold">
         <Sparkles className="h-4 w-4" aria-hidden="true" />
         {tx.ai.quota(info.remaining, info.limit)}
       </span>
-      {free && (
-        <Link to="/app/profile?tab=premium" className="inline-flex items-center gap-1 font-semibold text-amber-800 hover:underline">
-          <Crown className="h-4 w-4" aria-hidden="true" />
-          {tx.ai.freeNote}
-        </Link>
-      )}
+
     </div>
   );
 }
 
 /**
  * The AI tools for one opportunity, shown as tabs on its detail page. Every
- * regular account can use them (free: 1 use a day, Premium: 15); they're
+ * regular account can use them (10 free uses a day); they're
  * disabled with a "coming soon" note until the AI backend is configured.
  */
 export function AiTools({ opportunityId, tool }: { opportunityId: string; tool: AiTool }) {

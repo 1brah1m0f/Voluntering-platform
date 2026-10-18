@@ -29,6 +29,7 @@ before(async () => {
     alter default privileges in schema public grant execute on functions to service_role;
   `);
   await db.exec(schema);
+  await db.exec(await readFile('supabase/migrations/20261018125836_free_platform.sql', 'utf8'));
   for (const n of [1, 2, 3, 4]) await db.query('insert into auth.users(id, email) values ($1, $2)', [id(n), `user${n}@example.test`]);
   await db.query('update public.profiles set is_admin = true where id = $1', [admin]);
   await db.query("update public.profiles set plan = 'premium' where id = $1", [paid]);
@@ -61,31 +62,33 @@ test('users cannot raise their plan/admin privileges or reserve AI directly', as
   assert.deepEqual(await asUser(free, 'select id from public.profiles where id = $1', [peer]), []);
 });
 
-test('question generation is bounded without consuming the draft allowance', async () => {
-  for (let n = 0; n < 3; n++) assert.deepEqual(await reserve(free, 'questions'), { allowed: true, remaining: 1 });
-  assert.equal((await reserve(free, 'questions')).error, 'question_limit');
-  assert.deepEqual(await reserve(free, 'draft'), { allowed: true, remaining: 0 });
+test('all AI actions share a daily allowance of 10 for every plan', async () => {
+  for (let n = 0; n < 10; n++) {
+    await db.query('delete from public.ai_request_windows where user_id = $1', [free]);
+    assert.deepEqual(await reserve(free, n % 2 ? 'draft' : 'questions'), { allowed: true, remaining: 9 - n });
+  }
   assert.equal((await reserve(free, 'draft')).error, 'daily_limit');
   assert.equal((await reserve(free, 'questions')).error, 'daily_limit');
   const { rows } = await db.query('select count from public.ai_usage where user_id = $1', [free]);
-  assert.equal(rows[0].count, 1);
+  assert.equal(rows[0].count, 10);
 });
 
 test('burst limits cannot be bypassed with question requests and denied calls do not consume uses', async () => {
   for (let n = 0; n < 6; n++) assert.equal((await reserve(paid, 'questions')).allowed, true);
   assert.equal((await reserve(paid, 'review')).error, 'rate_limited');
   const { rows } = await db.query('select count from public.ai_usage where user_id = $1', [paid]);
-  assert.equal(rows.length, 0);
+  assert.equal(rows[0].count, 6);
   await db.query("update public.ai_request_windows set window_start = now() - interval '2 minutes' where user_id = $1", [paid]);
-  assert.equal((await reserve(paid, 'review')).remaining, 14);
+  assert.equal((await reserve(paid, 'review')).remaining, 3);
 });
 
 test('saved limits and immutable identity columns hold at the database boundary', async () => {
   for (let n = 10; n < 13; n++) await asUser(free, 'insert into public.saved_opportunities(opportunity_id) values ($1)', [id(n)]);
-  await assert.rejects(asUser(free, 'insert into public.saved_opportunities(opportunity_id) values ($1)', [id(13)]), /FREE_LIMIT_REACHED/);
+  await asUser(free, 'insert into public.saved_opportunities(opportunity_id) values ($1)', [id(13)]);
   await assert.rejects(asUser(free, 'update public.saved_opportunities set opportunity_id = $1 where opportunity_id = $2', [id(14), opp]), /permission denied/);
   await db.query('insert into public.opportunities(id, title, program, deadline, url) values ($1, $2, $3, $4, $5)', [id(20), 'New programme', 'ESC', '2030-01-01', 'https://example.test']);
-  await assert.rejects(asUser(peer, 'insert into public.saved_opportunities(opportunity_id) values ($1)', [id(20)]), /NOT_ALLOWED/);
+  await asUser(peer, 'insert into public.saved_opportunities(opportunity_id) values ($1)', [id(20)]);
+  assert.equal((await asUser(peer, 'select id from public.opportunities where id = $1', [id(20)])).length, 1);
 });
 
 test('self-reported acceptance never grants contact access; both approvals and opt-ins are required', async () => {
@@ -167,34 +170,17 @@ test('opportunity discussions inherit opportunity visibility, including answers 
 });
 
 
-test('plan activation messages persist, deduplicate unchanged plans and enforce ownership', async () => {
-  const target = id(50);
-  await db.query('insert into auth.users(id, email) values ($1, $2)', [target, 'notification@example.test']);
+test('legacy plan changes no longer create paid activation notices', async () => {
+  const target = id(70);
+  await db.query('insert into auth.users(id, email) values ($1, $2)', [target, 'legacy@example.test']);
   await asUser(admin, "select public.set_user_plan($1, 'premium')", [target]);
-  let rows = await asUser(target, 'select * from public.plan_notifications');
-  assert.equal(rows.length, 1);
-  assert.equal(rows[0].plan, 'premium');
-  assert.equal(rows[0].read_at, null);
-  await asUser(admin, "select public.set_user_plan($1, 'premium')", [target]);
-  assert.equal((await asUser(target, 'select * from public.plan_notifications')).length, 1);
-  assert.deepEqual(await asUser(peer, 'select * from public.plan_notifications where user_id = $1', [target]), []);
-  await assert.rejects(asUser(target, "insert into public.plan_notifications(user_id, plan) values ($1, 'premium')", [target]), /permission denied/);
-  await assert.rejects(asUser(target, 'update public.plan_notifications set user_id = $1 where id = $2', [peer, rows[0].id]), /permission denied/);
-  await asUser(peer, 'update public.plan_notifications set read_at = now() where id = $1', [rows[0].id]);
-  assert.equal((await asUser(target, 'select * from public.plan_notifications'))[0].read_at, null);
-  await asUser(target, 'update public.plan_notifications set read_at = now() where id = $1', [rows[0].id]);
-  assert.equal((await asUser(target, 'select * from public.plan_notifications where read_at is null')).length, 0);
-  await db.query("update public.profiles set plan = 'basic' where id = $1", [target]);
-  await db.query("update public.profiles set plan = 'premium' where id = $1", [target]);
-  assert.equal((await asUser(target, 'select * from public.plan_notifications where read_at is null')).length, 1);
+  assert.deepEqual(await asUser(target, 'select * from public.plan_notifications'), []);
 });
-
 
 test('activation email receipts are restricted to the worker and deduplicate per activation', async () => {
   await db.exec('begin; set local role service_role;');
   try {
-    const notifications = await db.query('select id from public.plan_notifications where user_id = $1', [paid]);
-    const ref = notifications.rows[0].id;
+    const ref = 'historical-activation';
     await db.query("insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', $2)", [paid, ref]);
     const repeated = await db.query("insert into public.email_log(user_id, kind, ref) values ($1, 'plan_activation', $2) on conflict do nothing returning ref", [paid, ref]);
     assert.equal(repeated.rows.length, 0);
@@ -235,4 +221,23 @@ test('hackathon preparation is private per admin and respects team and date cons
   assert.equal((await asUser(admin, 'select stage from public.hackathon_entries'))[0].stage, 'submitted');
   await asUser(admin, 'delete from public.hackathons where id=$1', [hid]);
   assert.deepEqual(await asUser(admin, 'select * from public.hackathon_entries'), []);
+});
+
+
+test('legacy paid plans, admins and free student accounts all get exactly 10 AI uses', async () => {
+  for (const [n, plan, accountType, isAdmin, action] of [
+    [90, 'premium', 'regular', false, 'review'],
+    [91, 'basic', 'student', false, 'student_ask'],
+    [92, 'basic', 'regular', true, 'draft'],
+  ]) {
+    const user = id(n);
+    await db.query('insert into auth.users(id, email) values ($1, $2)', [user, `quota${n}@example.test`]);
+    await db.query('update public.profiles set plan = $2, account_type = $3, is_admin = $4 where id = $1', [user, plan, accountType, isAdmin]);
+    for (let i = 0; i < 10; i++) {
+      await db.query('delete from public.ai_request_windows where user_id = $1', [user]);
+      assert.deepEqual(await reserve(user, action), { allowed: true, remaining: 9 - i });
+    }
+    assert.equal((await reserve(user, action)).error, 'daily_limit');
+    if (accountType === 'student') assert.deepEqual(await asUser(user, 'select public.is_student() as allowed'), [{ allowed: true }]);
+  }
 });

@@ -9,7 +9,7 @@ import { useData } from '../DataContext';
 import { matchScore } from '../match';
 import { NotesMini } from '../Notes';
 import { ageFit } from '../personal';
-import { hasPremium } from '../plans';
+import { hasFeatures } from '../plans';
 import { useAppText } from '../text';
 import type { Opportunity } from '../types';
 import { DeadlineChip, ErrorState, ProgramBadge, SaveButton, Spinner } from '../ui';
@@ -72,7 +72,7 @@ export default function HomePage() {
   const prefs = profile?.prefs ?? {};
   const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
   const open = published.filter((o) => daysUntil(o.deadline) >= 0);
-  const matches = useMemo(() => (hasPremium(profile) && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile).score])) : null), [profile, published]);
+  const matches = useMemo(() => (hasFeatures(profile) && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile).score])) : null), [profile, published]);
 
   if (error) return <ErrorState onRetry={reload} />;
   if (!opportunities || !profile) return <Spinner label={tx.loading} />;
@@ -80,7 +80,7 @@ export default function HomePage() {
   const items = [...saved.values()];
   const mine = published.filter((o) => saved.get(o.id)?.status === 'saved' && daysUntil(o.deadline) >= 0).sort((a, b) => a.deadline.localeCompare(b.deadline));
   const fits = interests.length ? open.filter((o) => o.interests.some((i) => interests.includes(i))).length : 0;
-  // Picks: what the profile says the user wants, best match (Premium) or soonest first.
+  // Picks: what the profile says the user wants, best match or soonest first.
   const picks = open
     .filter((o) => {
       const age = ageFit(o, prefs.birth_year);

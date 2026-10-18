@@ -15,7 +15,7 @@ const opp = (id, over = {}) => ({
   published: true,
   interests: ['environment'],
   deadline: '2026-10-20',
-  created_at: '2026-10-03T10:00:00Z',
+  created_at: '2026-10-05T01:00:00Z',
   ...over,
 });
 const profile = (id, over = {}) => ({ id, full_name: id, plan: 'basic', interests: ['environment'], digest_opt_out: false, reminders_opt_out: false, last_digest_at: null, ...over });
@@ -38,10 +38,10 @@ test('date helpers use Baku time', () => {
   assert.equal(daysBetween('2026-10-05', '2026-10-04'), -1);
 });
 
-test('free user gets a digest on Monday, not on Tuesday', () => {
-  const input = { profiles: [profile('u1')], confirmedEmails: new Map([['u1', 'a@x.com']]), opportunities: [opp('o1')] };
+test('free user gets daily digests', () => {
+  const input = { profiles: [profile('u1')], confirmedEmails: new Map([['u1', 'a@x.com']]), opportunities: [opp('o1', { created_at: '2026-10-05T06:00:00Z' })] };
   assert.equal(run(input).digests.length, 1);
-  assert.equal(run({ ...input, now: TUESDAY }).digests.length, 0);
+  assert.equal(run({ ...input, now: TUESDAY }).digests.length, 1);
 });
 
 test('premium user gets a digest every day', () => {
@@ -72,17 +72,17 @@ test('digest only lists new, open, published opportunities matching interests', 
   );
 });
 
-test('free digest skips opportunities still in the 24h Premium window', () => {
+test('all accounts receive fresh opportunities immediately', () => {
   const input = {
     profiles: [profile('free'), profile('prem', { plan: 'premium' })],
     confirmedEmails: new Map([
       ['free', 'f@x.com'],
       ['prem', 'p@x.com'],
     ]),
-    opportunities: [opp('fresh', { created_at: '2026-10-05T01:00:00Z' }), opp('older')],
+    opportunities: [opp('fresh', { created_at: '2026-10-05T01:00:00Z' }), opp('older', { created_at: '2026-10-03T10:00:00Z' })],
   };
   const byUser = Object.fromEntries(run(input).digests.map((d) => [d.userId, d.items.map((o) => o.id)]));
-  assert.deepEqual(byUser.free, ['older']); // fresh one is still Premium-only
+  assert.deepEqual(byUser.free, ['fresh']); // fresh one is still Premium-only
   assert.deepEqual(byUser.prem, ['fresh']); // Premium's first daily digest covers the last day
 });
 
@@ -122,11 +122,11 @@ test('premium reminders fire at 7, 3 and 1 days for saved (not applied) items', 
   assert.deepEqual(reminders[0].refs, ['d3:3', 'd7:7']);
 });
 
-test('free users get no reminders; sent reminders are not repeated', () => {
+test('free users get reminders; sent reminders are not repeated', () => {
   const opportunities = [opp('d3', { deadline: '2026-10-08' })];
   const saved = [{ user_id: 'u1', opportunity_id: 'd3', status: 'saved' }];
   const emails = new Map([['u1', 'a@x.com']]);
-  assert.equal(run({ profiles: [profile('u1', { digest_opt_out: true })], confirmedEmails: emails, opportunities, saved }).reminders.length, 0);
+  assert.equal(run({ profiles: [profile('u1', { digest_opt_out: true })], confirmedEmails: emails, opportunities, saved }).reminders.length, 1);
   assert.equal(
     run({
       profiles: [profile('u1', { plan: 'premium', digest_opt_out: true })],
@@ -178,9 +178,9 @@ test('activation emails include dismissed messages and student plans despite dig
     profiles: [profile('u1', { plan: 'premium', digest_opt_out: true, reminders_opt_out: true }), profile('u2', { plan: 'student', account_type: 'student' })],
     confirmedEmails: new Map([['u1', 'one@example.test'], ['u2', 'two@example.test']]), sent: new Set(),
   };
-  assert.equal(planActivationEmails(input).length, 2);
-  assert.equal(planActivationEmails({ ...input, only: 'ONE@example.test' }).length, 1);
-  assert.equal(planActivationEmails({ ...input, sent: new Set([logKey('u1', 'plan_activation', 'n1')]) }).length, 1);
+  assert.equal(planActivationEmails(input).length, 0);
+  assert.equal(planActivationEmails({ ...input, only: 'ONE@example.test' }).length, 0);
+  assert.equal(planActivationEmails({ ...input, sent: new Set([logKey('u1', 'plan_activation', 'n1')]) }).length, 0);
   assert.equal(planActivationEmails({ ...input, confirmedEmails: new Map() }).length, 0);
   assert.equal(planActivationEmails({ ...input, profiles: [profile('u1'), profile('u2')] }).length, 0);
 });
@@ -191,7 +191,7 @@ test('activation templates provide the correct plan, destination, text and escap
     assert.match(mail.subject, /aktivləşdirildi/);
     assert.match(mail.html, /&lt;script&gt;/);
     assert.ok(!mail.html.includes('<script>'));
-    assert.ok(mail.text.includes(plan === 'student' ? '/student/profile' : '/app/profile?tab=premium'));
+    assert.ok(mail.text.includes(plan === 'student' ? '/student/profile' : '/app/profile'));
     assert.match(mail.html, /plan aktivləşdirildiyi üçün/);
   }
 });

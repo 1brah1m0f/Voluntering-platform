@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, ClipboardCheck, Crown, PenLine, Search, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Check, ClipboardCheck, PenLine, Search, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { AiQuota, useAiInfo } from '../AiTools';
 import { useAuth } from '../AuthContext';
 import { useData } from '../DataContext';
-import { hasPremium } from '../plans';
 import { useAppText } from '../text';
 import { DeadlineChip, ProgramBadge, Spinner } from '../ui';
 import { daysUntil } from '../util';
@@ -31,7 +30,7 @@ export function AiStatusPill({ status, className = '' }: { status: AiStatus; cla
 
 /**
  * The AI's state for the signed-in user: still checking, active or not set up yet.
- * Everyone with a regular account can use it (free: 1 a day, Premium: 15); 'locked'
+ * Every regular account has 10 free uses per day; 'locked'
  * is left for when today's uses have run out.
  */
 export function useAiStatus(): AiStatus {
@@ -73,8 +72,7 @@ export default function AiPage() {
   const { opportunities, saved } = useData();
   const status = useAiStatus();
   const info = useAiInfo(!!profile);
-  // Free accounts see what Premium adds (15 uses a day instead of 1).
-  const free = !hasPremium(profile);
+
 
   if (!opportunities || !profile) return <Spinner label={tx.loading} />;
 
@@ -106,20 +104,6 @@ export default function AiPage() {
 
       <AiQuota info={info} />
 
-      {free && (
-        <div className="flex flex-col gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:p-6">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-coral-600 text-white">
-            <Crown className="h-6 w-6" aria-hidden="true" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-extrabold text-amber-950">{h.lockedTitle}</h2>
-            <p className="mt-1 text-sm text-amber-900">{h.lockedText}</p>
-          </div>
-          <Link to="/app/profile?tab=premium" className="btn-primary shrink-0">
-            {h.lockedCta}
-          </Link>
-        </div>
-      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <ToolCard Icon={PenLine} title={h.letterTitle} points={h.letterPoints} tone="bg-violet-100 text-violet-700" />

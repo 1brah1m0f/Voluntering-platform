@@ -1,5 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import type { PlanNotification } from './backend';
+import { type ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Code2, Bookmark, Compass, BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
@@ -12,65 +11,9 @@ import { hackathonText } from './hackathons/text';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
-import { hasPremium, homeFor, isPaidPlan, isRegularOnly, isStudentOnly } from './plans';
+import { homeFor, isRegularOnly, isStudentOnly } from './plans';
 
 /** Durable activation messages are shared by the regular and student shells. */
-function PlanNotifications() {
-  const { userId, refresh } = useAuth();
-  const { lang } = useLang();
-  const [messages, setMessages] = useState<PlanNotification[]>([]);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    let active = true;
-    let running = false;
-    let previousIds = '';
-    setMessages([]);
-    setError(false);
-    const load = async () => {
-      if (!userId || running || document.hidden) return;
-      running = true;
-      try {
-        const rows = await backend.listPlanNotifications();
-        if (!active) return;
-        setMessages(rows);
-        const ids = rows.map(row => row.id).join(',');
-        if (ids && ids !== previousIds) void refresh();
-        previousIds = ids;
-      } catch (err) {
-        console.error('[plan notifications]', err);
-      } finally { running = false; }
-    };
-    void load();
-    const timer = window.setInterval(() => void load(), 15000);
-    const onFocus = () => void load();
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
-    };
-  }, [userId, refresh]);
-  const dismiss = async (id: string) => {
-    try {
-      await backend.dismissPlanNotification(id);
-      setMessages(rows => rows.filter(row => row.id !== id));
-      setError(false);
-    } catch { setError(true); }
-  };
-  return <div aria-live="polite">
-    {messages.map(message => <div key={message.id} role="status" className="mb-4 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
-      <div>
-        <p className="font-bold">{lang === 'az' ? `🎉 ${message.plan === 'student' ? 'Tələbə planın' : 'Premium planın'} aktivləşdirildi!` : `🎉 Your ${message.plan === 'student' ? 'Student' : 'Premium'} plan has been activated!`}</p>
-        <p className="mt-1 text-sm">{lang === 'az' ? 'Planına daxil olan bütün imkanlardan indi istifadə edə bilərsən.' : 'You can now use all the features included in your plan.'}</p>
-      </div>
-      <button type="button" onClick={() => void dismiss(message.id)} className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-amber-100">{lang === 'az' ? 'Bağla' : 'Dismiss'}</button>
-    </div>)}
-    {error && <p role="alert" className="mb-3 text-sm text-red-700">{lang === 'az' ? 'Mesaj bağlanmadı. Yenidən cəhd et.' : 'Could not dismiss the message. Please try again.'}</p>}
-  </div>;
-}
-
 /** The landing page is for guests; signed-in users go straight to their own home. */
 export function LandingRoute({ children }: { children: ReactNode }) {
   const { loading, userId, profile } = useAuth();
@@ -161,7 +104,6 @@ export function StudentLayout() {
             </button>
           </div>
         </div>
-        <PlanNotifications />
         <Outlet />
       </main>
     </div>
@@ -210,7 +152,7 @@ export default function AppLayout() {
     : [
         ...(hackOnly ? [{ to: '/app/hackathons?saved=1', end: false, label: ht.savedOnly, Icon: Bookmark }] : [{ to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks }]),
         // The AI tools live on each opportunity page; this is their visible home.
-        ...(hackOnly ? [] : [{ to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: hasPremium(profile) ? undefined : '1/24h' }]),
+        ...(hackOnly ? [] : [{ to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: '10/24h' }]),
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin
@@ -237,7 +179,6 @@ export default function AppLayout() {
     }
     return isActive || (!!item.also && location.pathname.startsWith(item.also));
   };
-  const isPremium = isPaidPlan(profile?.plan);
 
   const logout = async () => {
     await backend.signOut();
@@ -315,10 +256,10 @@ export default function AppLayout() {
             ) : (
               <div className="flex items-center gap-3 rounded-2xl bg-paper p-3">
                 <Avatar profile={profile} />
-                <Link to="/app/profile?tab=premium" className="min-w-0 flex-1 leading-tight">
+                <Link to="/app/profile" className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-sm font-bold text-slate-900">{profile?.full_name || profile?.email}</span>
-                  <span className={`block text-xs ${isPremium ? 'font-bold text-amber-800' : 'text-slate-500 hover:text-brand-700'}`}>
-                    {profile?.plan === 'student' ? `🎓 ${tx.profile.student}` : isPremium ? `✦ ${tx.profile.premium}` : tx.profile.basic}
+                  <span className="block text-xs text-slate-500">
+                    {tx.profile.basic}
                   </span>
                 </Link>
                 <button
@@ -372,8 +313,7 @@ export default function AppLayout() {
               <span className="inline-flex items-center gap-2 font-semibold text-brand-700"><Compass className="h-4 w-4" aria-hidden="true" />{discovery === 'hackathons' ? ht.hackathons : discovery === 'both' ? ht.both : ht.volunteering}</span>
               <Link className="font-semibold text-slate-500 hover:text-brand-700" to="/app/discover">{ht.change} →</Link>
             </div>}
-            <PlanNotifications />
-            <Outlet />
+                <Outlet />
           </main>
         </div>
 

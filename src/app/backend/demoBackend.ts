@@ -1,7 +1,6 @@
 import type { Hackathon, HackathonEntry } from '../hackathons/types';
 import { DEMO_ACCOUNTS } from './demoAccounts';
-import { FREE_EVENT_LIMIT } from '../../config';
-import { FreeLimitError, PREMIUM_EARLY_HOURS, type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
+import { type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
 import { BackendError, type Backend, type DiscussionQuestion, type PlanNotification } from './types';
 import { DEMO_SCHOLARSHIPS, DEMO_UNIVERSITIES } from './demoStudent';
 
@@ -17,7 +16,6 @@ const demoUniversities: University[] = DEMO_UNIVERSITIES.map((u, i) => ({ ...u, 
 
 type DemoUser = Profile & { password: string; created_at?: string };
 
-const inEarlyWindow = (o: Opportunity) => Date.now() - new Date(o.created_at).getTime() < PREMIUM_EARLY_HOURS * 3_600_000;
 
 
 const K = {
@@ -242,10 +240,10 @@ export function createDemoBackend(): Backend {
     if (!u.is_admin) throw new BackendError('not_allowed');
   };
   // Older demo data predates the personalisation fields.
-  // Mirrors the database rule: the student catalogue is for student accounts on the Student plan (and admins).
+  // Mirrors the database rule: the student catalogue is for student accounts and admins.
   const requireStudent = () => {
     const u = requireUser();
-    if (!(u.account_type === 'student' && u.plan === 'student') && !u.is_admin) throw new BackendError('not_allowed');
+    if (!(u.account_type === 'student') && !u.is_admin) throw new BackendError('not_allowed');
     return u;
   };
   // Demo users created before account types existed are regular accounts.
@@ -439,9 +437,8 @@ export function createDemoBackend(): Backend {
       await wait();
       const u = me();
       const admin = u?.is_admin;
-      const premium = u?.plan === 'premium' || u?.plan === 'student';
       return opps()
-        .filter((o) => admin || (o.published && (premium || !inEarlyWindow(o))))
+        .filter((o) => admin || (o.published))
         .sort((a, b) => a.deadline.localeCompare(b.deadline));
     },
 
@@ -449,7 +446,7 @@ export function createDemoBackend(): Backend {
       const o = opps().find((x) => x.id === id) ?? null;
       const u = me();
       if (!o) return null;
-      return u?.is_admin || (o.published && (u?.plan === 'premium' || u?.plan === 'student' || !inEarlyWindow(o))) ? o : null;
+      return u?.is_admin || (o.published) ? o : null;
     },
 
     async createOpportunity(input: OpportunityInput) {
@@ -482,7 +479,7 @@ export function createDemoBackend(): Backend {
     },
 
     async premiumEarlyCount() {
-      return opps().filter((o) => o.published && inEarlyWindow(o)).length;
+      return 0;
     },
 
     async listUsers() {
@@ -560,11 +557,10 @@ export function createDemoBackend(): Backend {
     },
 
     async save(opportunityId) {
-      const u = requireUser();
+      requireUser();
       const items = mySaved();
       const existing = items.find((s) => s.opportunity_id === opportunityId);
       if (existing) return existing;
-      if (u.plan === 'basic' && items.length >= FREE_EVENT_LIMIT) throw new FreeLimitError();
       const now = new Date().toISOString();
       const item: SavedItem = { opportunity_id: opportunityId, status: 'saved', created_at: now, updated_at: now };
       writeMySaved([...items, item]);

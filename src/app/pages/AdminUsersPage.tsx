@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Crown, Search, Shield } from 'lucide-react';
+import { Search, Shield } from 'lucide-react';
 import { backend } from '../backend';
 import { useAuth } from '../AuthContext';
 import { useAppText } from '../text';
-import type { AccountType, Plan, UserRow } from '../types';
+import type { AccountType, UserRow } from '../types';
 
-/** Plans each account type can have (mirrors set_user_plan in app.sql). */
-const PLANS_FOR: Record<AccountType, Plan[]> = { regular: ['basic', 'premium'], student: ['basic', 'student'] };
 import { ErrorState, Spinner, inputClass } from '../ui';
 import { formatDate } from '../util';
 import AdminAcceptanceRequests from './AdminAcceptanceRequests';
@@ -38,22 +36,6 @@ export default function AdminUsersPage() {
   if (error) return <ErrorState onRetry={load} />;
   if (!users) return <Spinner label={tx.loading} />;
 
-  const planName = (pl: Plan) => (pl === 'student' ? tx.profile.student : pl === 'premium' ? tx.profile.premium : tx.profile.basic);
-  const setPlan = async (row: UserRow, plan: Plan) => {
-    if (!confirm(u.confirmPlan(row.email, planName(plan)))) return;
-    setBusyId(row.id);
-    try {
-      await backend.setUserPlan(row.id, plan);
-      setUsers((list) => (list ?? []).map((x) => (x.id === row.id ? { ...x, plan } : x)));
-      if (row.id === profile?.id) await refresh(); // admin changed their own plan
-    } catch (err) {
-      console.error('[admin] set plan failed', err);
-      alert(tx.saveError);
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   const typeName = (t: AccountType) => (t === 'student' ? u.typeStudent : u.typeRegular);
   const setType = async (row: UserRow, type: AccountType) => {
     if (!confirm(u.confirmType(row.email, typeName(type)))) return;
@@ -61,7 +43,7 @@ export default function AdminUsersPage() {
     try {
       await backend.setAccountType(row.id, type);
       // Same rule as the server: a plan the new type doesn't have goes back to basic.
-      const plan = PLANS_FOR[type].includes(row.plan) ? row.plan : 'basic';
+      const plan = ((type === 'student' && row.plan === 'premium') || (type === 'regular' && row.plan === 'student')) ? 'basic' : row.plan;
       setUsers((list) => (list ?? []).map((x) => (x.id === row.id ? { ...x, account_type: type, plan } : x)));
       if (row.id === profile?.id) await refresh();
     } catch (err) {
@@ -74,14 +56,14 @@ export default function AdminUsersPage() {
 
   const q = query.trim().toLowerCase();
   const visible = users.filter((x) => !q || `${x.full_name} ${x.email}`.toLowerCase().includes(q));
-  const premiumCount = users.filter((x) => x.plan === 'premium').length;
-  const studentCount = users.filter((x) => x.plan === 'student').length;
+  const regularCount = users.filter((x) => x.account_type !== 'student').length;
+  const studentCount = users.filter((x) => x.account_type === 'student').length;
 
   return (
     <div>
       <AdminTabs />
       <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{u.title}</h1>
-      <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{u.sub(users.length, premiumCount, studentCount)}</p>
+      <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{u.sub(users.length, regularCount, studentCount)}</p>
 
       <label className="relative mt-5 block">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
@@ -93,7 +75,7 @@ export default function AdminUsersPage() {
       ) : (
         <ul className="mt-4 divide-y divide-slate-100 overflow-hidden rounded-3xl border border-line bg-white shadow-card">
           {visible.map((x) => {
-            const premium = x.plan !== 'basic';
+            const student = x.account_type === 'student';
             const initials = (x.full_name || x.email)
               .split(/\s+/)
               .map((w) => w[0])
@@ -105,7 +87,7 @@ export default function AdminUsersPage() {
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <span
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
-                      premium ? 'bg-linear-to-br from-amber-400 to-coral-600' : 'bg-linear-to-br from-brand-400 to-brand-700'
+                      student ? 'bg-linear-to-br from-amber-400 to-coral-600' : 'bg-linear-to-br from-brand-400 to-brand-700'
                     }`}
                   >
                     {initials}
@@ -142,22 +124,7 @@ export default function AdminUsersPage() {
                       </option>
                     ))}
                   </select>
-                  {premium && <Crown className={`h-4 w-4 ${x.plan === 'student' ? 'text-violet-600' : 'text-amber-500'}`} aria-hidden="true" />}
-                  <select
-                    value={x.plan}
-                    disabled={busyId === x.id}
-                    onChange={(e) => setPlan(x, e.target.value as Plan)}
-                    aria-label={u.planLabel}
-                    className={`rounded-full border px-3 py-1.5 text-sm font-bold ${
-                      x.plan === 'student' ? 'border-violet-200 bg-violet-50 text-violet-800' : premium ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-white text-slate-700'
-                    }`}
-                  >
-                    {PLANS_FOR[x.account_type].map((pl) => (
-                      <option key={pl} value={pl}>
-                        {planName(pl)}
-                      </option>
-                    ))}
-                  </select>
+                  <span className="text-xs font-semibold text-slate-500">{tx.profile.basic}</span>
                 </div>
               </li>
             );

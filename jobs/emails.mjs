@@ -73,7 +73,7 @@ function card(o, site, badge) {
 
 const deadlineBadge = (d) => (d <= 3 ? { bg: '#ffe6df', fg: '#a12e17' } : d <= 7 ? { bg: '#fef3c7', fg: '#92400e' } : { bg: '#effbfb', fg: '#1b626c' });
 
-export function digestEmail({ name, premium, items, total, today, site }) {
+export function digestEmail({ name, items, total, today, site }) {
   const n = total;
   const subject = n === 1 ? 'Sənə uyğun 1 yeni fürsət var' : `Sənə uyğun ${n} yeni fürsət var`;
   const cards = items
@@ -89,7 +89,7 @@ export function digestEmail({ name, premium, items, total, today, site }) {
   const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr><td style="padding:24px 32px 16px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#334155;">
     <p style="margin:0 0 8px;">${greet(name)}</p>
-    <p style="margin:0;">${premium ? 'Dünəndən bəri' : 'Keçən həftə'} maraqlarına uyğun yeni fürsətlər dərc olundu:</p>
+    <p style="margin:0;">Dünəndən bəri maraqlarına uyğun yeni fürsətlər dərc olundu:</p>
   </td></tr>
   ${cards}${more}
   <tr><td align="center" style="padding:12px 32px 28px;">
@@ -99,7 +99,7 @@ export function digestEmail({ name, premium, items, total, today, site }) {
   const text = [
     `Salam${name ? `, ${name.split(' ')[0]}` : ''}!`,
     '',
-    `${premium ? 'Dünəndən bəri' : 'Keçən həftə'} maraqlarına uyğun yeni fürsətlər:`,
+    `Dünəndən bəri maraqlarına uyğun yeni fürsətlər:`,
     '',
     ...items.map((o) => `• ${o.title} (${o.program}) — son tarix ${date(o.deadline)}\n  ${site}/o/${o.id}`),
     total > items.length ? `\n…və daha ${total - items.length}: ${site}/app` : '',
@@ -108,7 +108,7 @@ export function digestEmail({ name, premium, items, total, today, site }) {
   ].join('\n');
   return {
     subject,
-    html: layout({ preheader: items.map((o) => o.title).join(' · '), eyebrow: premium ? 'GÜNDƏLİK XÜLASƏ' : 'HƏFTƏLİK XÜLASƏ', title: subject, body, site }),
+    html: layout({ preheader: items.map((o) => o.title).join(' · '), eyebrow: 'GÜNDƏLİK XÜLASƏ', title: subject, body, site }),
     text,
   };
 }
@@ -142,12 +142,12 @@ export function reminderEmail({ name, items, site }) {
 }
 
 export function activationEmail({ name, plan, site }) {
-  const label = plan === 'student' ? 'Tələbə' : 'Premium';
+  const label = plan === 'student' ? 'Tələbə' : 'Pulsuz';
   const subject = `🎉 ${label} planın aktivləşdirildi!`;
   const description = plan === 'student'
-    ? 'Premium imkanları, təqaüdlər, universitetlər, yol xəritəsi və planlayıcı artıq sənin üçün açıqdır.'
-    : 'Limitsiz izləmə, erkən giriş, son tarix xatırlatmaları, ağıllı uyğunlaşdırma və gündə 15 AI istifadəsi artıq sənin üçün açıqdır.';
-  const url = `${site}${plan === 'student' ? '/student/profile' : '/app/profile?tab=premium'}`;
+    ? 'Bütün imkanlar, təqaüdlər, universitetlər, yol xəritəsi və planlayıcı artıq sənin üçün açıqdır.'
+    : 'Limitsiz izləmə, erkən giriş, son tarix xatırlatmaları, ağıllı uyğunlaşdırma və gündə 10 AI istifadəsi artıq sənin üçün açıqdır.';
+  const url = `${site}${plan === 'student' ? '/student/profile' : '/app/profile'}`;
   const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:24px 32px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#334155;">
     <p>${greet(name)}</p><p>${esc(subject)}</p><p>${esc(description)}</p>
     <p><a href="${esc(url)}" style="color:#1b7a85;font-weight:bold;">Hesabına keç →</a></p>

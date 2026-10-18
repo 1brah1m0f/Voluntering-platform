@@ -1,10 +1,7 @@
 // Single place to rename the brand.
 export const BRAND = 'Openly';
 
-// Free plan limit shown in pricing copy.
-export const FREE_EVENT_LIMIT = 3;
-
-// Premium / Student plan purchases go through Instagram DMs for now.
+// Contact the team on Instagram.
 export const INSTAGRAM_HANDLE = 'openlyapply';
 
 /** Opens a DM with the team on Instagram (DMs can't be pre-filled, so the copy asks for the account email). */

@@ -1,19 +1,10 @@
-import type { Plan, Profile } from './types';
+import type { Profile } from './types';
 
-// Two account types, fixed at sign-up:
-// - regular: the volunteering app, plans basic (free) and premium (3 ₼);
-// - student: the student section only, locked until the student plan (7 ₼).
-// Admins see both parts of the app.
-
-/** The paid plan itself, without the admin override. */
-export const isPaidPlan = (plan: Plan | undefined) => plan === 'premium' || plan === 'student';
-
-/** Premium features: paid plans and admins. */
-export const hasPremium = (p: Pick<Profile, 'plan' | 'is_admin'> | null | undefined) => !!p && (isPaidPlan(p.plan) || p.is_admin);
-
-/** The student section's content: student accounts on the student plan, and admins. */
+// Account types select the section of the app; all features are free.
+// Legacy helper names remain compatible with existing consumers.
+export const hasFeatures = (p: Pick<Profile, 'plan' | 'is_admin'> | null | undefined) => !!p;
 export const hasStudent = (p: Pick<Profile, 'plan' | 'account_type' | 'is_admin'> | null | undefined) =>
-  !!p && ((p.account_type === 'student' && p.plan === 'student') || p.is_admin);
+  !!p && (p.account_type === 'student' || p.is_admin);
 
 /** A student account (not an admin): kept out of the regular app. */
 export const isStudentOnly = (p: Pick<Profile, 'account_type' | 'is_admin'> | null | undefined) => !!p && p.account_type === 'student' && !p.is_admin;

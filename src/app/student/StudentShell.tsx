@@ -29,7 +29,7 @@ const TABS: { id: StudentTab; Icon: LucideIcon }[] = [
 const LIST_PARAMS = ['q', 'level', 'field', 'country', 'open', 'fit', 'sort', 'mode'];
 
 /**
- * /student — the Student plan (7 ₼). State lives in the URL so links can be
+ * /student — the free student section. State lives in the URL so links can be
  * shared and the back button works: ?tab=, list filters, ?sch= / ?uni= for an
  * open details panel, ?compare=id,id for the comparison and ?view=compare.
  * The catalogue is protected in the database (RLS); other plans see the paywall.

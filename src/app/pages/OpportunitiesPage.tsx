@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { BookmarkPlus, Crown, Globe2, Lock, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BookmarkPlus, Globe2, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { backend } from '../backend';
 import { ONLINE, applyFilters, filterQuery, readFilters } from '../filters';
 import { useAuth } from '../AuthContext';
@@ -11,7 +11,6 @@ import { PREMIUM_EARLY_HOURS, type Kind, type Opportunity, type SavedSearch } fr
 import { GOOD_MATCH, matchScore, type MatchReason } from '../match';
 import { Chip, DeadlineChip, ErrorState, Notice, ProgramBadge, SaveButton, Spinner, inputClass, useDismissed } from '../ui';
 import { daysUntil } from '../util';
-import { hasPremium } from '../plans';
 
 function MatchBadge({ score, reasons }: { score: number; reasons: MatchReason[] }) {
   const { tx } = useAppText();
@@ -98,9 +97,6 @@ export default function OpportunitiesPage() {
   const { q: query, forYou, program, kind, country, soon, funded, showClosed } = filters;
   const sort = params.get('sort') === 'deadline' ? 'deadline' : 'best';
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const isPremium = hasPremium(profile);
-  const [earlyCount, setEarlyCount] = useState(0);
-  const navigate = useNavigate();
 
   // Saved searches (signed-in users): chips on the dashboard, "Save this search" in the filter bar.
   const [searches, setSearches] = useState<SavedSearch[]>([]);
@@ -111,14 +107,8 @@ export default function OpportunitiesPage() {
     backend.listSearches().then(setSearches, (err) => console.error('[searches] load failed', err));
   }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (isPremium) return;
-    backend.premiumEarlyCount().then(setEarlyCount, () => setEarlyCount(0));
-  }, [isPremium]);
 
   const toggle = (key: string) => () => setParam(key, flag(key) ? null : '1');
-  /** Premium-only filters: free users are sent to the Premium page instead. */
-  const premiumToggle = (key: string) => () => (isPremium ? toggle(key)() : navigate('/app/profile?tab=premium'));
 
   const published = useMemo(() => (opportunities ?? []).filter((o) => o.published), [opportunities]);
   const programs = useMemo(() => [...new Set(published.map((o) => o.program))].sort(), [published]);
@@ -128,9 +118,9 @@ export default function OpportunitiesPage() {
   const q = query.trim().toLowerCase();
   const results = applyFilters(published, filters, myInterests);
 
-  // Premium smart matching: fit score per card, "best match" ordering, and a
+  // Smart matching: fit score per card, "best match" ordering, and a
   // personal "N new opportunities for you" summary.
-  const matches = useMemo(() => (isPremium && profile ? new Map(published.map((o) => [o.id, matchScore(o, profile)])) : null), [isPremium, profile, published]);
+  const matches = useMemo(() => (profile ? new Map(published.map((o) => [o.id, matchScore(o, profile)])) : null), [profile, published]);
   const ordered = matches && sort === 'best' ? [...results].sort((a, b) => matches.get(b.id)!.score - matches.get(a.id)!.score || a.deadline.localeCompare(b.deadline)) : results;
   const weekAgo = Date.now() - 7 * 86_400_000;
   const freshForYou = matches ? published.filter((o) => daysUntil(o.deadline) >= 0 && new Date(o.created_at).getTime() > weekAgo && matches.get(o.id)!.score >= GOOD_MATCH) : [];
@@ -142,7 +132,6 @@ export default function OpportunitiesPage() {
   const [guestClosed, closeGuest] = useDismissed('guest-signup');
   const [interestsClosed, closeInterests] = useDismissed('pick-interests');
   const [freshClosed, closeFresh] = useDismissed(`fresh:${newestFresh}`);
-  const [earlyClosed, closeEarly] = useDismissed('early-teaser');
   const smallBtn = 'btn-primary px-4! py-1.5! text-sm';
   const notices = [
     !profile && !guestClosed && (
@@ -179,22 +168,7 @@ export default function OpportunitiesPage() {
         {soonestDays !== null && soonestDays <= 14 && <span> — {tx.list.forYouSoon(soonestDays)}</span>}
       </Notice>
     ),
-    !isPremium && earlyCount > 0 && !earlyClosed && (
-      <Notice
-        key="early"
-        tone="amber"
-        icon={<Lock className="h-4 w-4" aria-hidden="true" />}
-        onClose={closeEarly}
-        action={
-          <Link to="/app/profile?tab=premium" className={smallBtn}>
-            <Crown className="h-4 w-4" aria-hidden="true" />
-            {tx.list.seePremium}
-          </Link>
-        }
-      >
-        {tx.list.earlyTeaser(earlyCount)}
-      </Notice>
-    ),
+
   ].filter(Boolean);
 
   const anyFilter = q || program || kind || country || soon || funded || showClosed || (forYou && myInterests.length > 0);
@@ -288,12 +262,10 @@ export default function OpportunitiesPage() {
               {tx.list.forYou}
             </Chip>
           )}
-          <Chip on={soon} onClick={premiumToggle('soon')} title={isPremium ? undefined : tx.list.premiumFilter}>
-            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
+          <Chip on={soon} onClick={toggle('soon')}>
             {tx.list.closingSoon}
           </Chip>
-          <Chip on={funded} onClick={premiumToggle('funded')} title={isPremium ? undefined : tx.list.premiumFilter}>
-            {!isPremium && <Lock className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />}
+          <Chip on={funded} onClick={toggle('funded')}>
             {tx.list.fullyFunded}
           </Chip>
           <Chip on={showClosed} onClick={toggle('closed')}>

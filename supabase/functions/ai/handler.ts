@@ -53,11 +53,9 @@ export function createHandler(deps: {
 
   if (!profile) return json({ error: "premium_required" }, 403);
   const isStudentAction = STUDENT_ACTIONS.includes(body.action as string);
-  // Account types are separate: the advisor is for student accounts on the Student
-  // plan; the letter/review tools are for regular accounts (free: 1 use a day,
-  // Premium: 15). Admins get both.
+  // Account type selects the tools; every account has 10 free AI uses per day.
   if (!profile.is_admin) {
-    if (isStudentAction && !(profile.account_type === "student" && profile.plan === "student")) return json({ error: "student_required" }, 403);
+    if (isStudentAction && !(profile.account_type === "student")) return json({ error: "student_required" }, 403);
     if (!isStudentAction && profile.account_type === "student") return json({ error: "premium_required" }, 403);
   }
 
