@@ -15,6 +15,11 @@ on:
         description: 'Source id from scraper/sources/catalog.json, or all'
         type: string
         default: all
+      category:
+        description: 'Collection category (use source=all with both)'
+        type: choice
+        options: [both, volunteering, hackathons]
+        default: both
       scope:
         description: 'Source scope'
         type: choice
@@ -55,13 +60,23 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           INPUT_SOURCE: ${{ inputs.source || 'all' }}
+          INPUT_CATEGORY: ${{ inputs.category || 'both' }}
           INPUT_SCOPE: ${{ inputs.scope || 'all' }}
           INPUT_LIMIT: ${{ inputs.limit || 5 }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
         run: |
           args=(--source "$INPUT_SOURCE" --scope "$INPUT_SCOPE" --limit "$INPUT_LIMIT")
           if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
-          python -u scraper/run.py "${args[@]}"
+          if [ "$INPUT_CATEGORY" = "both" ] && [ "$INPUT_SOURCE" != "all" ]; then
+            echo "Select a single category when specifying a source id."
+            exit 1
+          fi
+          if [ "$INPUT_CATEGORY" != "hackathons" ]; then
+            python -u scrape.py --category volunteering "${args[@]}"
+          fi
+          if [ "$INPUT_CATEGORY" != "volunteering" ]; then
+            python -u scrape.py --category hackathons "${args[@]}"
+          fi
 
       - name: Upload collection reports
         if: always()

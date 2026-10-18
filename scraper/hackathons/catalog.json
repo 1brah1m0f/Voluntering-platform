@@ -1,0 +1,10 @@
+[
+  {"id":"lablab","name":"lablab.ai","scope":"global","url":"https://lablab.ai/event","mode":"listing","link_pattern":"/ai-hackathons/[^/]+/?$","note":"Public AI hackathon listings; per-event eligibility is required."},
+  {"id":"taikai","name":"TAIKAI","scope":"global","url":"https://taikai.network/hackathons","mode":"listing","link_pattern":"/en/[^/]+/hackathons/[^/]+/?$","note":"Public hackathon listings; country and team restrictions vary."},
+  {"id":"devfolio","name":"Devfolio","scope":"global","url":"https://devfolio.co/hackathons","mode":"listing","link_pattern":"^/$","subdomain_events":true,"note":"Public event subdomains; online does not automatically mean Azerbaijan eligible."},
+  {"id":"mlh","name":"Major League Hacking","scope":"global","url":"https://mlh.io/seasons/2027/events","mode":"listing","link_pattern":"/events/[^/]+/?$","allowed_hosts":["events.mlh.com"],"note":"2027 season listing; external university event sites are not automatically followed."},
+  {"id":"devpost","name":"Devpost","scope":"global","url":"https://devpost.com/hackathons","mode":"manual","link_pattern":"","note":"Listing requires JavaScript; API/browser integration not implemented."},
+  {"id":"dorahacks","name":"DoraHacks","scope":"global","url":"https://dorahacks.io/hackathon","mode":"manual","link_pattern":"","note":"Public HTTP probe returned 405; needs a supported integration."},
+  {"id":"idda","name":"İnnovasiya və Rəqəmsal İnkişaf Agentliyi","scope":"local","url":"https://idda.az/az/news","mode":"manual","link_pattern":"","note":"News page is rendered by JavaScript. Local hackathon calls must be checked separately."},
+  {"id":"technest","name":"Technest","scope":"local","url":"https://technest.idda.az/","mode":"program","link_pattern":"","note":"Local technology programme; not every announcement is a hackathon or an open call."}
+]

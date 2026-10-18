@@ -37,7 +37,7 @@ def save_report(name, value):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, epilog='For hackathons: python3 scrape.py --category hackathons --help')
     parser.add_argument('--source', choices=list(SOURCES) + ['all'], default='all', help='Provider id; see --list-sources')
     parser.add_argument('--scope', choices=['all', 'local', 'global'], default='all', help='Only Azerbaijani providers or international providers')
     parser.add_argument('--list-sources', action='store_true', help='Show providers and collection modes without crawling')

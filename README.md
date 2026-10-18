@@ -29,6 +29,12 @@ Azərbaycan uyğunluğu, son tarix və dublikat yoxlamaları AI-dən əvvəldir.
 Standart rejim token sərf etmir. Bloklanan mənbələr, ümumi proqram səhifələri
 və təsdiq tələb edən elanlar ayrıca hesabatlara gedir.
 
+Hakatonlar üçün ayrıca [hakaton scraper rejimi](scraper/hackathons/README.md) var:
+
+```bash
+python3 scrape.py --category hackathons --source all --dry-run --limit 3
+```
+
 ## Run locally
 
 Use Node.js 22.12 or newer within the Node 22 release line (`.nvmrc` pins the tested version).

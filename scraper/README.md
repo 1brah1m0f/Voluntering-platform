@@ -15,6 +15,18 @@ siyahısıdır; dünyadakı bütün saytların tam siyahısı deyil.
 Sayt sonradan quruluşunu dəyişə və ya əlçatmaz ola bilər. Hər icranın real
 nəticəsi `output/source-status.json` faylında qeyd edilir.
 
+## Hakatonlar
+
+Ayrıca **[hakaton rejimi](hackathons/README.md)** əlavə olunub:
+
+```bash
+python3 scrape.py --category hackathons --list-sources
+python3 scrape.py --category hackathons --source all --dry-run --limit 3
+```
+
+Onun 8 mənbəsi və nəticələri könüllülük kataloqundan ayrıdır.
+Nəticələr `scraper/output/hackathons/` daxilindədir.
+
 ## İşə salma
 
 Əmrləri layihənin əsas qovluğundan işlət:
