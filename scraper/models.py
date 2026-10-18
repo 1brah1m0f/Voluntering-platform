@@ -36,6 +36,9 @@ class ScrapedRawItem(BaseModel):
     raw_title: str
     raw_html: str
     raw_text: str
+    source_scope: Literal["global", "local"] = "global"
+    source_program: str = ""
+    source_mode: Literal["listing", "program"] = "listing"
 
 class OpportunityModel(BaseModel):
     """Standardized Opportunity matching Openly DB schema."""

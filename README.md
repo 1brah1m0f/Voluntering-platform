@@ -12,6 +12,23 @@ Stack: React 18 + TypeScript + Vite 8 + Tailwind CSS 4 + React Router 7, Supabas
 
 See [Architecture](docs/architecture.md) and [Security rollout](docs/security-rollout.md).
 
+## Veb-scraping və könüllülük mənbələri
+
+**[scrape.py](scrape.py)** — əsas giriş.
+**[46 mənbənin siyahısı](scraper/SOURCES.md)** — 23 beynəlxalq və 23 yerli.
+Mənbə qaydaları **[scraper/sources/catalog.json](scraper/sources/catalog.json)**
+faylındadır; [istifadə təlimatı](scraper/README.md) rejimləri və hesabatları izah edir.
+
+```bash
+python3 scrape.py --list-sources
+python3 scrape.py --scope local --dry-run --limit 3
+python3 scrape.py --scope global --dry-run --limit 3
+```
+
+Azərbaycan uyğunluğu, son tarix və dublikat yoxlamaları AI-dən əvvəldir.
+Standart rejim token sərf etmir. Bloklanan mənbələr, ümumi proqram səhifələri
+və təsdiq tələb edən elanlar ayrıca hesabatlara gedir.
+
 ## Run locally
 
 Use Node.js 22.12 or newer within the Node 22 release line (`.nvmrc` pins the tested version).

@@ -1,0 +1,459 @@
+[
+  {
+    "id": "salto",
+    "name": "SALTO-Youth",
+    "scope": "global",
+    "url": "https://www.salto-youth.net/tools/european-training-calendar/browse/",
+    "mode": "listing",
+    "link_pattern": "/tools/european-training-calendar/training/[^/]+\\.\\d+/?$",
+    "note": "",
+    "program": "SALTO-Youth"
+  },
+  {
+    "id": "youthop",
+    "name": "Youth Opportunities",
+    "scope": "global",
+    "url": "https://www.youthop.com/exchange-programs",
+    "mode": "listing",
+    "link_pattern": "/(?:exchange-programs|conferences|fellowships|volunteer|volunteering)/[^/]+/?$",
+    "note": "Youth exchanges, training and related international opportunities; includes the previous source.",
+    "program": "Youth Opportunities",
+    "volunteer_only": false
+  },
+  {
+    "id": "opportunitydesk",
+    "name": "Opportunity Desk — Volunteering",
+    "scope": "global",
+    "url": "https://opportunitydesk.org/category/jobs-and-internships/volunteering/",
+    "mode": "listing",
+    "link_pattern": "/20\\d\\d/\\d\\d/\\d\\d/[^/]+/?$",
+    "note": "",
+    "program": "Opportunity Desk"
+  },
+  {
+    "id": "esc",
+    "name": "European Youth Portal / ESC",
+    "scope": "global",
+    "url": "https://youth.europa.eu/go-abroad/volunteering/opportunities_en",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Elan siyahısı JavaScript tətbiqindədir; avtomatik import hazır deyil. Rəsmi portalda Azərbaycan filtri ilə yoxla.",
+    "program": "European Solidarity Corps"
+  },
+  {
+    "id": "unv",
+    "name": "UN Volunteers / UVP",
+    "scope": "global",
+    "url": "https://app.unv.org/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "JavaScript portalı. Milli, beynəlxalq və onlayn tapşırıqlar; hər tapşırığın uyğunluğu ayrıca yoxlanmalıdır."
+  },
+  {
+    "id": "eurodesk",
+    "name": "Eurodesk Opportunity Finder",
+    "scope": "global",
+    "url": "https://programmes.eurodesk.eu/volunteering/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Avtomatik sorğu Cloudflare tərəfindən bloklandı; rəsmi kataloqdan yoxlama."
+  },
+  {
+    "id": "aiesec",
+    "name": "AIESEC Global Volunteer",
+    "scope": "global",
+    "url": "https://aiesec.org/global-volunteer",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Proqram məlumatıdır; iştirak haqqı və yaş/ölkə şərtləri layihəyə görə dəyişir."
+  },
+  {
+    "id": "workaway",
+    "name": "Workaway",
+    "scope": "global",
+    "url": "https://www.workaway.info/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Host mübadiləsi; üzvlük haqqı ola bilər, iş/viza və host şərtlərini yoxla."
+  },
+  {
+    "id": "wwoof",
+    "name": "WWOOF",
+    "scope": "global",
+    "url": "https://wwoof.net/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Orqanik fermalar üzrə mübadilə; milli təşkilat və üzvlük şərtləri var."
+  },
+  {
+    "id": "helpx",
+    "name": "HelpX",
+    "scope": "global",
+    "url": "https://www.helpx.net/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Host mübadiləsi kataloqu; üzvlük və viza şərtlərini ayrıca yoxla."
+  },
+  {
+    "id": "icye",
+    "name": "ICYE",
+    "scope": "global",
+    "url": "https://www.icye.org/volunteering/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Qısa/uzunmüddətli proqramlar; milli tərəfdaş və ödəniş şərtləri dəyişir."
+  },
+  {
+    "id": "alliance",
+    "name": "Alliance of European Voluntary Service Organisations",
+    "scope": "global",
+    "url": "https://www.alliance-network.eu/international-volunteering/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "İş düşərgələri və tərəfdaş təşkilatlar şəbəkəsi; ümumi proqram səhifəsidir."
+  },
+  {
+    "id": "idealist",
+    "name": "Idealist / VolunteerMatch",
+    "scope": "global",
+    "url": "https://www.idealist.org/en/volunteer",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "VolunteerMatch Idealist-ə yönləndirilir; elan üzrə uzaqdan/ölkə uyğunluğu yoxlanmalıdır."
+  },
+  {
+    "id": "sci",
+    "name": "Service Civil International / Workcamps",
+    "scope": "global",
+    "url": "https://workcamps.sci.ngo/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Cloudflare bloklaması; düşərgələrin tərəfdaş və ölkə şərtləri ayrıca yoxlanmalıdır."
+  },
+  {
+    "id": "volunteerworld",
+    "name": "Volunteer World",
+    "scope": "global",
+    "url": "https://www.volunteerworld.com/en",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Cloudflare bloklaması. Ödənişli layihələr də ola bilər."
+  },
+  {
+    "id": "worldpackers",
+    "name": "Worldpackers",
+    "scope": "global",
+    "url": "https://www.worldpackers.com/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Cloudflare bloklaması. Üzvlük əsasında host mübadiləsi."
+  },
+  {
+    "id": "goabroad",
+    "name": "GoAbroad — Volunteer Abroad",
+    "scope": "global",
+    "url": "https://www.goabroad.com/volunteer-abroad",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Cloudflare bloklaması. Üçüncü tərəf proqramları və mümkün ödənişlər."
+  },
+  {
+    "id": "vso",
+    "name": "VSO",
+    "scope": "global",
+    "url": "https://www.vsointernational.org/volunteering",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Peşəkar könüllülük; rolun təcrübə və ölkə şərtləri ayrıca yoxlanmalıdır."
+  },
+  {
+    "id": "ivhq",
+    "name": "International Volunteer HQ",
+    "scope": "global",
+    "url": "https://www.volunteerhq.org/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Proqram ödənişləri ola bilər. Açıq elan kimi avtomatik dərc edilmir."
+  },
+  {
+    "id": "globalvolunteers",
+    "name": "Global Volunteers",
+    "scope": "global",
+    "url": "https://globalvolunteers.org/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Proqram ödənişləri ola bilər; konkret tarix və şərtlər ayrıca təsdiqlənməlidir."
+  },
+  {
+    "id": "ifrc",
+    "name": "IFRC / Red Cross Red Crescent",
+    "scope": "global",
+    "url": "https://www.ifrc.org/get-involved/volunteer-us",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Cloudflare bloklaması; könüllülük milli cəmiyyətlər vasitəsilə təşkil olunur."
+  },
+  {
+    "id": "ymca",
+    "name": "World YMCA",
+    "scope": "global",
+    "url": "https://www.ymca.int/get-involved/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Beynəlxalq və milli üzv təşkilat proqramları; konkret qəbul elanı deyil."
+  },
+  {
+    "id": "dost",
+    "name": "Könüllü DOST",
+    "scope": "local",
+    "url": "https://konullu.dost.gov.az/konullu-ol",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Altproqramların yaş və qəbul şərtləri ayrıdır; proqram səhifəsi açıq qəbul zəmanəti deyil.",
+    "program": "Könüllü DOST"
+  },
+  {
+    "id": "dost_news",
+    "name": "DOST qəbul elanları",
+    "scope": "local",
+    "url": "https://konullu.dost.gov.az/xeberler",
+    "mode": "listing",
+    "link_pattern": "/fealiyyetimiz/\\d+/?$",
+    "note": "",
+    "program": "Könüllü DOST",
+    "volunteer_only": true,
+    "recruitment_only": true
+  },
+  {
+    "id": "asan",
+    "name": "ASAN Könüllülük Məktəbi",
+    "scope": "local",
+    "url": "https://konullu.asanschool.az/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Rəsmi ASAN saytı bu qeydiyyat portalına keçid verir. Əlçatanlığı brauzerdə yoxlanmalıdır."
+  },
+  {
+    "id": "asan_news",
+    "name": "ASAN elanları",
+    "scope": "local",
+    "url": "https://asan.gov.az/media/announcements",
+    "mode": "listing",
+    "link_pattern": "/media/(?:announcements|press-releases)/[^/]+/?$",
+    "note": "",
+    "program": "ASAN Könüllüləri",
+    "volunteer_only": true,
+    "recruitment_only": true
+  },
+  {
+    "id": "bir",
+    "name": "BİR Könüllü",
+    "scope": "local",
+    "url": "https://konullu.edu.az/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Elm və Təhsil Nazirliyinin göstərdiyi rəsmi qeydiyyat ünvanı; yoxlamada TLS xətası."
+  },
+  {
+    "id": "eco",
+    "name": "Ekokönüllülər / ETSN",
+    "scope": "local",
+    "url": "https://eco.gov.az/az/konullu_fealiyyet",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Rəsmi könüllü fəaliyyət və qeydiyyat səhifəsi.",
+    "program": "Ekokönüllülər"
+  },
+  {
+    "id": "kob",
+    "name": "KOB Könüllüləri",
+    "scope": "local",
+    "url": "https://smb.gov.az/az/nav/kob-konulluleri-proqrami",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "KOB Master 1/2 və seçim meyarları; ehtiyaca uyğun qəbul.",
+    "program": "KOB Könüllüləri"
+  },
+  {
+    "id": "migration",
+    "name": "Miqrasiya Könüllüsü",
+    "scope": "local",
+    "url": "https://migration.gov.az/az/form/3",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Dövlət Miqrasiya Xidmətinin könüllü müraciət forması.",
+    "program": "Miqrasiya Könüllüsü"
+  },
+  {
+    "id": "customs",
+    "name": "Könüllü gömrükçü",
+    "scope": "local",
+    "url": "https://customs.gov.az/az/muracietler/volunteer",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Dövlət Gömrük Komitəsinin rəsmi proqram səhifəsi.",
+    "program": "Könüllü gömrükçü"
+  },
+  {
+    "id": "baku",
+    "name": "Bakı Şəhər Halqası könüllüləri",
+    "scope": "local",
+    "url": "https://www.bakucitycircuit.com/az/volunteers",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Formula 1 könüllülük proqramı; mövsümi qəbul, açıq tarix ayrıca təsdiqlənməlidir.",
+    "program": "Bakı Şəhər Halqası"
+  },
+  {
+    "id": "family",
+    "name": "Ailəm Könüllüləri — elanlar",
+    "scope": "local",
+    "url": "https://family.gov.az/az/news?category=elanlar",
+    "mode": "listing",
+    "link_pattern": "/az/news/[^/?]+/?$",
+    "note": "",
+    "program": "Ailəm Könüllüləri",
+    "volunteer_only": true,
+    "recruitment_only": true
+  },
+  {
+    "id": "media",
+    "name": "MEDİA Könüllüləri",
+    "scope": "local",
+    "url": "https://media.gov.az/layiheler/media-konulluleri/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Medianın İnkişafı Agentliyinin könüllülük proqramı.",
+    "program": "MEDİA Könüllüləri"
+  },
+  {
+    "id": "diaspora",
+    "name": "Diaspor Könüllüləri",
+    "scope": "local",
+    "url": "https://diaspor.gov.az/az/news-detail/konulluler-proqrami-na-qebul-elan-edilir-6418",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Rəsmi keçmiş qəbul elanı; TLS xətası, hazırkı qəbul ayrıca təsdiqlənməlidir."
+  },
+  {
+    "id": "agrar",
+    "name": "Aqrar İnkişaf Könüllüləri — xəbərlər",
+    "scope": "local",
+    "url": "https://agro.gov.az/az/news",
+    "mode": "listing",
+    "link_pattern": "/az/news/[^/]+/?$",
+    "note": "",
+    "program": "Aqrar İnkişaf Könüllüləri",
+    "volunteer_only": true,
+    "recruitment_only": true
+  },
+  {
+    "id": "regional",
+    "name": "Regional İnkişaf İctimai Birliyi",
+    "scope": "local",
+    "url": "https://riib.az/",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Regional layihələr və könüllülük şəbəkəsi; proqram səviyyəsində baxış.",
+    "program": "Regional İnkişaf İctimai Birliyi"
+  },
+  {
+    "id": "redcrescent",
+    "name": "Azərbaycan Qızıl Aypara Cəmiyyəti",
+    "scope": "local",
+    "url": "https://redcrescent.org.az/be-a-volunter",
+    "mode": "program",
+    "link_pattern": "",
+    "note": "Humanitar könüllülük; təşkilatın qəbul şərtləri ayrıca yoxlanmalıdır.",
+    "program": "Qızıl Aypara"
+  },
+  {
+    "id": "diplomacy",
+    "name": "Diplomatiya Könüllüləri",
+    "scope": "local",
+    "url": "https://mfa.gov.az/az/category/fealiyyet-haqqinda-melumat",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "XİN-in rəsmi proqram məlumatı; illik qəbul elanını izləmək lazımdır. TLS xətası."
+  },
+  {
+    "id": "akti",
+    "name": "Azərbaycan Könüllü Təşkilatları İttifaqı",
+    "scope": "local",
+    "url": "https://konullu.az/",
+    "mode": "manual",
+    "link_pattern": "",
+    "note": "Könüllü təşkilatlarının çətir şəbəkəsi; yoxlamada əlaqə xətası."
+  },
+  {
+    "id": "youthforeurope",
+    "name": "Youth for Europe",
+    "scope": "global",
+    "url": "https://youthforeurope.eu/international-volunteering-opportunities/",
+    "mode": "listing",
+    "link_pattern": "/project/[^/]+/?$",
+    "program": "Youth for Europe",
+    "note": "Elan paylaşan platforma; iştirak və ödəniş şərtləri hər layihə üzrə yoxlanmalıdır."
+  },
+  {
+    "id": "reforms",
+    "name": "İslahat Könüllüləri",
+    "scope": "local",
+    "url": "https://volunteer.ereforms.gov.az/az/xeber",
+    "mode": "listing",
+    "link_pattern": "/az/(?:xeber|news)/[^/?]+/?$",
+    "program": "İslahat Könüllüləri",
+    "volunteer_only": false,
+    "recruitment_only": true,
+    "note": "İİTKM-nin rəsmi könüllülük proqramı; yalnız qəbul elanları götürülür."
+  },
+  {
+    "id": "tourism",
+    "name": "Turizm Könüllüləri",
+    "scope": "local",
+    "url": "https://www.tourism.gov.az/voluntourism",
+    "mode": "program",
+    "link_pattern": "",
+    "program": "Turizm Könüllüləri",
+    "note": "Dövlət Turizm Agentliyinin rəsmi könüllülük proqramı; qəbul statusu ayrıca yoxlanmalıdır.",
+    "volunteer_only": false,
+    "recruitment_only": false
+  },
+  {
+    "id": "nakhchivan_tourism",
+    "name": "Naxçıvan Turizm Könüllüləri",
+    "scope": "local",
+    "url": "https://ntourism.gov.az/konulluluk",
+    "mode": "manual",
+    "link_pattern": "",
+    "program": "Naxçıvan Turizm Könüllüləri",
+    "note": "Naxçıvan Turizm Departamentinin rəsmi qeydiyyat məlumatı; yoxlamada TLS xətası.",
+    "volunteer_only": false,
+    "recruitment_only": false
+  },
+  {
+    "id": "justice",
+    "name": "Ədliyyə Könüllüləri",
+    "scope": "local",
+    "url": "https://justice.gov.az/az/volunteering",
+    "mode": "program",
+    "link_pattern": "",
+    "program": "Ədliyyə Könüllüləri",
+    "note": "Ədliyyə Nazirliyinin könüllü-təcrübə proqramı; ixtisas və seçim şərtlərini yoxla.",
+    "volunteer_only": false,
+    "recruitment_only": false
+  },
+  {
+    "id": "food",
+    "name": "Könüllü Qida Nəzarətçisi / AQTA",
+    "scope": "local",
+    "url": "https://afsa.gov.az/az/agentlik/konulluluk/konulluluk-xeberler",
+    "mode": "listing",
+    "link_pattern": "/az/xeberler/[^/?]+/?$",
+    "program": "Könüllü Qida Nəzarətçisi / AQTA",
+    "note": "AQTA-nın könüllülük xəbərləri; yalnız açıq qəbul elanları emala buraxılır.",
+    "volunteer_only": true,
+    "recruitment_only": true,
+    "link_base": "https://afsa.gov.az/"
+  }
+]

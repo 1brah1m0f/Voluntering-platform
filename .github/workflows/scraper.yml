@@ -1,7 +1,7 @@
 name: Scrape Opportunities
 
 # Runs every day at 06:00 Baku time (02:00 UTC) to fetch new opportunities,
-# normalize them via Gemini AI, and save them as drafts in Supabase.
+# filter for Azerbaijan, parse locally, and save dated calls as drafts in Supabase.
 on:
   schedule:
     - cron: '0 2 * * *'
@@ -12,17 +12,18 @@ on:
         type: boolean
         default: false
       source:
-        description: 'Source to scrape'
+        description: 'Source id from scraper/sources/catalog.json, or all'
+        type: string
+        default: all
+      scope:
+        description: 'Source scope'
         type: choice
-        options:
-          - all
-          - salto
-          - youthop
+        options: [all, local, global]
         default: all
       limit:
         description: 'Maximum opportunities to crawl'
         type: number
-        default: 15
+        default: 5
 
 permissions:
   contents: read
@@ -46,15 +47,27 @@ jobs:
           pip install --upgrade pip
           pip install -r scraper/requirements.txt
 
+      - name: Test scraper rules
+        run: python -m unittest discover -s scraper/tests
+
       - name: Run Scraper Pipeline
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          INPUT_SOURCE: ${{ inputs.source || 'salto' }}
-          INPUT_LIMIT: ${{ inputs.limit || 15 }}
+          INPUT_SOURCE: ${{ inputs.source || 'all' }}
+          INPUT_SCOPE: ${{ inputs.scope || 'all' }}
+          INPUT_LIMIT: ${{ inputs.limit || 5 }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          args=(--source "$INPUT_SOURCE" --limit "$INPUT_LIMIT")
+          args=(--source "$INPUT_SOURCE" --scope "$INPUT_SCOPE" --limit "$INPUT_LIMIT")
           if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
-          python scraper/run.py "${args[@]}"
+          python -u scraper/run.py "${args[@]}"
+
+      - name: Upload collection reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: volunteering-source-reports
+          path: scraper/output/
+          if-no-files-found: ignore
+          retention-days: 14

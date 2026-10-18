@@ -1,20 +1,21 @@
 import json
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
 from .models import OpportunityModel, ScrapedRawItem, VALID_INTERESTS
+from .dates import stated_deadline
 
 class OpportunityNormalizer:
     """Transforms raw scraped text/HTML into a standardized Openly OpportunityModel."""
 
-    def __init__(self, gemini_api_key: Optional[str] = None, model_name: str = "gemini-2.5-flash-lite"):
-        self.api_key = gemini_api_key or os.getenv("GEMINI_API_KEY")
+    def __init__(self, gemini_api_key: Optional[str] = None, model_name: Optional[str] = None, use_ai: bool = False):
+        self.api_key = (gemini_api_key or os.getenv("GEMINI_API_KEY")) if use_ai else None
         self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
     def normalize(self, raw: ScrapedRawItem) -> OpportunityModel:
-        """Attempts Gemini AI extraction first; falls back to rule-based heuristics."""
+        """Uses local rules by default; Gemini requires explicit use_ai=True."""
         if self.api_key:
             try:
                 result = self._gemini_extract(raw)
@@ -102,10 +103,9 @@ Respond ONLY with a JSON object in this exact schema:
         text = raw.raw_text
 
         # Detect deadline (e.g. "Application deadline: 25 October 2026" or "Deadline: 2026-10-25")
-        deadline = self._find_date(text, r"(?:application\s+deadline|deadline)[\s:]+([^\n\r<]+)")
+        deadline = stated_deadline(text)
         if not deadline:
-            # Default to 30 days from now if not found
-            deadline = (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d")
+            raise ValueError("No stated application deadline; manual review required")
 
         # Detect country / venue
         country_match = re.search(r"(?:Venue|Location|Country)[\s:]+([A-Za-z\s]+)", text, re.IGNORECASE)
@@ -122,26 +122,20 @@ Respond ONLY with a JSON object in this exact schema:
             if "online" in text[:600].lower() or "zoom" in text[:600].lower():
                 is_online = True
             else:
-                country = "Beynəlxalq"
+                country = "Azərbaycan" if raw.source_scope == "local" else "Beynəlxalq"
 
-        # Detect program & organizer
-        if raw.source_name == "youthop":
-            program = "Youth Opportunities"
-            organizer = "International Partner"
-            if "Fulbright" in raw.raw_title:
-                program = "Fulbright"
-            elif "Erasmus" in text:
-                program = "Erasmus+"
-        else:
-            program = "SALTO-Youth"
-            organizer = "SALTO-Youth Network"
-            if "Erasmus" in text or "Erasmus+" in raw.raw_title:
-                program = "Erasmus+"
-            elif "Solidarity Corps" in text or "ESC" in text:
-                program = "European Solidarity Corps"
+        # Provider metadata must not label every new source as SALTO.
+        program = raw.source_program or ("Youth Opportunities" if raw.source_name == "youthop" else "SALTO-Youth")
+        organizer = ""  # An aggregator is not necessarily the organising institution.
+        if "Erasmus+" in text:
+            program = "Erasmus+"
+        elif "European Solidarity Corps" in text:
+            program = "European Solidarity Corps"
+        if raw.source_scope == 'local' and not country and not is_online:
+            country = 'Azərbaycan'
 
         # Detect kind
-        kind = "training"
+        kind = "training" if raw.source_name in ("salto", "youthop") else "volunteering"
         if is_online and ("webinar" in lower_title or "online" in lower_title):
             kind = "online"
         elif "youth exchange" in lower_title or "mübadilə" in lower_title:
