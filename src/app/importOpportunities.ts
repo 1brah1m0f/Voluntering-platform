@@ -19,9 +19,9 @@ export const DEFAULT_KIND: Kind = 'training';
  * Adjust the right-hand side if the label in the list is different.
  */
 const PROGRAM_ALIASES: Record<string, string> = {
-  salto: 'SALTO-YOUTH',
-  'salto youth': 'SALTO-YOUTH',
-  'salto-youth': 'SALTO-YOUTH',
+     salto: 'SALTO-Youth',
+   'salto youth': 'SALTO-Youth',
+   'salto-youth': 'SALTO-Youth',
   esc: 'European Solidarity Corps',
   erasmus: 'Erasmus+',
   'erasmus+': 'Erasmus+',
