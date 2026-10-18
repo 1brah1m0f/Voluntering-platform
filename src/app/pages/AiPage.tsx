@@ -1,3 +1,4 @@
+import TemplateChat from '../chat/TemplateChat';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, ClipboardCheck, PenLine, Search, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { AiQuota, useAiInfo } from '../AiTools';
@@ -101,6 +102,8 @@ export default function AiPage() {
         <p className="relative mt-2 max-w-2xl leading-relaxed text-violet-100 sm:text-lg">{h.sub}</p>
         {status === 'soon' && <p className="relative mt-4 max-w-2xl rounded-2xl bg-white/10 px-4 py-3 text-sm text-violet-50">{tx.ai.comingSoon}</p>}
       </header>
+
+      <TemplateChat />
 
       <AiQuota info={info} />
 
