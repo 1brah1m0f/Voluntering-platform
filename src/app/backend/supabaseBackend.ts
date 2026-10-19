@@ -30,6 +30,40 @@ export function createSupabaseBackend(sb: SupabaseClient): Backend {
   const uid = async () => (await sb.auth.getSession()).data.session?.user.id ?? null;
 
   return {
+    async listCommunity(query = {}) {
+      const { data, error } = await sb.rpc('search_community', {
+        search_text: query.search ?? '', profile_kind: query.kind ?? null,
+        relation: query.relation ?? null, person_id: query.personId ?? null, page_offset: query.offset ?? 0,
+      });
+      if (error) throw dbError(error);
+      return data ?? [];
+    },
+    async getSocialProfile(id) {
+      const { data, error } = await sb.from('community_profiles').select('*').eq('id', id).maybeSingle();
+      if (error) throw dbError(error);
+      return data;
+    },
+    async publishSocialProfile(input) {
+      const id = await uid();
+      if (!id) throw new BackendError('not_allowed');
+      const { error } = await sb.from('social_profiles').upsert({ ...input, id, display_name: input.display_name.trim() });
+      if (error) throw dbError(error);
+    },
+    async deleteSocialProfile() {
+      const id = await uid();
+      if (!id) throw new BackendError('not_allowed');
+      const { error } = await sb.from('social_profiles').delete().eq('id', id);
+      if (error) throw dbError(error);
+    },
+    async setFollowing(id, following) {
+      const follower = await uid();
+      if (!follower || follower === id) throw new BackendError('not_allowed');
+      const table = sb.from('profile_follows');
+      const { error } = following
+        ? await table.upsert({ follower_id: follower, following_id: id }, { onConflict: 'follower_id,following_id', ignoreDuplicates: true })
+        : await table.delete().eq('follower_id', follower).eq('following_id', id);
+      if (error) throw dbError(error);
+    },
     async listQuestions(scope) {
       const { data, error } = await sb.from('discussion_questions')
         .select('id, scope, author_name, title, body, created_at, answers:discussion_answers(id, question_id, author_name, body, created_at), stars:discussion_stars(user_id)')

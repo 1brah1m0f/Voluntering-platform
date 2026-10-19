@@ -1,3 +1,4 @@
+import type { SocialProfile, SocialProfileInput } from '../types';
 import type { Hackathon, HackathonEntry } from '../hackathons/types';
 import { DEMO_ACCOUNTS } from './demoAccounts';
 import { type Note, type Opportunity, type OpportunityInput, type Profile, type SavedItem, type SavedLetter, type SavedScholarship, type SavedSearch, type Scholarship, type ShortlistItem, type University, type UserRow } from '../types';
@@ -249,7 +250,55 @@ export function createDemoBackend(): Backend {
   // Demo users created before account types existed are regular accounts.
   const toProfile = ({ password: _pw, created_at: _c, ...p }: DemoUser): Profile => ({ ...p, account_type: p.account_type ?? 'regular', avatar_url: p.avatar_url ?? '', headline: p.headline ?? '', roadmap: p.roadmap ?? [], student_prefs: p.student_prefs ?? {}, prefs: p.prefs ?? {} });
 
+  const socialKey = 'openly_demo_social_profiles';
+  const followsKey = 'openly_demo_follows';
+  const socialRows = () => read<Array<SocialProfileInput & { id: string }>>(socialKey, []);
+  const followRows = () => read<Array<{ follower_id: string; following_id: string }>>(followsKey, []);
+  const socialProfile = (row: SocialProfileInput & { id: string }): SocialProfile => {
+    const follows = followRows();
+    return { ...row, followers_count: follows.filter(f => f.following_id === row.id).length,
+      following_count: follows.filter(f => f.follower_id === row.id).length,
+      is_following: follows.some(f => f.follower_id === session() && f.following_id === row.id) };
+  };
   return {
+    async listCommunity(query = {}) {
+      requireUser();
+      const follows = followRows();
+      return socialRows().filter(p =>
+        (!query.search || p.display_name.toLowerCase().includes(query.search.slice(0, 100).toLowerCase())) &&
+        (!query.kind || p.kind === query.kind) &&
+        (!query.relation || follows.some(f => query.relation === 'following'
+          ? f.follower_id === query.personId && f.following_id === p.id
+          : f.following_id === query.personId && f.follower_id === p.id)))
+        .sort((a, b) => a.display_name.localeCompare(b.display_name) || a.id.localeCompare(b.id))
+        .slice(query.offset ?? 0, (query.offset ?? 0) + 24).map(socialProfile);
+    },
+    async getSocialProfile(id) {
+      requireUser();
+      const row = socialRows().find(p => p.id === id);
+      return row ? socialProfile(row) : null;
+    },
+    async publishSocialProfile(input) {
+      const user = requireUser();
+      const display_name = input.display_name.trim();
+      if (!display_name || display_name.length > 80 || input.bio.length > 500 ||
+        !['volunteer', 'organization'].includes(input.kind) || input.avatar_url.length > 2048 ||
+        (input.avatar_url && !input.avatar_url.startsWith('https://'))) throw new BackendError('unknown');
+      const row = { id: user.id, display_name, bio: input.bio, avatar_url: input.avatar_url, kind: input.kind };
+      write(socialKey, [...socialRows().filter(p => p.id !== user.id), row]);
+    },
+    async deleteSocialProfile() {
+      const user = requireUser();
+      write(socialKey, socialRows().filter(p => p.id !== user.id));
+      write(followsKey, followRows().filter(f => f.follower_id !== user.id && f.following_id !== user.id));
+    },
+    async setFollowing(id, following) {
+      const user = requireUser();
+      if (id === user.id || !socialRows().some(p => p.id === user.id) || !socialRows().some(p => p.id === id)) throw new BackendError('not_allowed');
+      const rows = followRows().filter(f => !(f.follower_id === user.id && f.following_id === id));
+      if (following) rows.push({ follower_id: user.id, following_id: id });
+      write(followsKey, rows);
+    },
     async listQuestions(scope) {
       const rows = read<Array<DiscussionQuestion & { voters: string[] }>>('openly_demo_discussions_v1', []);
       return rows.filter(q => q.scope === scope).map(q => ({ ...q, stars: q.voters.length, starred: q.voters.includes(session() ?? '') }));
