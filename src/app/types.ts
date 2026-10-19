@@ -311,3 +311,23 @@ export class FreeLimitError extends Error {
 
 /** Returned by signUp when the account needs e-mail confirmation first. */
 export type SignUpResult = 'signed_in' | 'confirm_email';
+
+/** Explicitly published community information; never includes private account data. */
+export interface SocialProfile {
+  id: string;
+  display_name: string;
+  bio: string;
+  avatar_url: string;
+  kind: 'volunteer' | 'organization';
+  followers_count: number;
+  following_count: number;
+  is_following: boolean;
+}
+export type SocialProfileInput = Pick<SocialProfile, 'display_name' | 'bio' | 'avatar_url' | 'kind'>;
+export interface CommunityQuery {
+  search?: string;
+  kind?: SocialProfile['kind'];
+  relation?: 'followers' | 'following';
+  personId?: string;
+  offset?: number;
+}

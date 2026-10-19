@@ -1,3 +1,4 @@
+import type { SocialProfile, SocialProfileInput, CommunityQuery } from '../types';
 import type { Hackathon, HackathonInput, HackathonEntry, HackathonStage } from '../hackathons/types';
 import type { AcceptanceRequest, AccountType, AiRequest, Note, NoteColor, Opportunity, OpportunityInput, Peer, Plan, Profile, SavedItem, SavedLetter, SavedScholarship, SavedSearch, Scholarship, ShortlistItem, ShortlistStatus, SignUpResult, University, Status, UserRow } from '../types';
 
@@ -56,6 +57,12 @@ export interface DiscussionQuestion {
 }
 
 export interface Backend {
+  listCommunity(query?: CommunityQuery): Promise<SocialProfile[]>;
+  getSocialProfile(id: string): Promise<SocialProfile | null>;
+  publishSocialProfile(input: SocialProfileInput): Promise<void>;
+  deleteSocialProfile(): Promise<void>;
+  setFollowing(id: string, following: boolean): Promise<void>;
+
   /** Admin-only hackathon preview. Enforced by database RLS as well. */
   listHackathons(): Promise<Hackathon[]>;
   getHackathon(id: string): Promise<Hackathon | null>;
