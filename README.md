@@ -247,3 +247,37 @@ hackathons locally, without external registrations or emails.
 Validation: `npm run build` and `npm run test:security`. Browser verification covered
 all three discovery modes, create/edit/delete, persistent preparation stages,
 non-admin redirects, dark mode, and widths of 320, 768, 1024 and 1440 pixels.
+
+## Community and following
+
+Signed-in regular members and admins can open **Community** at `/app/community`;
+student members use `/student/community`. Both sections share the same community.
+The desktop navigation, regular mobile tabs and account profile pages link to it.
+
+Members explicitly create a community profile before appearing in discovery or
+following anyone. They choose a display name, short bio, volunteer/organization
+category and whether to share their account photo. Organization is a self-selected
+category, not a verification badge. Only these fields and follow connections are
+visible to other signed-in members; private account profiles, emails, applications
+and notes remain separate. Existing accounts are not automatically published.
+
+Discovery includes name search, category filters and pages of 24 profiles. Each
+community profile has follower/following lists, counts and a reversible follow
+button. Deleting a community profile removes all its incoming and outgoing follow
+connections without deleting the account. Demo mode persists the same flow in
+localStorage.
+
+For an existing database, apply
+`supabase/migrations/20261019113218_social_following.sql` before deploying the
+frontend. Fresh installs use the updated `supabase/app.sql`. No additional API
+keys or Edge Functions are required. The migration adds `social_profiles`,
+`profile_follows`, an invoker-security view and an invoker-security search function;
+RLS restricts profile writes and follow changes to their owners and blocks guests.
+
+Validation: `npm run build` and `npm run test:security` (including executable
+Postgres checks for opt-in privacy, impersonation, duplicate/self-follow, counts,
+search, unfollow and cascade deletion). Local Chrome verification covered profile
+creation, organization discovery, follow persistence after reload, follower lists,
+search input focus, student access and deletion, plus widths of 320, 768, 1024 and
+1440 pixels. This does not apply the migration to a hosted database or deploy the
+frontend.
