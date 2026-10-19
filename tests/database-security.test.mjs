@@ -241,3 +241,43 @@ test('legacy paid plans, admins and free student accounts all get exactly 10 AI 
     if (accountType === 'student') assert.deepEqual(await asUser(user, 'select public.is_student() as allowed'), [{ allowed: true }]);
   }
 });
+
+test('community is opt-in and never exposes private profile columns', async () => {
+  assert.deepEqual(await asUser(free, 'select * from public.community_profiles'), []);
+  await asUser(free, "insert into public.social_profiles(id, display_name) values ($1, 'Aysel')", [free]);
+  await asUser(peer, "insert into public.social_profiles(id, display_name, kind) values ($1, 'Youth Org', 'organization')", [peer]);
+  const rows = await asUser(free, 'select * from public.community_profiles order by display_name');
+  assert.equal(rows.length, 2);
+  for (const row of rows) {
+    assert.deepEqual(Object.keys(row).sort(), ['id', 'display_name', 'bio', 'avatar_url', 'kind', 'followers_count', 'following_count', 'is_following'].sort());
+  }
+  await assert.rejects(asUser(admin, "insert into public.social_profiles(id, display_name) values ($1, 'Impersonation')", [paid]), /row-level security/);
+  assert.deepEqual(await asUser(peer, "update public.social_profiles set display_name = 'Changed' where id = $1 returning id", [free]), []);
+  await db.exec('begin; set local role anon;');
+  try { await assert.rejects(db.query('select * from public.community_profiles'), /permission denied/); }
+  finally { await db.exec('rollback'); }
+});
+
+test('follow graph enforces ownership, unique relationships, counts and search', async () => {
+  await assert.rejects(asUser(free, 'insert into public.profile_follows(follower_id, following_id) values ($1, $1)', [free]), /check constraint/);
+  await assert.rejects(asUser(admin, 'insert into public.profile_follows(follower_id, following_id) values ($1, $2)', [peer, free]), /row-level security/);
+  await asUser(free, 'insert into public.profile_follows(follower_id, following_id) values ($1, $2) on conflict do nothing', [free, peer]);
+  await asUser(free, 'insert into public.profile_follows(follower_id, following_id) values ($1, $2) on conflict do nothing', [free, peer]);
+  const [target] = await asUser(free, 'select * from public.community_profiles where id = $1', [peer]);
+  assert.equal(target.followers_count, 1);
+  assert.equal(target.is_following, true);
+  assert.equal((await asUser(peer, 'select * from public.community_profiles where id = $1', [peer]))[0].is_following, false);
+  assert.equal((await asUser(free, 'select following_count from public.community_profiles where id = $1', [free]))[0].following_count, 1);
+  const following = await asUser(free, "select * from public.search_community('', null, 'following', $1, 0)", [free]);
+  assert.deepEqual(following.map(p => p.id), [peer]);
+  assert.deepEqual((await asUser(free, "select * from public.search_community('youth', 'organization')")).map(p => p.id), [peer]);
+  assert.equal((await asUser(free, "select * from public.search_community('%')")).length, 0);
+  assert.deepEqual(await asUser(peer, 'delete from public.profile_follows where follower_id = $1 returning follower_id', [free]), []);
+  assert.deepEqual(await asUser(peer, 'delete from public.social_profiles where id = $1 returning id', [free]), []);
+  await asUser(free, 'delete from public.profile_follows where follower_id = $1', [free]);
+  assert.equal((await asUser(free, 'select followers_count from public.community_profiles where id = $1', [peer]))[0].followers_count, 0);
+  await asUser(free, 'insert into public.profile_follows(follower_id, following_id) values ($1, $2)', [free, peer]);
+  await asUser(peer, 'delete from public.social_profiles where id = $1', [peer]);
+  assert.deepEqual(await asUser(free, 'select * from public.profile_follows'), []);
+  assert.equal((await asUser(free, 'select following_count from public.community_profiles where id = $1', [free]))[0].following_count, 0);
+});
