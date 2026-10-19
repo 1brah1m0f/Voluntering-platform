@@ -1,0 +1,33 @@
+export const communityText = {
+  az: {
+    title: 'İcma', intro: 'Dostlarını, könüllüləri və təşkilatları tap, əlaqədə qal.',
+    discover: 'Kəşf et', following: 'İzlədikləri', followers: 'İzləyicilər', all: 'Hamısı',
+    volunteer: 'Könüllü', organization: 'Təşkilat', search: 'Adla axtar', follow: 'İzlə', unfollow: 'İzləmədən çıx',
+    loading: 'Yüklənir…', error: 'Məlumat yüklənmədi. Yenidən yoxla.', retry: 'Yenidən yoxla',
+    empty: 'Hələ burada profil yoxdur.', more: 'Daha çox göstər', back: 'İcmaya qayıt',
+    publish: 'İcma profilini yarat', edit: 'İcma profilini redaktə et', name: 'Görünən ad', bio: 'Qısa məlumat',
+    kind: 'Profil növü', save: 'Yadda saxla', cancel: 'Ləğv et', remove: 'İcma profilini sil',
+    privacy: 'Adın, seçdiyin şəklin, qısa məlumatın və izləmə əlaqələrin daxil olmuş üzvlərə görünəcək. Emailin və müraciətlərin paylaşılmır.',
+    optIn: 'İzləmək və icmada görünmək üçün əvvəlcə icma profilini yarat.',
+    missing: 'Bu icma profili tapılmadı.', self: 'Sənin profilin', own: 'Profilim',
+    photo: 'Hesabımdakı profil şəklini paylaş', saved: 'Profil yadda saxlanıldı.',
+    confirm: 'İcma profilin və bütün izləmə əlaqələrin silinəcək. Davam edilsin?',
+    orgNote: 'Profil növü üzv tərəfindən seçilir; təşkilatın təsdiqləndiyini bildirmir.',
+  },
+  en: {
+    title: 'Community', intro: 'Find friends, volunteers and organizations. Stay connected.',
+    discover: 'Discover', following: 'Following', followers: 'Followers', all: 'All',
+    volunteer: 'Volunteer', organization: 'Organization', search: 'Search by name', follow: 'Follow', unfollow: 'Unfollow',
+    loading: 'Loading…', error: 'Could not load the information. Please try again.', retry: 'Try again',
+    empty: 'No profiles here yet.', more: 'Load more', back: 'Back to community',
+    publish: 'Create community profile', edit: 'Edit community profile', name: 'Display name', bio: 'Short bio',
+    kind: 'Profile type', save: 'Save', cancel: 'Cancel', remove: 'Delete community profile',
+    privacy: 'Your name, chosen photo, bio and follow connections will be visible to signed-in members. Your email and applications stay private.',
+    optIn: 'Create a community profile to follow others and appear in the community.',
+    missing: 'This community profile was not found.', self: 'Your profile', own: 'My profile',
+    photo: 'Share my account profile photo', saved: 'Profile saved.',
+    confirm: 'Your community profile and all follow connections will be deleted. Continue?',
+    orgNote: 'Profile type is selected by the member; it does not mean an organization is verified.',
+  },
+};
+export type CommunityText = typeof communityText.en;

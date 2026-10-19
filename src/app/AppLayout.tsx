@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Code2, Bookmark, Compass, BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
+import { UsersRound, Code2, Bookmark, Compass, BookOpen, CalendarDays, GraduationCap, House, ListChecks, LogOut, Map as MapIcon, Search, Shield, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { BRAND } from '../config';
 import { Logo } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
@@ -11,6 +11,7 @@ import { hackathonText } from './hackathons/text';
 import { DataProvider } from './DataContext';
 import { useAppText } from './text';
 import { Avatar, Spinner } from './ui';
+import { communityText } from './community/text';
 import { homeFor, isRegularOnly, isStudentOnly } from './plans';
 
 /** Durable activation messages are shared by the regular and student shells. */
@@ -68,6 +69,7 @@ export function StudentLayout() {
             {BRAND} <span className="hidden text-sm font-bold text-brand-700 sm:inline">Student</span>
           </Link>
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <Link to="/student/community" className="rounded-full px-2 py-2 text-sm font-semibold text-brand-700">{communityText[lang].title}</Link>
             <ThemeToggle />
             {/* Admins also use the regular app; students only have this section. */}
             {profile?.is_admin && (
@@ -153,6 +155,7 @@ export default function AppLayout() {
         ...(hackOnly ? [{ to: '/app/hackathons?saved=1', end: false, label: ht.savedOnly, Icon: Bookmark }] : [{ to: '/app/tracker', end: false, label: tx.nav.tracker, Icon: ListChecks }]),
         // The AI tools live on each opportunity page; this is their visible home.
         ...(hackOnly ? [] : [{ to: '/app/ai', end: false, label: tx.nav.ai, Icon: Sparkles, badge: '10/24h' }]),
+        { to: '/app/community', end: false, label: communityText[lang].title, Icon: UsersRound },
         { to: '/app/profile', end: false, label: tx.nav.profile, Icon: UserRound },
         // Opportunities and Users live under one Admin entry (tabs inside).
         ...(profile?.is_admin
@@ -170,7 +173,7 @@ export default function AppLayout() {
   // Phones (max 5 tabs): guests get the explore tabs; members their daily pages.
   // Guides are linked from the dashboard; admin pages are for desktop.
   const pick = (...paths: string[]) => paths.flatMap((p) => [...explore, ...mine].filter((i) => i.to === p));
-  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : hackOnly ? pick('/app/hackathons', '/app/hackathons?saved=1', '/app/profile', '/admin') : discovery === 'both' ? pick('/app/home', '/app', '/app/hackathons', '/app/tracker', '/app/profile') : pick('/app/home', '/app', '/app/map', '/app/tracker', '/app/profile');
+  const links = guest ? explore.filter((i) => i.to !== '/app/calendar') : hackOnly ? pick('/app/hackathons', '/app/hackathons?saved=1', '/app/profile', '/admin') : discovery === 'both' ? pick('/app/home', '/app', '/app/hackathons', '/app/tracker', '/app/profile') : pick('/app/home', '/app', '/app/community', '/app/tracker', '/app/profile');
   const activeFor = (item: NavItem, isActive: boolean) => {
     if (item.to.startsWith('/app/hackathons')) {
       const savedTab = item.to.includes('?saved=1');

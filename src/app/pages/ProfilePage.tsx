@@ -1,5 +1,6 @@
+import { communityText } from '../community/text';
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Bell, Briefcase, Camera, Globe, Heart, IdCard, KeyRound, Languages, Loader2, LogOut, Plus, Route, Settings, SlidersHorizontal, Sparkles, StickyNote, UserRound, Wrench } from 'lucide-react';
 import { NotesBoard } from '../Notes';
 import { NewPasswordForm } from './AuthPages';
@@ -115,6 +116,8 @@ export default function ProfilePage({ onboarding = false }: { onboarding?: boole
       ) : (
         <ProfileHeader progress={completeness(profile).percent} stats={stats} />
       )}
+
+      {!onboarding && <Link to="/app/community" className="btn-secondary mt-4 text-sm">{communityText[lang].title} →</Link>}
 
       {!onboarding && (
         // Six tabs don't fit in one row on any screen: two rows of three.

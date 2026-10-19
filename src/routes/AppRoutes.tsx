@@ -26,6 +26,7 @@ const StudentProfilePage = lazy(() => import('../app/student/StudentProfile'));
 const GuidesPage = lazy(() => import('../app/pages/LearnPages').then((m) => ({ default: m.GuidesPage })));
 const GuidePage = lazy(() => import('../app/pages/LearnPages').then((m) => ({ default: m.GuidePage })));
 const ProgramPage = lazy(() => import('../app/pages/LearnPages').then((m) => ({ default: m.ProgramPage })));
+const CommunityPage = lazy(() => import('../app/community/CommunityPage'));
 const ProfilePage = lazy(() => import('../app/pages/ProfilePage'));
 const AdminListPage = lazy(() => import('../app/pages/AdminPages').then((m) => ({ default: m.AdminListPage })));
 const AdminUsersPage = lazy(() => import('../app/pages/AdminUsersPage'));
@@ -54,6 +55,8 @@ export default function AppRoutes() {
               <Route element={<RequireStudentAuth />}>
                 <Route element={<StudentLayout />}>
                   <Route path="/student" element={<StudentPage />} />
+                  <Route path="/student/community" element={<CommunityPage />} />
+                  <Route path="/student/community/:id" element={<CommunityPage />} />
                   <Route path="/student/profile" element={<StudentProfilePage />} />
                 </Route>
               </Route>
@@ -73,6 +76,8 @@ export default function AppRoutes() {
                   <Route path="/app/tracker" element={<TrackerPage />} />
                   <Route path="/app/ai" element={<AiPage />} />
                   <Route path="/app/cv" element={<CvPage />} />
+                  <Route path="/app/community" element={<CommunityPage />} />
+                  <Route path="/app/community/:id" element={<CommunityPage />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
                   <Route path="/app/welcome" element={<ProfilePage onboarding />} />
                   <Route path="/app/premium" element={<Navigate to="/app/profile?tab=premium" replace />} />

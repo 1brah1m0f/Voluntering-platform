@@ -1,3 +1,4 @@
+import { communityText } from '../community/text';
 import { useLang } from '../../i18n';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
@@ -54,6 +55,7 @@ export default function StudentProfilePage() {
         {s.backToHub}
       </Link>
       <ProfileHeader />
+      <Link to="/student/community" className="btn-secondary mt-4 text-sm">{communityText[lang].title} →</Link>
 
       <form onSubmit={submit} className="mt-6 space-y-5 rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7">
         <div>
