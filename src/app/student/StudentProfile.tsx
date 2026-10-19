@@ -12,7 +12,7 @@ import { Field, Spinner, inputClass } from '../ui';
 
 /** /student/profile — the student account's own page: details, plan and password. */
 export default function StudentProfilePage() {
-  const { tx } = useAppText();
+  const { tx, lang } = useAppText();
   const s = tx.student;
   const { profile, setProfile } = useAuth();
   const uid = useId();
