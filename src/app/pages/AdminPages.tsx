@@ -9,6 +9,7 @@ import { useAppText } from '../text';
 import type { Costs, Kind, Opportunity, OpportunityInput } from '../types';
 import { Chip, DeadlineChip, ErrorState, Field, ProgramBadge, Spinner, inputClass } from '../ui';
 import { formatDate } from '../util';
+import JsonImportButton from './JsonImportButton';
 
 /** "Opportunities | Users" switch shown at the top of the admin pages. */
 export function AdminTabs() {
@@ -84,10 +85,13 @@ export function AdminListPage() {
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-[2.75rem] sm:leading-[1.1]">{tx.admin.title}</h1>
           <p className="mt-1 text-slate-600 sm:mt-2 sm:text-lg">{tx.admin.sub}</p>
         </div>
-        <Link to="/admin/new" className="btn-primary shrink-0 self-start !py-2.5 sm:self-auto">
-          <Plus className="h-5 w-5" aria-hidden="true" />
-          {tx.admin.add}
-        </Link>
+        <div className="flex shrink-0 flex-wrap gap-2 self-start sm:self-auto">
+    <JsonImportButton />
+    <Link to="/admin/new" className="btn-primary shrink-0 !py-2.5">
+    <Plus className="h-5 w-5" aria-hidden="true" />
+    {tx.admin.add}
+  </Link>
+</div>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
